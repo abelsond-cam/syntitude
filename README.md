@@ -7,7 +7,7 @@ the **position they hold in the genome** rather than by the sequence identity th
 
 | page | what it is |
 |---|---|
-| `index.html` | the front door |
+| `index.html` | a redirect to the default catalogue, `kp.html` |
 | `ecoli.html` | *Escherichia coli* — 17,531 loci, 489,146 genes, 100 genomes |
 | `kp.html` | *Klebsiella pneumoniae* — 15,670 loci, 532,851 genes, 100 genomes |
 
