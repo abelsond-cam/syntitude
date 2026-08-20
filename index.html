@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Syntitude.org — pangenome navigator</title>
+<style>
+/* The tokens are lifted from the browser's own app.css so the front door and the instrument are one design
+   system rather than two. Monospace carries the identity, as it does there: sequence data is monospaced by
+   nature, and the wordmark should look like the thing it opens. */
+:root {
+    --paper:#eef1f7; --panel:#ffffff; --panel-2:#f7f9fc;
+    --ink:#0b1220; --ink-2:#3a4658; --ink-3:#6b7789;
+    --rule:#d5dde9; --rule-2:#e6ebf3;
+    --ramp-hi:#0f4c9a; --ramp-lo:#8c2432; --teal:#0d6e63; --anchor:#3d86cf; --anchor-wash:#e8f1fb;
+    --mono: ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans: ui-sans-serif,-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    --s2:8px; --s3:12px; --s4:18px; --s5:28px; --s6:44px; --maxw:960px;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --paper:#070b12; --panel:#0f1622; --panel-2:#141d2c;
+        --ink:#e6ecf5; --ink-2:#a9b6c9; --ink-3:#74829a;
+        --rule:#212c3e; --rule-2:#19222f;
+        --ramp-hi:#5b9bf0; --ramp-lo:#b84250; --teal:#4fbfae; --anchor:#6fb0f2; --anchor-wash:#14243a;
+    }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+       font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:var(--maxw); margin:0 auto; padding:0 var(--s5); }
+.bar { border-bottom:1px solid var(--rule); background:var(--panel); }
+.bar .wrap { display:flex; align-items:baseline; gap:var(--s3); padding-top:var(--s4); padding-bottom:var(--s4); }
+.mark { font-family:var(--mono); font-size:19px; font-weight:600; letter-spacing:-0.01em; }
+.mark span { color:var(--ink-3); font-weight:400; }
+.mark-sub { font-size:13px; letter-spacing:0.04em; text-transform:uppercase; }
+main { padding:var(--s6) 0 var(--s5); }
+h1 { font-size:clamp(24px,3.4vw,34px); line-height:1.25; margin:0 0 var(--s4); text-wrap:balance; font-weight:600; }
+.lede { color:var(--ink-2); max-width:64ch; margin:0 0 var(--s4); }
+.lede b { color:var(--ink); font-weight:600; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--s4); margin:var(--s6) 0 var(--s5); }
+.card { display:block; text-decoration:none; color:inherit; background:var(--panel);
+        border:1px solid var(--rule); border-radius:3px; padding:var(--s5);
+        border-left:3px solid var(--anchor); transition:border-color .12s, transform .12s; }
+.card:hover, .card:focus-visible { border-color:var(--anchor); transform:translateY(-2px); outline:none; }
+.card:focus-visible { box-shadow:0 0 0 3px var(--anchor-wash); }
+.card h2 { font-size:17px; margin:0 0 var(--s2); font-style:italic; font-weight:600; }
+.card .n { font-family:var(--mono); font-size:13px; color:var(--ink-2); display:flex; flex-wrap:wrap; gap:var(--s3);
+           font-variant-numeric:tabular-nums; }
+.card .n b { color:var(--ink); font-weight:600; }
+.card .go { margin-top:var(--s4); font-family:var(--mono); font-size:12px; letter-spacing:0.06em;
+            text-transform:uppercase; color:var(--anchor); }
+.note { border-top:1px solid var(--rule-2); padding-top:var(--s4); color:var(--ink-3); font-size:13.5px; max-width:70ch; }
+.note + .note { border-top:0; padding-top:0; margin-top:calc(-1 * var(--s2)); }
+a { color:var(--ramp-hi); }
+code { font-family:var(--mono); font-size:0.92em; color:var(--ink-2); }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap">
+    <div class="mark">Syntitude<span>.org</span></div>
+    <div class="mark mark-sub"><span>pangenome navigator</span></div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <h1>Genes grouped by the position they hold, not the identity they share.</h1>
+
+    <p class="lede">
+      A pangenome tool built on sequence identity has a floor — Panaroo will not merge below 70&nbsp;%
+      amino-acid identity, Roary below 95&nbsp;%. Genes that diverge past it become separate families however
+      obviously they are the same thing, and those are not a random sample of the genome: they are the loci
+      under diversifying selection — surface antigens, capsule biosynthesis, flagellin, fimbrial adhesins,
+      anti-phage defence.
+    </p>
+    <p class="lede">
+      A <b>Nuna locus</b> is defined differently: <b>a position in the genome that a genome must fill</b>,
+      whose occupants may share no detectable sequence homology at all. Whether that is better described as
+      one locus with several alleles, or as several genes, is the open question — so each page shows the
+      evidence rather than asserting the answer.
+    </p>
+
+    <div class="cards">
+      <a class="card" href="ecoli.html">
+        <h2>Escherichia coli</h2>
+        <div class="n"><span><b>17,531</b> loci</span><span><b>489,146</b> genes</span><span><b>100</b> genomes</span></div>
+        <div class="go">Open the browser &rarr;</div>
+      </a>
+      <a class="card" href="kp.html">
+        <h2>Klebsiella pneumoniae</h2>
+        <div class="n"><span><b>15,670</b> loci</span><span><b>532,851</b> genes</span><span><b>100</b> genomes</span></div>
+        <div class="go">Open the browser &rarr;</div>
+      </a>
+    </div>
+
+    <p class="note">
+      <b>A research prototype.</b> Each page is built from one clustering model over one probe cohort, and
+      carries that model's own provenance and accessory-fidelity audit in its footer — including its
+      residuals. Nothing on a page is re-derived for display. The model is named there, not here, so the two
+      cannot drift apart.
+    </p>
+    <p class="note">
+      Each page is one self-contained file of roughly 12&nbsp;MB, so the first load is slow and everything
+      after it is instant — there are no further requests. Best on a wide screen.
+    </p>
+  </div>
+</main>
+</body>
+</html>

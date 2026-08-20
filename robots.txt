@@ -1,0 +1,6 @@
+# Reachable by anyone with the link; kept out of search results (David, 2026-08-20).
+# The pages are a research prototype whose numbers change when the model does, and an indexed
+# snapshot outlives the model it describes. Delete this file AND the `noindex` meta in
+# nuna's render_page.py::_DOC to reverse — a cached page cannot be un-crawled, so both must go.
+User-agent: *
+Disallow: /
