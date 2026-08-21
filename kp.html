@@ -56,6 +56,10 @@
     --s5: 28px;
     --s6: 44px;
     --maxw: 1240px;
+    /* the right-hand evidence column. ONE fact: `.work` lays the grid out with it and the mark centres
+       itself over it, so the two cannot drift apart into a pair of numbers that happen to agree. */
+    --side-w: 340px;
+    --mark-size: 76px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -283,23 +287,26 @@ a {
     gap: 4px;
 }
 
-/* The mark, at the right edge of the strip that names the microbe and counts its pangenome (David,
-   2026-08-21). `margin-left: auto` rather than a fixed position, so it is pushed to the edge by whatever the
-   census happens to be that day and cannot land on top of it; on a narrow window the strip wraps and the mark
-   goes with it. Decorative — the alt text is in the SVG's own aria-label, and it navigates nowhere, because
-   the only place it could go is the page the reader is already on. */
+/* The mark, on the strip that names the microbe and counts its pangenome (David, 2026-08-21). `margin-left:
+   auto` pushes it right; the `margin-right` then brings it back in so its centre lands on the centre of the
+   evidence column below — both expressed from --side-w, so it is one alignment rather than two numbers that
+   agree until someone changes the grid. On a narrow window that column is gone, so the offset goes with it.
+
+   Decorative: the alt text is in the SVG's own aria-label, and it navigates nowhere, because the only place
+   it could go is the page the reader is already on. */
 .brand-mark {
     margin-left: auto;
+    margin-right: calc(var(--side-w) / 2 - var(--mark-size) / 2);
     align-self: center;
     flex: 0 0 auto;
     line-height: 0;
 }
 
 .brand-mark svg {
-    width: 58px;
-    height: 58px;
+    width: var(--mark-size);
+    height: var(--mark-size);
     display: block;
-    border-radius: 13px;
+    border-radius: calc(var(--mark-size) * 0.22);
 }
 
 .pg-line {
@@ -766,23 +773,62 @@ a {
     --notch: 5px; /* the arrow point, shallowed from 11px: the lanes carry direction now, this corroborates */
 
     position: relative;
-    padding-right: 112px;
+    padding-right: 132px;
 }
 
+/* The band's label AND its colour key. The key used to sit in the legend under the track, three rows away
+   from the bars it described (David, 2026-08-21); a reader checking what a colour meant had to leave the
+   thing they were reading. Now it stands beside them, and what remains below is only the two channels with
+   nowhere on the track to live.
+
+   Centred on the band rather than aligned to its top: the block is ~74px tall and the band row is ~26px, so
+   an anchored top would hang the whole key below the strands it belongs to. */
 .band-note {
     position: absolute;
     right: 0;
-    width: 98px;
+    width: 118px;
     margin: 0;
-    /* level with grid row 3 of every slot: the scroller's top padding, then the two rows above the band */
-    top: calc(var(--s2) + var(--label-h) + var(--block-h) + 4px);
-    padding-left: var(--s2);
-    border-left: 2px solid var(--rule);
+    top: calc(var(--s2) + var(--label-h) + var(--block-h) - 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
     font-family: var(--mono);
-    font-size: 10.5px;
+    font-size: 10px;
     line-height: 1.3;
     color: var(--ink-3);
     pointer-events: none;
+}
+
+.band-title {
+    color: var(--ink-2);
+}
+
+.band-key {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+}
+
+/* Maroon at the top, blue at the bottom, from the SAME two tokens `.block .fill` mixes between — so the key
+   cannot drift from the track it describes, in either theme. Twice the height it had as a plain rule, which
+   is what makes it read as a ramp rather than a border. */
+.band-ramp {
+    flex: 0 0 auto;
+    width: 8px;
+    border-radius: 2px;
+    background: linear-gradient(to bottom, var(--ramp-lo), var(--ramp-hi));
+}
+
+.band-ends {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 54px;
+    font-size: 9px;
+}
+
+.band-ends em {
+    font-style: normal;
 }
 
 /* ---- the track's geometry ----
@@ -1363,7 +1409,7 @@ a {
 /* ============================================================================ working area */
 .work {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
     gap: var(--s5);
     align-items: start;
     padding: var(--s5) 0 var(--s6);
@@ -1372,6 +1418,11 @@ a {
 @media (max-width: 940px) {
     .work {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* no second column to centre over any more, so the mark goes back to the edge */
+    .brand-mark {
+        margin-right: 0;
     }
 }
 
@@ -2508,16 +2559,21 @@ td.fam-sym {
       <div class="track-scroll">
         <div id="track" class="track"></div>
       </div>
-      <p class="band-note">Graph divergence at nodes</p>
+      <div class="band-note">
+        <span class="band-title">Graph divergence at nodes</span>
+        <span class="band-key">
+          <i class="band-ramp" aria-hidden="true"></i>
+          <span class="band-ends"><em>divergent</em><em>always this one</em></span>
+        </span>
+      </div>
     </div>
     <div id="pop" class="pop" role="dialog" aria-label="Position detail" hidden></div>
     <div id="tip" class="tip" role="tooltip" hidden></div>
+    <!-- The divergence ramp is NOT here any more: it moved up beside the band it describes (David,
+         2026-08-21), where a reader looking at the bars can read the key without leaving them. What stays
+         below the track is the two channels that have no home on it — the white blocks, and the alpha that
+         every block carries at once. -->
     <div class="scale">
-      <span class="legend">graph divergence</span>
-      <span>divergent</span>
-      <span id="swatches" class="swatches"></span>
-      <span>always this one</span>
-      <span class="scale-gap"></span>
       <span class="legend">white = intergenic</span>
       <span class="scale-gap"></span>
       <span class="legend">transparency = genome penetrance at node</span>
