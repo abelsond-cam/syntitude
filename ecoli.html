@@ -781,14 +781,15 @@ a {
    thing they were reading. Now it stands beside them, and what remains below is only the two channels with
    nowhere on the track to live.
 
-   Centred on the band rather than aligned to its top: the block is ~74px tall and the band row is ~26px, so
-   an anchored top would hang the whole key below the strands it belongs to. */
+   Centred on the band rather than aligned to its top: the block is ~101px tall and the band row is ~26px, so
+   an anchored top would hang the whole key below the strands it belongs to. The offset is half the block's
+   height less half the band's — change --band-ends height and this follows. */
 .band-note {
     position: absolute;
     right: 0;
     width: 118px;
     margin: 0;
-    top: calc(var(--s2) + var(--label-h) + var(--block-h) - 24px);
+    top: calc(var(--s2) + var(--label-h) + var(--block-h) - 38px);
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -819,11 +820,13 @@ a {
     background: linear-gradient(to bottom, var(--ramp-lo), var(--ramp-hi));
 }
 
+/* The ramp has no height of its own — it stretches to this, so the bar and the words that label its ends
+   are one measurement. 81px (David, 2026-08-21): half again on the 54px it launched at. */
 .band-ends {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 54px;
+    height: 81px;
     font-size: 9px;
 }
 
