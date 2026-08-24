@@ -10,7 +10,7 @@
    Monospace carries the identity (ids, accessions, counts, the wordmark): sequence data is monospaced by nature.
    Every colour is a token so the two themes are one system; the consistency ramp is mixed in oklab from
    --ramp-hi/--ramp-lo, so it re-derives itself per theme instead of being hard-coded twice.
-   Consistency is carried by hue alone (--ramp-lo maroon = variable, --ramp-hi blue = invariant); --anchor is
+   Consistency is carried by hue alone (--ramp-lo purple = variable, --ramp-hi blue = invariant); --anchor is
    the separate accent that ties the focal gene to the card describing it. */
 
 :root {
@@ -22,14 +22,47 @@
     --ink-3: #6b7789;
     --rule: #d5dde9;
     --rule-2: #e6ebf3;
-    --ramp-hi: #0f4c9a;
-    --ramp-lo: #8c2432;
+    /* ⛔ The divergence ramp is BLUE -> PURPLE, and the reason is arithmetic, not taste (David, 2026-08-24:
+       blue->maroon "leaves a bit of a clash"). `color-mix(in oklab, ...)` interpolates in RECTANGULAR Lab, so
+       the midpoint of two equal-chroma ends sits at `C x cos(half the hue gap)`. Blue->maroon spans 120.5deg,
+       collapsing the middle of the ramp to **0.50 x C** — a grey-mauve mud that reads as a third colour
+       rather than as a midpoint. Blue->purple spans 52.6deg and holds **0.90 x C** the whole way.
+
+       Both ends carry the SAME OKLab L and C (0.500 / 0.204 light, 0.685 / 0.146 dark): the purple IS the
+       blue with its hue rotated from 262deg to 310deg and nothing else touched. The ramp is therefore a pure
+       hue rotation carrying no lightness step of its own, which leaves the ALPHA (genome penetrance) as the
+       only thing changing a block's tone. That was the ask.
+
+       ⛔ The preserved end is a ROYAL blue, not a navy (David, 2026-08-24: *"the same needs to be a more
+       royal / true blue rather than a navy so that there is better distinction for preserved nodes"*). The
+       old `#0f4c9a` sat at L 0.428 and read as near-black at full penetrance, so the invariant nodes — the
+       ones a reader most wants to pick out — were the least distinguishable things on the track. L went
+       0.428 -> 0.500 and C 0.141 -> 0.204, and BOTH ends moved together: raising only the blue would have
+       reintroduced exactly the lightness step this ramp exists not to have.
+
+       Chroma is 88 % of the tightest gamut edge the two hues share, so neither end clips on a wide-gamut
+       display. White block text sits at 6.3:1 on the preserved end and 6.7:1 on the divergent one — the
+       constraint that set the ceiling on L, since `.block.pale` only takes over below 0.45 penetrance. */
+    --ramp-hi: #1657d5;
+    --ramp-lo: #8630b7;
     --teal: #0d6e63;
     --gold: #8a5f10;
     --rust: #a83a2a;
-    --focus: #0f4c9a;
-    --anchor: #3d86cf;
-    --anchor-wash: #e8f1fb;
+    --focus: #1657d5;
+    /* ⛔ The focal locus is the SAIL ORANGE from the Syntitude mark (David, 2026-08-24) — hull `#E2794C`,
+       sails `#EFBD97` / `#FADFC7`. It outlines the focal block, fills it, and carries through to the chosen
+       arrangement chip, its fan line and its row in the A0 card: one colour for one relationship.
+
+       Derived, not picked: L and C are the previous blue anchor's EXACTLY (0.608 / 0.133 light, 0.740 / 0.117
+       dark), with only the hue moved to the logo's 43deg. Same visual weight, same contrast — the wash still
+       carries --ink at 16:1 — so nothing about legibility moved with the hue. It also now sits OFF the
+       divergence ramp's blue-purple axis entirely, which is what stops the subject of the page reading as a
+       point on the very scale that describes its neighbours.
+
+       ⚠ A dark green (H160: `#149a66` / `#e7f4ec` light, `#60c291` / `#0b2a1c` dark) is the standing
+       alternative — same derivation, one hue different. */
+    --anchor: #c3643b;
+    --anchor-wash: #faede7;
 
     /* the neighbourhood map's categorical set: BLACK focal (an emphasis, not a category) + five hues chosen
        against the dataviz validator, not by eye — worst adjacent CVD dE 22.0 (deutan). The rendered PNG
@@ -72,14 +105,14 @@
         --ink-3: #74829a;
         --rule: #212c3e;
         --rule-2: #19222f;
-        --ramp-hi: #5b9bf0;
-        --ramp-lo: #b84250;
+        --ramp-hi: #6798f3;
+        --ramp-lo: #b57edd;
         --teal: #4fbfae;
         --gold: #d6a94a;
         --rust: #ec9081;
-        --focus: #5b9bf0;
-        --anchor: #6fb0f2;
-        --anchor-wash: #14243a;
+        --focus: #6798f3;
+        --anchor: #e9916e;
+        --anchor-wash: #361b10;
 
         /* Lifted for a dark ground: the PNG set is committed to white paper, and #4daf4a / #d9a400 are exactly the
        two that fail the dark-surface band. Same hue order, so rank 3 is still green. */
@@ -103,14 +136,14 @@
     --ink-3: #74829a;
     --rule: #212c3e;
     --rule-2: #19222f;
-    --ramp-hi: #5b9bf0;
-    --ramp-lo: #b84250;
+    --ramp-hi: #6798f3;
+    --ramp-lo: #b57edd;
     --teal: #4fbfae;
     --gold: #d6a94a;
     --rust: #ec9081;
-    --focus: #5b9bf0;
-    --anchor: #6fb0f2;
-    --anchor-wash: #14243a;
+    --focus: #6798f3;
+    --anchor: #e9916e;
+    --anchor-wash: #361b10;
 
     /* Lifted for a dark ground: the PNG set is committed to white paper, and #4daf4a / #d9a400 are exactly the
        two that fail the dark-surface band. Same hue order, so rank 3 is still green. */
@@ -132,14 +165,14 @@
     --ink-3: #6b7789;
     --rule: #d5dde9;
     --rule-2: #e6ebf3;
-    --ramp-hi: #0f4c9a;
-    --ramp-lo: #8c2432;
+    --ramp-hi: #1657d5;
+    --ramp-lo: #8630b7;
     --teal: #0d6e63;
     --gold: #8a5f10;
     --rust: #a83a2a;
-    --focus: #0f4c9a;
-    --anchor: #3d86cf;
-    --anchor-wash: #e8f1fb;
+    --focus: #1657d5;
+    --anchor: #c3643b;
+    --anchor-wash: #faede7;
 
     /* the neighbourhood map's categorical set: BLACK focal (an emphasis, not a category) + five hues chosen
        against the dataviz validator, not by eye — worst adjacent CVD dE 22.0 (deutan). The rendered PNG
@@ -637,15 +670,59 @@ a {
    between them. Each option is a real set of genomes; the ↺ marks one displayed reverse-complemented. */
 /* below the track, with the rest of the prose: the switcher describes what is drawn above it, and putting it
    overhead pushed the instrument itself off the top of the section */
+/* ---- the arrangement switcher, anchored under the focal gene ----
+   The wrap is the SVG's offset parent, so the fan's coordinates need no page-scroll term and survive vertical
+   scrolling for free. */
+.arr-wrap {
+    position: relative;
+    margin-top: var(--s3);
+}
+
+.arr-fan {
+    display: block;
+    width: 100%;
+    height: 0; /* set from JS to reach the option row; 0 until there is something to join */
+    overflow: visible;
+    pointer-events: none;
+}
+
+.fan-line {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+}
+
+/* The chosen arrangement's line is the one drawn on the track above, so it reads as the live connection and
+   the rest as the alternatives on offer. `--anchor`, matching the focal block and the chosen chip: one colour
+   for one relationship, at both ends of the line and along it. */
+.fan-line.on {
+    stroke: var(--anchor);
+    stroke-width: 1.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .fan-line {
+        transition: stroke 0.15s ease;
+    }
+}
+
 .arr-switch {
-    margin-top: var(--s4);
+    margin-top: 0;
 }
 
 .arr-switch:empty {
     display: none;
 }
 
-.arr-head,
+/* The sentence sits UNDER the buttons now (David, 2026-08-23): the fan points at the options, so the options
+   have to be the first thing beneath the gene, and a paragraph above would push them a line further away and
+   break the line the fan is drawing. */
+.arr-head {
+    margin: var(--s2) 0 0;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
 .arr-only {
     margin: 0 0 var(--s2);
     font-size: 12.5px;
@@ -658,10 +735,20 @@ a {
     color: var(--ink);
 }
 
+/* Centred, so the options sit under the middle of the page — where `centreFocal` has just put the gene they
+   belong to (David, 2026-08-23). Left-aligned they read as a toolbar for the whole track. */
 .arr-row {
     display: flex;
+    justify-content: center;
     gap: 6px;
     flex-wrap: wrap;
+}
+
+/* the sentence under them is centred with them, or it reads as belonging to the next thing down the page */
+.arr-head,
+.arr-only,
+.arr-flip {
+    text-align: center;
 }
 
 .arr-opt {
@@ -682,11 +769,16 @@ a {
     border-color: color-mix(in oklab, var(--ramp-hi) 45%, var(--rule));
 }
 
+/* ⛔ The SAME blue as the focal gene. `--anchor` outlines the focal block and `--anchor-wash` fills it, so the
+   gene under examination is the one washed block on a track of ramp colours; giving the chosen arrangement the
+   identical treatment says the two are one object — this neighbourhood belongs to that gene (David,
+   2026-08-23). It was near-black `--ink` before, which read as "selected control" rather than as a
+   relationship to anything on the track. */
 .arr-opt.on {
-    border-color: var(--ink);
-    background: var(--panel);
+    border-color: var(--anchor);
+    background: var(--anchor-wash);
     color: var(--ink);
-    box-shadow: inset 0 0 0 1px var(--ink);
+    box-shadow: inset 0 0 0 1px var(--anchor);
 }
 
 .arr-top {
@@ -886,6 +978,23 @@ a {
 
 .slot > .block {
     grid-row: 2;
+    /* ⛔ A grid item's default `min-width: auto` floors it at its MIN-CONTENT width, and for a border-box
+       button that includes the 26px of horizontal padding below. So every block narrower than 26px — which is
+       every short intergenic region, drawn at the 6px floor — rendered at 26px and spilled ~20px to the RIGHT,
+       painting over the downstream gene (David, 2026-08-23: "all the short IGR are currently overlapping the
+       downstream genes"). The slot itself was always the correct width; only the button overflowed it, which
+       is why the track's spacing looked right while the ink did not.
+
+       Worked example, Kp drpB–rnaY: a 42 nt gap, 6px of slot, drawn as ~26px of white over rnaY. */
+    min-width: 0;
+}
+
+/* Below `narrow` the locus id and product are already hidden (see `.slot.narrow .lid`), so the padding that
+   was reserving room for them is reserving room for nothing — and on a 6px block it is four times the box.
+   Dropping it is what lets a short IGR draw at its true 6px instead of at the padding's width. */
+.slot.narrow > .block {
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .slot > .mid {
@@ -946,7 +1055,8 @@ a {
    single genome. Any ramp colour here would invite a reader to interpret a number that does not exist; blank
    says "this space is here, and we have not typed it". It spans rows 2-4 because it IS the space between the
    two strands, not a third thing sitting on one of them. */
-.slot.gap > .block {
+.slot.gap > .block,
+.slot.joint > .block {
     /* From HALFWAY UP the forward boxes to HALFWAY DOWN the reverse ones (David, 2026-08-21), so it crosses
        the occupancy bars rather than stopping short of them. Spanning the full rows and insetting by half a
        block at each end keeps it tied to --block-h: change the box height and the white block follows,
@@ -966,9 +1076,12 @@ a {
 }
 
 /* ---- the seam: two genes that meet or overlap ----
-   NOT a white block. White means open intergenic space, and 18.8% of adjacent pairs on this cohort overlap at
-   a median of 4 bases — which is 0.4px and could never be a width. So the fact gets a MARK instead: a narrow
-   vertical seam in the page's own ink, unmistakable for the pale open-space blocks either side of it. */
+   ⛔ NOT AN INTERGENIC REGION, and since 2026-08-21 it does not carry one of their classes either (David:
+   "there should not be a region here at all"). Where two genes meet there is no space, so there is nothing to
+   call a region and nothing to put in one — 0 of the 4,632 / 4,232 overlapping-or-abutting adjacencies in
+   this cohort carry a named feature, which is true by construction. What survives is a MARK: 20% of adjacent
+   pairs overlap at a median of 4 bases, which is 0.4px and could never be a width, so the fact is stated as a
+   narrow vertical seam in the page's own ink — unmistakable for the pale open-space blocks either side. */
 .slot.joint .fill {
     background: repeating-linear-gradient(
         135deg,
@@ -980,6 +1093,68 @@ a {
     border-left: 1px solid var(--ink-3);
     border-right: 1px solid var(--ink-3);
     clip-path: none;
+}
+
+/* ---- the IGR size-variance channel (schema 12) ----
+   White = every genome carries the same length; yellow = they do not. Drawn as a translucent OVERLAY on the
+   white fill rather than as a replacement colour, so a variance-coloured gap still reads as the same object
+   as an uncoloured one — it is the same block, tinted. `--v` is set per block by app.js and is 0 when the
+   payload has no score, so the rule is inert until the toggle is on AND a score exists.
+
+   A linear-gradient of one flat colour is used instead of `color-mix` deliberately: this page is one
+   self-contained file that has to render wherever it is opened, and a background-image layer needs nothing
+   newer than the rest of the stylesheet already assumes. */
+.track.igr-var .slot.gap .fill {
+    background-image: linear-gradient(
+        rgba(232, 168, 20, var(--v, 0)),
+        rgba(232, 168, 20, var(--v, 0))
+    );
+}
+
+@media (prefers-color-scheme: dark) {
+    .track.igr-var .slot.gap .fill {
+        /* Warmer and brighter on a dark ground: the same hue at the same alpha over a dark panel reads as
+           brown rather than as the yellow the legend promises. */
+        background-image: linear-gradient(
+            rgba(255, 198, 60, var(--v, 0)),
+            rgba(255, 198, 60, var(--v, 0))
+        );
+    }
+}
+
+.toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle input {
+    margin: 0;
+    cursor: pointer;
+}
+
+.igr-ramp {
+    display: inline-block;
+    width: 54px;
+    height: 9px;
+    border: 1px solid var(--ink-3);
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--panel), rgb(232, 168, 20));
+}
+
+@media (prefers-color-scheme: dark) {
+    .igr-ramp {
+        background: linear-gradient(to right, var(--panel), rgb(255, 198, 60));
+    }
+}
+
+.igr-ends {
+    display: inline-flex;
+    gap: 0.5em;
+    font-style: italic;
+    color: var(--ink-3);
 }
 
 .slot.gap .fill {
@@ -1062,7 +1237,7 @@ a {
     outline-offset: -1px;
     /* TWO ORTHOGONAL AXES, one block:
          HUE   (--c) = how often THIS gene holds the position, against the divergent genes that occupy it in
-                       other genomes — deep blue when it always does, maroon (a hotspot of variance) when it
+                       other genomes — deep blue when it always does, purple (a hotspot of variance) when it
                        rarely does. Its denominator is the genomes that have a gene here at all, so a perfectly
                        ordinary block reads 20 in 100.
          ALPHA (--p) = how many genomes this part of the graph COVERS. Not every locus reaches the whole
@@ -1373,11 +1548,12 @@ a {
     font-weight: 700;
 }
 
+/* Above the track since 2026-08-23 — these are keys for reading the blocks, so they come before the blocks. */
 .scale {
     display: flex;
     align-items: center;
     gap: var(--s2);
-    margin-top: var(--s3);
+    margin: var(--s3) 0 var(--s2);
     font-family: var(--mono);
     font-size: 10.5px;
     color: var(--ink-3);
@@ -2424,6 +2600,40 @@ td.fam-sym {
 .tile.sep-warn .v {
     color: var(--gold);
 }
+
+/* The size-variance sentence on a gap card. Its own line rather than a clause on the median sentence: a
+   median and a spread about the mode are different statistics over the same genomes, and run together they
+   read as one confused claim. */
+.gap-var {
+    margin: 0.35rem 0 0;
+    color: var(--ink-2);
+    font-size: 13px;
+}
+
+/* The arrangement drawn on the track, called out in the A0 card the same way it is called out on the chip and
+   on the fan line — the reader should be able to find the same neighbourhood in three places by its colour. */
+.alt-on {
+    background: var(--anchor-wash);
+    box-shadow: inset 2px 0 0 var(--anchor);
+}
+
+.pop-lede {
+    margin: 0 0 var(--s2);
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.pop-lede b {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+/* "loci:" / "per genome:" — names which partition the run of figures beside it belongs to. Both lines count
+   the same catalogue and neither is a restatement of the other, so each says which one it is. */
+.pg-label {
+    color: var(--ink-3);
+    padding-right: 0.15em;
+}
 </style>
 </head>
 <body>
@@ -2558,6 +2768,30 @@ td.fam-sym {
   <div class="wrap">
     <h2 class="panel-head">Structural locus browser</h2>
     <div id="trail" class="trail"></div>
+    <!-- The channel keys sit ABOVE the track (David, 2026-08-23). They describe how to read the blocks, so a
+         reader meets them before the thing they explain rather than after scrolling past it — and it frees the
+         space directly under the track for the arrangement switcher, which now has to be there because it is
+         anchored to the focal gene. -->
+    <div class="scale">
+      <span class="legend">white = intergenic</span>
+      <!-- The IGR variance channel is OFF by default and stays a toggle, because it colours the one thing on
+           the track that is deliberately uncoloured. A white block means "not a Nuna locus, we have not typed
+           it"; switching this on overloads it with a second meaning, which is fine while a reader has asked
+           for it and misleading while they have not. The toggle hides itself on a payload older than schema
+           12 — see app.js — rather than colouring everything white, which would be indistinguishable from
+           "measured, and nothing varies". -->
+      <label class="toggle" id="igr-var-wrap" hidden>
+        <input type="checkbox" id="igr-var">
+        <span>IGR size variance</span>
+        <i class="igr-ramp" aria-hidden="true"></i>
+        <span class="igr-ends"><em>identical</em><em>varies</em></span>
+      </label>
+      <span class="scale-gap"></span>
+      <span class="legend">transparency = genome penetrance at node</span>
+      <span>few</span>
+      <span id="swatches-pen" class="swatches"></span>
+      <span>all</span>
+    </div>
     <div class="track-frame">
       <div class="track-scroll">
         <div id="track" class="track"></div>
@@ -2572,19 +2806,15 @@ td.fam-sym {
     </div>
     <div id="pop" class="pop" role="dialog" aria-label="Position detail" hidden></div>
     <div id="tip" class="tip" role="tooltip" hidden></div>
-    <!-- The divergence ramp is NOT here any more: it moved up beside the band it describes (David,
-         2026-08-21), where a reader looking at the bars can read the key without leaving them. What stays
-         below the track is the two channels that have no home on it — the white blocks, and the alpha that
-         every block carries at once. -->
-    <div class="scale">
-      <span class="legend">white = intergenic</span>
-      <span class="scale-gap"></span>
-      <span class="legend">transparency = genome penetrance at node</span>
-      <span>few</span>
-      <span id="swatches-pen" class="swatches"></span>
-      <span>all</span>
+    <!-- The arrangement switcher, ANCHORED UNDER THE FOCAL GENE (David, 2026-08-23). The neighbourhoods are
+         choices for that one locus, and the old full-width row below the page did not say so — it read as a
+         property of the track. The fan is an SVG drawn from the focal block's live screen position down to
+         each option, redrawn on scroll and resize, because the track scrolls horizontally and the gene moves
+         under a panel that does not. -->
+    <div class="arr-wrap">
+      <svg id="arr-fan" class="arr-fan" aria-hidden="true" focusable="false"></svg>
+      <div id="arrangements" class="arr-switch"></div>
     </div>
-    <div id="arrangements" class="arr-switch"></div>
   </div>
 </section>
 
@@ -2714,7 +2944,7 @@ td.fam-sym {
       Prototype built from a single <em>Escherichia coli</em> clustering. Every number on this page is read from that
       model's own output and its accessory-fidelity audit &mdash; nothing is re-derived for display.
     </p>
-    <dl><div><dt>representation</dt><dd>bacformer</dd></div><div><dt>provenance</dt><dd>3 run manifests (read, not decoded)</dd></div><div><dt>step 1 · dedup</dt><dd>MMseqs2 --min-seq-id 0.98 -c 0.95 (coverage = pipeline default, not in run_id)</dd></div><div><dt>step 2 · merge over families</dt><dd>esm · γ 0.98 · k100 · ρ off · excl(h) off</dd></div><div><dt>step 3 · split within groups</dt><dd>bacformer · γ 0.5 · k100 · ρ ≤ 1 pairwise_max</dd></div><div><dt>step 4 · merge over a prior partition</dt><dd>bacformer · γ 0.1 · k100 · ρ ≤ 1 ceiling · excl(h) on</dd></div><div><dt>merge algorithm</dt><dd>CPM (leidenalg CPMVertexPartition)</dd></div><div><dt>graph construction</dt><dd>density(s) · ρ≤1 · explode(mᵢmⱼ) · excl(h)</dd></div><div><dt>seed</dt><dd>0</dd></div><div><dt>model</dt><dd>ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0</dd></div><div><dt>built</dt><dd>2026-08-21</dd></div><div><dt>code</dt><dd>8babc54</dd></div></dl>
+    <dl><div><dt>representation</dt><dd>bacformer</dd></div><div><dt>provenance</dt><dd>3 run manifests (read, not decoded)</dd></div><div><dt>step 1 · dedup</dt><dd>MMseqs2 --min-seq-id 0.98 -c 0.95 (coverage = pipeline default, not in run_id)</dd></div><div><dt>step 2 · merge over families</dt><dd>esm · γ 0.98 · k100 · ρ off · excl(h) off</dd></div><div><dt>step 3 · split within groups</dt><dd>bacformer · γ 0.5 · k100 · ρ ≤ 1 pairwise_max</dd></div><div><dt>step 4 · merge over a prior partition</dt><dd>bacformer · γ 0.1 · k100 · ρ ≤ 1 ceiling · excl(h) on</dd></div><div><dt>merge algorithm</dt><dd>CPM (leidenalg CPMVertexPartition)</dd></div><div><dt>graph construction</dt><dd>density(s) · ρ≤1 · explode(mᵢmⱼ) · excl(h)</dd></div><div><dt>seed</dt><dd>0</dd></div><div><dt>model</dt><dd>ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0</dd></div><div><dt>built</dt><dd>2026-08-23</dd></div><div><dt>code</dt><dd>8272cd2</dd></div></dl>
     <details class='foot-detail'><summary>Accessory-fidelity audit &mdash; what was counted against this model</summary><dl><div><dt>clusters graded</dt><dd>17,531</dd></div><div><dt>genes</dt><dd>489,146</dd></div><div><dt>synteny only — no homology by mmseqs</dt><dd>8 clusters</dd></div><div><dt>synteny only, as a gene rate</dt><dd>0.0335%</dd></div><div><dt>Pfam conflict</dt><dd>42 clusters</dd></div><div><dt>loci Pfam can judge (≥2 annotated members)</dt><dd>9,297 clusters</dd></div><div><dt>UniRef50 family split across loci</dt><dd>3.26% of genes</dd></div><div><dt>rescued by ESM homology</dt><dd>138 clusters</dd></div></dl><p class='muted'>Read verbatim from ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL_pfam_concordance.tsv, ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL_audit_summary.json. <b>Synteny only</b> means no homology mmseqs, Pfam or ESM could find &mdash; the members were grouped on genomic context. That names the evidence, not a mistake: many are good calls, and the way to tell is the evidence beside each one. Clusters rescued by Pfam or by ESM are homologous and are not counted here.</p></details>
     <details class='foot-detail'><summary>Every locus grouped on context alone (10)</summary><p class='muted'>No sequence, Pfam or ESM homology behind the grouping &mdash; genomic context is all there was. Worth looking at every one: this is where the model is doing something an identity threshold cannot, and also where it would go wrong. Each is one click away.</p><div class='goto-list'><button type="button" class="goto-row" data-goto="4976"><b>ydcD</b> <span class="lid">&middot;4976</span><span class="goto-ev">shell · 32 genes · 3 UniRef50 · 0 architectures · A5 0.35 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="5169"><b>spaO</b> <span class="lid">&middot;5169</span><span class="goto-ev">shell · 27 genes · 3 UniRef50 · 1 architectures · A5 0.64 · ESM 0.97/0.99</span></button><button type="button" class="goto-row" data-goto="5296"><b>locus 5296</b> <span class="lid">&middot;5296</span><span class="goto-ev">shell · 24 genes · 3 UniRef50 · 0 architectures · A5 0.78 · ESM 0.97/0.99</span></button><button type="button" class="goto-row" data-goto="5413"><b>locus 5413</b> <span class="lid">&middot;5413</span><span class="goto-ev">shell · 22 genes · 2 UniRef50 · 0 architectures · A5 0.66 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5479"><b>locus 5479</b> <span class="lid">&middot;5479</span><span class="goto-ev">shell · 21 genes · 6 UniRef50 · 3 architectures · A5 0.57 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5580"><b>yffB</b> <span class="lid">&middot;5580</span><span class="goto-ev">shell · 20 genes · 7 UniRef50 · 0 architectures · A5 0.30 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="6764"><b>locus 6764</b> <span class="lid">&middot;6764</span><span class="goto-ev">cloud · 10 genes · 2 UniRef50 · 1 architectures · A5 0.40 · ESM 0.97/0.97</span></button><button type="button" class="goto-row" data-goto="10252"><b>locus 10252</b> <span class="lid">&middot;10252</span><span class="goto-ev">cloud · 2 genes · 2 UniRef50 · 1 architectures · A5 0.60 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="10515"><b>locus 10515</b> <span class="lid">&middot;10515</span><span class="goto-ev">cloud · 2 genes · 1 UniRef50 · 0 architectures · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="17237"><b>locus 17237</b> <span class="lid">&middot;17237</span><span class="goto-ev">cloud · 8 genes · 2 UniRef50 · 1 architectures · A5 1.00 · ESM 1.00/1.00</span></button></div></details><details class='foot-detail'><summary>Every Pfam conflict (42)</summary><p class='muted'>The annotated members carry domain architectures with no clan in common &mdash; evidence against the merge, but not a verdict: an HMM can miss homology ESM sees, and a locus whose members are all phage targets or all pilus variants is <em>expected</em> to look varied. A different domain order and a missing domain are both excluded before this count. Judge each against its synteny and its ESM pair.</p><div class='goto-list'><button type="button" class="goto-row" data-goto="1"><b>yjjJ</b> <span class="lid">&middot;1</span><span class="goto-ev">core · 100 genes · 5 UniRef50 · 4 architectures · A5 0.52 · ESM 0.98/0.97</span></button><button type="button" class="goto-row" data-goto="3374"><b>wzy</b> <span class="lid">&middot;3374</span><span class="goto-ev">shell · 92 genes · 29 UniRef50 · 4 architectures · A5 0.18 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="3433"><b>ybiA</b> <span class="lid">&middot;3433</span><span class="goto-ev">shell · 87 genes · 3 UniRef50 · 2 architectures · A5 0.95 · ESM 1.00/0.92</span></button><button type="button" class="goto-row" data-goto="3435"><b>hokG</b> <span class="lid">&middot;3435</span><span class="goto-ev">shell · 87 genes · 4 UniRef50 · 3 architectures · A5 0.69 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="3976"><b>locus 3976</b> <span class="lid">&middot;3976</span><span class="goto-ev">shell · 52 genes · 4 UniRef50 · 2 architectures · A5 0.91 · ESM 1.00/0.92</span></button><button type="button" class="goto-row" data-goto="4056"><b>gam</b> <span class="lid">&middot;4056</span><span class="goto-ev">shell · 49 genes · 4 UniRef50 · 2 architectures · A5 0.70 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4064"><b>locus 4064</b> <span class="lid">&middot;4064</span><span class="goto-ev">shell · 48 genes · 3 UniRef50 · 2 architectures · A5 0.46 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="4105"><b>ymjC</b> <span class="lid">&middot;4105</span><span class="goto-ev">shell · 47 genes · 2 UniRef50 · 2 architectures · A5 0.70 · ESM 1.00/0.91</span></button><button type="button" class="goto-row" data-goto="4106"><b>waaU</b> <span class="lid">&middot;4106</span><span class="goto-ev">shell · 47 genes · 2 UniRef50 · 2 architectures · A5 0.88 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4193"><b>nanK2</b> <span class="lid">&middot;4193</span><span class="goto-ev">shell · 44 genes · 3 UniRef50 · 2 architectures · A5 0.64 · ESM 1.00/0.93</span></button><button type="button" class="goto-row" data-goto="4220"><b>yagP</b> <span class="lid">&middot;4220</span><span class="goto-ev">shell · 43 genes · 2 UniRef50 · 2 architectures · A5 0.53 · ESM 1.00/0.93</span></button><button type="button" class="goto-row" data-goto="4379"><b>locus 4379</b> <span class="lid">&middot;4379</span><span class="goto-ev">shell · 39 genes · 7 UniRef50 · 4 architectures · A5 0.70 · ESM 0.99/0.93</span></button><button type="button" class="goto-row" data-goto="4382"><b>locus 4382</b> <span class="lid">&middot;4382</span><span class="goto-ev">shell · 39 genes · 4 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="4567"><b>ylbF</b> <span class="lid">&middot;4567</span><span class="goto-ev">shell · 36 genes · 4 UniRef50 · 2 architectures · A5 0.40 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4568"><b>locus 4568</b> <span class="lid">&middot;4568</span><span class="goto-ev">shell · 36 genes · 8 UniRef50 · 5 architectures · A5 0.56 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="4571"><b>ret</b> <span class="lid">&middot;4571</span><span class="goto-ev">shell · 36 genes · 3 UniRef50 · 2 architectures · A5 0.91 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="4707"><b>locus 4707</b> <span class="lid">&middot;4707</span><span class="goto-ev">shell · 35 genes · 2 UniRef50 · 2 architectures · A5 0.97 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="4977"><b>papB</b> <span class="lid">&middot;4977</span><span class="goto-ev">shell · 32 genes · 7 UniRef50 · 2 architectures · A5 0.23 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="5102"><b>yagA</b> <span class="lid">&middot;5102</span><span class="goto-ev">shell · 29 genes · 4 UniRef50 · 3 architectures · A5 0.34 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="5479"><b>locus 5479</b> <span class="lid">&middot;5479</span><span class="goto-ev">shell · 21 genes · 6 UniRef50 · 3 architectures · A5 0.57 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5492"><b>kfiD</b> <span class="lid">&middot;5492</span><span class="goto-ev">shell · 21 genes · 3 UniRef50 · 2 architectures · A5 0.42 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5563"><b>locus 5563</b> <span class="lid">&middot;5563</span><span class="goto-ev">shell · 20 genes · 2 UniRef50 · 2 architectures · A5 0.93 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="5573"><b>tnp</b> <span class="lid">&middot;5573</span><span class="goto-ev">shell · 20 genes · 2 UniRef50 · 3 architectures · A5 0.48 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="5583"><b>locus 5583</b> <span class="lid">&middot;5583</span><span class="goto-ev">shell · 20 genes · 3 UniRef50 · 2 architectures · A5 0.51 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="5616"><b>locus 5616</b> <span class="lid">&middot;5616</span><span class="goto-ev">shell · 19 genes · 3 UniRef50 · 3 architectures · A5 0.43 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="5673"><b>deoR</b> <span class="lid">&middot;5673</span><span class="goto-ev">shell · 18 genes · 4 UniRef50 · 2 architectures · A5 0.54 · ESM 1.00/0.94</span></button><button type="button" class="goto-row" data-goto="5727"><b>rloB</b> <span class="lid">&middot;5727</span><span class="goto-ev">shell · 17 genes · 4 UniRef50 · 3 architectures · A5 0.33 · ESM 0.98/0.97</span></button><button type="button" class="goto-row" data-goto="5839"><b>rfbG</b> <span class="lid">&middot;5839</span><span class="goto-ev">shell · 16 genes · 4 UniRef50 · 4 architectures · A5 0.33 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5841"><b>locus 5841</b> <span class="lid">&middot;5841</span><span class="goto-ev">shell · 16 genes · 8 UniRef50 · 5 architectures · A5 0.24 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="5849"><b>locus 5849</b> <span class="lid">&middot;5849</span><span class="goto-ev">shell · 16 genes · 2 UniRef50 · 2 architectures · A5 0.61 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5858"><b>finQ</b> <span class="lid">&middot;5858</span><span class="goto-ev">shell · 16 genes · 3 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="5988"><b>araC</b> <span class="lid">&middot;5988</span><span class="goto-ev">shell · 15 genes · 2 UniRef50 · 2 architectures · A5 0.62 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="6119"><b>insB</b> <span class="lid">&middot;6119</span><span class="goto-ev">cloud · 14 genes · 3 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.94</span></button><button type="button" class="goto-row" data-goto="6269"><b>locus 6269</b> <span class="lid">&middot;6269</span><span class="goto-ev">cloud · 13 genes · 2 UniRef50 · 2 architectures · A5 0.61 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="6418"><b>locus 6418</b> <span class="lid">&middot;6418</span><span class="goto-ev">cloud · 12 genes · 5 UniRef50 · 3 architectures · A5 0.24 · ESM 0.98/0.97</span></button><button type="button" class="goto-row" data-goto="6449"><b>mrr</b> <span class="lid">&middot;6449</span><span class="goto-ev">cloud · 12 genes · 3 UniRef50 · 2 architectures · A5 0.26 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="6566"><b>locus 6566</b> <span class="lid">&middot;6566</span><span class="goto-ev">cloud · 11 genes · 2 UniRef50 · 2 architectures · A5 0.55 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="7058"><b>locus 7058</b> <span class="lid">&middot;7058</span><span class="goto-ev">cloud · 9 genes · 3 UniRef50 · 3 architectures · A5 0.53 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="7778"><b>aMBF1</b> <span class="lid">&middot;7778</span><span class="goto-ev">cloud · 6 genes · 4 UniRef50 · 3 architectures · A5 0.39 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="8044"><b>locus 8044</b> <span class="lid">&middot;8044</span><span class="goto-ev">cloud · 5 genes · 2 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="9002"><b>locus 9002</b> <span class="lid">&middot;9002</span><span class="goto-ev">cloud · 3 genes · 2 UniRef50 · 2 architectures · A5 0.56 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="17308"><b>yeeT</b> <span class="lid">&middot;17308</span><span class="goto-ev">cloud · 11 genes · 3 UniRef50 · 2 architectures · A5 0.24 · ESM 1.00/0.99</span></button></div></details>
     <p class="muted"></p>
@@ -2776,6 +3006,43 @@ window.nunaBoot = function (P) {
         return m;
     })();
     var GAPOFF = GAPS ? prefix(GAPS.fn) : null;
+    /* ---- IGR size variance (payload schema 12) ----
+       A SPARSE triple — `vi` (gap index), `vd` (score x1000), `vmd` (that gap's mode) — over the gaps that
+       vary at all. ~87% score exactly zero, so absence from the index IS the "identical in every genome"
+       case, and it is the majority. The score is 1000 x the mean, over genomes, of |length - mode| / |mode|:
+       one number carrying BOTH how often a region varies and by how much, which is what a single colour
+       channel can honestly encode.
+
+       ⛔ The DISPLAY CURVE lives here and not in the export, so it can be retuned without an hour of CSD3 for
+       a fact the model does not depend on. It has to be non-linear: among the regions that vary at all the
+       median score is 0.014 and the 90th centile is 0.52, so a linear ramp would leave nine varying regions
+       in ten indistinguishable from the 86% that do not vary at all — the exact distinction the colour
+       exists to draw. sqrt against a 0.5 ceiling spreads that mass across the ramp.
+
+       ⚠ 0 stays exactly 0. White has to mean "identical in every genome", never "small". */
+    var VAR_FULL = 0.5; // score at which the ramp saturates; ~4-7% of varying regions reach it
+    // Must match `intergenic.VAR_FLOOR_NT`. Only used to turn the score back into bases for the hover text —
+    // the colour never needs it — but if the two drift, the sentence stops describing the tint beside it.
+    var VAR_FLOOR_NT = 20;
+    var HAS_VAR = !!(GAPS && GAPS.vi && GAPS.vd && GAPS.vmd);
+    // gap index -> its position in the sparse arrays. Built once; a linear scan per block would be O(n^2)
+    // over a track that is re-rendered on every navigation.
+    var VARAT = (function () {
+        if (!HAS_VAR) return null;
+        var m = {};
+        for (var i = 0; i < GAPS.vi.length; i++) m[GAPS.vi[i]] = i;
+        return m;
+    })();
+    function gapVarRaw(k) {
+        if (!HAS_VAR) return null; // not measured — distinct from measured-and-zero, and must stay so
+        var i = VARAT[k];
+        return i === undefined ? 0 : GAPS.vd[i] / 1000;
+    }
+    function gapVar(k) {
+        var v = gapVarRaw(k);
+        if (!(v > 0)) return 0;
+        return Math.min(1, Math.sqrt(v / VAR_FULL));
+    }
 
     function gapBetween(x, y) {
         if (!GAPS || x < 0 || y < 0) return null;
@@ -3302,17 +3569,46 @@ window.nunaBoot = function (P) {
     }
 
     /* ---- the pangenome census: prevalence bands, counted over loci ---- */
+    /* The pangenome in two partitions of the same catalogue: by LOCUS and by GENE.
+       They answer different questions and the old summary only ever gave the first. "17,531 loci, 5,458 of
+       them singletons" says a third of the catalogue is one-offs; "4,891 genes per genome, 55 of them
+       one-offs" says a typical genome barely meets them. Both are true, and a reader given only the locus
+       count reasonably concludes the wrong thing about what is in a genome.
+
+       Bands are `prevalence.categorise`: 0 core (>=99%), 1 soft_core (>=95%), 2 shell (>=15%), 3 cloud
+       (>=2 genomes), 4 singleton. "core" here is the HEADLINE core, 0+1 = present in >=95% (definitions.md);
+       "accessory" is shell + cloud together. Both sub-totals are kept so the hover can break them out —
+       collapsing them in the display is a presentation choice, not a loss of the numbers. */
     function pangenome() {
-        var n = [0, 0, 0, 0, 0];
-        for (var z = 0; z < NLOCI; z++) n[N.band[z]]++;
-        // "core" is the headline pangenome core = core + soft_core = present in >=95% of genomes
-        // (definitions.md); shell, cloud and singletons are the remaining bands as prevalence.categorise
-        // defines them.
+        var loci = [0, 0, 0, 0, 0],
+            genes = [0, 0, 0, 0, 0],
+            tot = 0;
+        for (var z = 0; z < NLOCI; z++) {
+            var b = N.band[z],
+                sz = N.size[z] || 0;
+            loci[b]++;
+            genes[b] += sz;
+            tot += sz;
+        }
         return {
-            core: n[0] + n[1],
-            shell: n[2],
-            cloud: n[3],
-            singletons: n[4],
+            loci: loci,
+            genes: genes,
+            total: tot,
+            core: loci[0] + loci[1],
+            accessory: loci[2] + loci[3],
+            shell: loci[2],
+            cloud: loci[3],
+            singletons: loci[4],
+            // per genome. The three parts sum to the whole by construction, because every gene sits in
+            // exactly one locus and every locus in exactly one band.
+            perGenome: NGEN
+                ? {
+                      genes: tot / NGEN,
+                      core: (genes[0] + genes[1]) / NGEN,
+                      accessory: (genes[2] + genes[3]) / NGEN,
+                      singletons: genes[4] / NGEN,
+                  }
+                : null,
         };
     }
 
@@ -3320,30 +3616,83 @@ window.nunaBoot = function (P) {
         var host = document.getElementById("pangenome-lines");
         if (!host) return;
         var g = pangenome();
+
+        // one "N label" run, with its own hover — each figure gets to say what it counted
+        function stats(line, items) {
+            items.forEach(function (p, k) {
+                if (k) line.appendChild(el("span", "pg-sep", "·"));
+                var s = el("span", "pg-stat");
+                s.appendChild(el("b", null, p[0]));
+                s.appendChild(document.createTextNode(" " + p[1]));
+                if (p[2]) tip(s, p[2]);
+                line.appendChild(s);
+            });
+            return line;
+        }
+        function n(v) {
+            return Math.round(v).toLocaleString();
+        }
+
         var a = el("div", "pg-line");
-        [
-            [NGEN, "genomes"],
-            [g.core, "core"],
-            [g.shell, "shell"],
-            [g.cloud, "cloud"],
-            [g.singletons, "singletons"],
-        ].forEach(function (p, k) {
-            if (k) a.appendChild(el("span", "pg-sep", "·"));
-            var s = el("span", "pg-stat");
-            s.appendChild(el("b", null, p[0].toLocaleString()));
-            s.appendChild(document.createTextNode(" " + p[1]));
-            a.appendChild(s);
-        });
-        a.title =
-            "Loci by prevalence band: core = present in >=95% of genomes, shell >=15%, cloud >=2 genomes, " +
-            "singletons in exactly one.";
+        stats(a, [
+            [NGEN.toLocaleString(), "genomes"],
+            [P.meta.n_genes.toLocaleString(), "genes modelled"],
+        ]);
         host.appendChild(a);
+
+        // ---- by LOCUS
         var b = el("div", "pg-line pg-sub");
         b.appendChild(el("b", null, NLOCI.toLocaleString()));
-        b.appendChild(document.createTextNode(" loci · "));
-        b.appendChild(el("b", null, P.meta.n_genes.toLocaleString()));
-        b.appendChild(document.createTextNode(" genes modelled"));
+        b.appendChild(el("span", "pg-label", " loci:"));
+        stats(b, [
+            [
+                g.core.toLocaleString(),
+                "core",
+                "present in at least 95% of genomes",
+            ],
+            [
+                g.accessory.toLocaleString(),
+                "accessory",
+                "shell (>=15% of genomes) " +
+                    g.shell.toLocaleString() +
+                    " + cloud (2 genomes to <15%) " +
+                    g.cloud.toLocaleString(), // fmt: skip
+            ],
+            [
+                g.singletons.toLocaleString(),
+                "singletons",
+                "found in exactly one genome",
+            ],
+        ]);
         host.appendChild(b);
+
+        // ---- by GENE, per genome. ⚠ A different partition of the SAME catalogue, not a restatement of the
+        // line above: a third of the loci are singletons, and a typical genome carries about fifty of them.
+        if (!g.perGenome) return;
+        var c = el("div", "pg-line pg-sub");
+        c.appendChild(el("span", "pg-label", "per genome:"));
+        stats(c, [
+            [n(g.perGenome.genes), "genes", "total genes modelled ÷ genomes"],
+            [
+                n(g.perGenome.core),
+                "core",
+                "genes sitting in loci present in >=95% of genomes",
+            ],
+            [
+                n(g.perGenome.accessory),
+                "accessory",
+                "genes sitting in shell or cloud loci",
+            ],
+            // ⚠ "singletons", not "other" — it IS the singleton band, and the locus line above already calls
+            // it that. Two names for one band across two adjacent lines is what made a reader have to work out
+            // that they were the same thing (David, 2026-08-23).
+            [
+                n(g.perGenome.singletons),
+                "singletons",
+                "genes in loci found in exactly one genome — the same band the locus line counts, seen per genome",
+            ],
+        ]);
+        host.appendChild(c);
     }
 
     /* the species picker: this page holds one catalogue, so a switch is a navigation, not a filter */
@@ -3494,7 +3843,7 @@ window.nunaBoot = function (P) {
         // slot's own builder without one of them knowing about the other.
         var row = [];
         for (var j = 0; j <= NSLOT; j++) {
-            if (j === NSLOT / 2) row.push([focalSlot(i), i]);
+            if (j === NSLOT / 2) row.push([focalSlot(i, list, a), i]);
             if (j === NSLOT) break;
             row.push([neighbourSlot(i, j, a), occupantAt(i, j, a)]);
         }
@@ -3509,6 +3858,22 @@ window.nunaBoot = function (P) {
         }
         trackEl.appendChild(f);
         renderArrangements(i, list, a);
+        centreFocal();
+    }
+
+    /* Put the focal gene under the middle of the page, so the switcher centred below it really is beneath it
+       (David, 2026-08-23). The gene is the middle SLOT, but slots are as wide as their genes, so the middle
+       slot is not at the middle of the track's own width — five long genes one side and five short ones the
+       other push it a long way off. Only a scroll can centre it.
+
+       Clamped by the browser when the track is narrower than its scroller, in which case there is nothing to
+       centre and the fan does the work of tying the two together instead. */
+    function centreFocal() {
+        var scroll = document.querySelector(".track-scroll"),
+            slot = trackEl.querySelector(".slot.focal");
+        if (!scroll || !slot || slot.offsetLeft == null) return;
+        scroll.scrollLeft =
+            slot.offsetLeft + slot.offsetWidth / 2 - scroll.clientWidth / 2;
     }
 
     function foot(label, sub) {
@@ -3572,11 +3937,22 @@ window.nunaBoot = function (P) {
         return null;
     }
 
-    /* The focal position used to have no bar, because the occupant of A0 is the focal locus in every member
-       gene by construction — a bar of occupants there would read 100% and say nothing.
-       What IS contested at A0 is which SEQUENCE fills it: the UniRef50 families this one locus holds. That is
-       the claim the whole page exists to make, it is the same grammar as every other bar (how the member genes
-       split at this position), and it puts it in the centre column where the reader is already looking. */
+    /* ---- the focal bar: how the member genes split between NEIGHBOURHOODS ----
+
+       The occupant of A0 is the focal locus in every member gene by construction, so a bar of occupants there
+       would read 100% and say nothing. Two things are genuinely contested at A0, and this bar has carried both
+       in turn: the UniRef50 families filling the locus (until 2026-08-23) and — now — which ARRANGEMENT each
+       member gene sits in.
+
+       Arrangements won it because the switcher is directly beneath, so the bar and the buttons are one object:
+       the bar shows the split, the buttons let you pick a slice of it, and the fan joins them to the gene they
+       both describe. Same grammar as every other bar on the track — how the member genes split — and the same
+       denominator, `N.size[i]`, which is what makes the segment widths comparable with the `%` each chip
+       prints.
+
+       ⚠ The UniRef50 composition is off the TRACK entirely now, but it is not lost: the node card below lists
+       every family in full, with products and links. An earlier note here claimed the A0 card was its only
+       remaining home — that was wrong, and it was the reason the card and the bar briefly disagreed. */
     function focalFams(i) {
         var fams = listOf("u50", i),
             size = N.size[i],
@@ -3586,37 +3962,70 @@ window.nunaBoot = function (P) {
         return { fams: fams, size: size, others: Math.max(0, size - listed) };
     }
 
-    function focalHit(i) {
-        var c = focalFams(i);
-        // no UniRef50 label anywhere in this locus: a gap, not a bar of one segment claiming to be everything
-        if (!c.fams.length || !c.size) return el("div", "marg marg-none");
-        var bar = el("div", "marg");
-        c.fams.forEach(function (x, k) {
-            var seg = el("i", k === 0 ? "on" : null);
-            seg.style.width = (100 * x.n) / c.size + "%";
-            tip(seg, x.label + " · " + x.n + " of " + c.size + " genes");
+    function focalHit(i, list, sel) {
+        var size = N.size[i];
+        // no arrangements exported for this locus: a gap, not a bar of one segment claiming to be everything
+        if (!list || !list.length || !size) return el("div", "marg marg-none");
+        var bar = el("div", "marg"),
+            listed = 0;
+        list.forEach(function (a) {
+            listed += a.genes;
+            // The SELECTED arrangement is the solid one, not the commonest. Every other bar on the track
+            // highlights the occupant drawn above it, and the arrangement drawn above this one is whichever
+            // the reader has chosen — so highlighting rank 1 regardless would stop the bar describing the
+            // track the moment they picked anything else.
+            var seg = el("i", a === sel ? "on" : null);
+            seg.style.width = (100 * a.genes) / size + "%";
+            tip(
+                seg,
+                "arrangement #" +
+                    (a.rank + 1) +
+                    " · " +
+                    a.genes +
+                    " of " +
+                    size +
+                    " member genes, in " +
+                    a.genomes +
+                    (a.genomes === 1 ? " genome" : " genomes") +
+                    (a === sel
+                        ? "\nthis is the one drawn above"
+                        : "\nclick its button below to draw it"),
+            );
             bar.appendChild(seg);
         });
-        // the remainder is genes with no family listed — unlabelled, or in families past the exported top-N
-        if (c.others) {
+        // the remainder is member genes in arrangements past the exported top-N — real, and not drawable
+        var others = Math.max(0, size - listed);
+        if (others) {
             var oth = el("i", "oth");
-            oth.style.width = (100 * c.others) / c.size + "%";
-            tip(oth, c.others + " of " + c.size + " genes in no listed family");
+            oth.style.width = (100 * others) / size + "%";
+            tip(
+                oth,
+                others +
+                    " of " +
+                    size +
+                    " member genes sit in arrangements past the " +
+                    list.length +
+                    " shown — real neighbourhoods, too rare to have been exported",
+            );
             bar.appendChild(oth);
         }
         var hit = el("button", "marg-hit");
         hit.type = "button";
-        tip(hit, "Which sequence families fill this locus");
+        tip(
+            hit,
+            "How this locus's member genes split between neighbourhoods" +
+                "\nClick for the full list; pick one in the browser below the track to draw it",
+        );
         hit.setAttribute(
             "aria-label",
             // Names its own position, like every other strip. With the visible A±n foot gone the strip's
             // label is where the position lives, and the focal one was the only strip that did not say which
             // position it was.
-            "A0 — sequence families filling this locus — " +
-                c.fams.length +
-                (c.fams.length === 1 ? " family" : " families") +
-                " across " +
-                c.size +
+            "A0 — how this locus's member genes split between neighbourhoods — " +
+                list.length +
+                (list.length === 1 ? " arrangement" : " arrangements") +
+                " shown across " +
+                size +
                 " member genes",
         );
         hit.appendChild(bar);
@@ -3685,6 +4094,44 @@ window.nunaBoot = function (P) {
         return el("div", "mid");
     }
 
+    /** "1 base" / "4 bases" — a count that says "1 bases" reads as a bug in the page, not a small number. */
+    function plural(v, word) {
+        return v.toLocaleString() + " " + word + (v === 1 ? "" : "s");
+    }
+
+    /* The spread behind the median, in one clause (schema 10). Two things it deliberately distinguishes: a
+       distance every genome agrees on and a median over genomes that disagree are different findings about
+       the same pair of loci, and quoting only the median said nothing either way. Empty where there is
+       nothing to say — one genome has no spread, and a payload older than schema 10 has no quartiles, which
+       is NOT the same as a spread of zero and must not print as one. */
+    function gapSpread(k, n) {
+        if (n === 1 || !GAPS.q1 || !GAPS.q3) return "";
+        var q1 = GAPS.q1[k],
+            q3 = GAPS.q3[k];
+        // ⛔ "every genome agrees" is a claim ONLY mn/mx can make. An interquartile range of zero says the
+        // MIDDLE HALF agrees: [1,1,1,1,100] has one, and this page said "identical in every genome" about
+        // exactly that shape until 2026-08-21. Schema 11 carries the range so the claim matches the evidence.
+        if (GAPS.mn && GAPS.mx) {
+            if (GAPS.mn[k] === GAPS.mx[k])
+                return " (identical in every genome)";
+            if (q1 === q3)
+                return (
+                    " (middle half identical; full range " +
+                    GAPS.mn[k].toLocaleString() +
+                    " to " +
+                    GAPS.mx[k].toLocaleString() +
+                    ")"
+                );
+        } else if (q1 === q3) {
+            // schema 10 and older carry no range, so the page says only what the quartiles support
+            return " (middle half identical)";
+        }
+        // signed throughout, and "to" rather than a dash: "IQR -20 – -4" is unreadable
+        return (
+            " (IQR " + q1.toLocaleString() + " to " + q3.toLocaleString() + ")"
+        );
+    }
+
     /* An intergenic region: white, never on the consistency ramp, because it is NOT a Nuna locus. It has no
        cluster, no embedding and no identity beyond the two genes either side of it, and its width is a median
        over genomes that disagree. Giving it a ramp colour would invite a reader to interpret a number that
@@ -3696,58 +4143,136 @@ window.nunaBoot = function (P) {
     function gapSlot(x, y) {
         var k = gapBetween(x, y);
         if (k === null) return null;
+        // ⛔ AN OVERLAP IS NOT AN INTERGENIC REGION (David, 2026-08-21: "there should not be a region here at
+        // all"). Where the two genes meet or overlap there is no space, so there is nothing to call a region
+        // and nothing to put in one — measured, not assumed: of the 4,632 / 4,232 overlapping-or-abutting
+        // adjacencies in this cohort, NOT ONE carries a named feature, which is true by construction. So the
+        // two cases are different objects and only share a key: a real gap is a WHITE BLOCK with a length, a
+        // meeting is a SEAM, which is a fact about the two genes' boundary and is described as one.
+        return GAPS.nt[k] <= 0 ? seamSlot(k, x, y) : igrSlot(k, x, y);
+    }
+
+    /* The seam: two genes that meet or overlap. Not a region, not on the IGR wording anywhere — its own text
+       names the two genes and what they do to each other.
+
+       It stays a MARK and never a width: 20% of adjacent pairs overlap at a median of 4 bases, which is 0.4px
+       at this scale, so no width could show it. David asked for a clearer way to tell ·1726 from mviM where
+       the boxes touch (2026-08-21) and this is it. */
+    function seamSlot(k, x, y) {
+        var nt = GAPS.nt[k],
+            n = GAPS.n[k];
+        var slot = el(
+            "div",
+            "slot joint" + (selected === "g" + k ? " sel" : ""),
+        );
+        slot.style.width = JOINT_PX + "px";
+        slot.classList.add("narrow");
+
+        var b = el("button", "block seam");
+        b.type = "button";
+        b.appendChild(el("span", "fill"));
+        var desc =
+            displayOf(x) +
+            " & " +
+            displayOf(y) +
+            (nt === 0
+                ? " abut, base to base — no space between them"
+                : " OVERLAP by " +
+                  (n === 1 ? "" : "a median ") +
+                  plural(-nt, "base") +
+                  gapSpread(k, n)) +
+            "\n" +
+            (n === 1
+                ? "seen in ONE genome — a single observation, not a median"
+                : n + " genomes have these two genes adjacent") +
+            "\nno intergenic region here: there is no space to hold one";
+        tip(b, desc);
+        b.setAttribute("aria-label", desc.replace(/\n/g, ". "));
+        var key = "g" + k;
+        b.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+            select(selected === key ? null : key);
+        });
+        slot.appendChild(b);
+        slot.appendChild(el("div", "marg marg-none"));
+        return slot;
+    }
+
+    /* A real intergenic region: white, never on the consistency ramp, because it is NOT a Nuna locus. It has
+       no cluster, no embedding and no identity beyond the two genes either side of it, and its width is a
+       median over genomes that disagree. Giving it a ramp colour would invite a reader to interpret a number
+       that does not exist; leaving it blank says "we know this space is here, and we have not typed it". */
+    /* The colour, said in words. A reader who has switched the channel on is entitled to know what the tint
+       is claiming, and a reader who has not still gets the fact — this line does not depend on the toggle.
+
+       ⚠ It names the MODE, not the median the rest of the card quotes. At an even genome count split between
+       two lengths the median is a length no genome carries, so a deviation measured from it would be non-zero
+       for every genome; the score is measured from the mode for exactly that reason, and saying "median" here
+       would attach the number to the wrong statistic. */
+    function gapVarLine(k, n) {
+        var raw = gapVarRaw(k);
+        if (raw === null || n < 2) return "";
+        if (!(raw > 0)) return "\nsize identical in all " + n + " genomes";
+        // ⛔ Stated in BASES, not as a percentage of the gap. "a mean 79% of 1 base away" was the first
+        // wording and it is unreadable at the small end, because a percentage of a 1-base gap is a percentage
+        // of nothing — 79% of 1 base is 0.8 bases (David, 2026-08-23: "a bit mixed"). Bases read correctly at
+        // both ends: 0.8 bases from a 1-base gap is plainly small, 154 bases from a 63-base gap is plainly
+        // not, and neither needs the reader to divide anything.
+        //
+        // The mean is recovered exactly rather than shipped: the score IS mean|Δ| / max(|mode|, FLOOR), so
+        // multiplying it back costs no payload and cannot drift from what coloured the block.
+        var md = GAPS.vmd[VARAT[k]];
+        var mean = raw * Math.max(Math.abs(md), VAR_FLOOR_NT);
+        return (
+            "\nsize varies — genomes sit a mean of " +
+            (mean < 10 ? mean.toFixed(1) : Math.round(mean).toLocaleString()) +
+            " bases from the commonest length (" +
+            plural(md, "base") +
+            ")"
+        );
+    }
+
+    function igrSlot(k, x, y) {
         var nt = GAPS.nt[k],
             n = GAPS.n[k],
             nf = GAPS.n_feat[k];
-        // Genes that abut or overlap get NO WHITE BLOCK (David, 2026-08-20): white means intergenic space, and
-        // a 6px white block standing for the ABSENCE of space is the one thing it must not say.
-        //
-        // But they are not nothing either. 18.8% of adjacent pairs on this cohort genuinely overlap, at a
-        // median of 4 bases — a shared stop/start codon between translationally coupled genes — and at that
-        // scale no width could ever show it (4 nt is 0.4 px). So it gets a SEAM: a narrow mark that says the
-        // two genes meet, styled to be unmistakable for the white blocks that mean open space.
-        var joint = nt <= 0;
-        var slot = el(
-            "div",
-            "slot gap" +
-                (joint ? " joint" : "") +
-                (selected === "g" + k ? " sel" : ""),
-        );
-        var w = joint
-            ? JOINT_PX
-            : Math.max(MIN_BLOCK_PX, Math.round(nt / BP_PER_PX));
+        var slot = el("div", "slot gap" + (selected === "g" + k ? " sel" : ""));
+        var w = Math.max(MIN_BLOCK_PX, Math.round(nt / BP_PER_PX));
         slot.style.width = w + "px";
         if (w < NARROW_PX) slot.classList.add("narrow");
 
         var b = el("button", "block igr");
         b.type = "button";
         b.appendChild(el("span", "fill"));
+        // Always set, whether or not the channel is showing: the toggle then costs one class on the track
+        // rather than a re-render of every slot, and a block cannot be left carrying a stale tint.
+        b.style.setProperty("--v", gapVar(k));
         var names = [];
         for (var t = 0; t < GAPS.fn[k]; t++)
             names.push(GAPS.labels[GAPS.flab[GAPOFF[k] + t]]);
         var label = names.length ? names.join(" · ") : "";
         if (label) b.appendChild(el("span", "gsub", label));
+        // "median" is dropped where there IS no median: one genome is a single observation, and calling it a
+        // median would dress a sample of one as a summary of many.
         var desc =
-            (nt > 0
-                ? nt.toLocaleString() + " bases"
-                : nt === 0
-                  ? "the genes abut exactly, base to base"
-                  : "the genes OVERLAP by " + -nt + " bases") +
+            (n === 1 ? "" : "median ") +
+            plural(nt, "base") +
             " between " +
             displayOf(x) +
-            " and " +
+            " & " +
             displayOf(y) +
+            gapSpread(k, n) +
             "\n" +
             (n === 1
                 ? "seen in ONE genome — a single observation, not a median"
-                : n +
-                  " genomes have this adjacency; the length is their median") +
+                : n + " genomes have this IGR adjacency") +
             (nf
                 ? "\ncontains " +
                   nf +
                   (nf === 1 ? " named feature" : " named features")
                 : "") +
-            "\nnot a Nuna locus — no cluster, no embedding";
+            gapVarLine(k, n) +
+            "\nNo IGR embeddings clustered by Nuna — coming with Bacformer II";
         tip(b, desc);
         b.setAttribute(
             "aria-label",
@@ -3773,7 +4298,7 @@ window.nunaBoot = function (P) {
         return slot;
     }
 
-    function focalSlot(i) {
+    function focalSlot(i, list, sel) {
         var slot = el("div", "slot focal" + (selected === FOCAL ? " sel" : ""));
         sizeSlot(slot, i);
         var b = el("button", "block");
@@ -3815,7 +4340,7 @@ window.nunaBoot = function (P) {
         });
         addGene(slot, b, walkFlip ? "rev" : "fwd", displayOf(i));
         var mid = midBand();
-        mid.appendChild(focalHit(i));
+        mid.appendChild(focalHit(i, list, sel));
         // The switcher above owns which arrangement is drawn and how many genomes carry it, so printing that
         // same count here put one number in two places and made it look like a property of the locus. This
         // foot carries what only the locus has, and what the bar under it is divided into: its families.
@@ -3903,7 +4428,7 @@ window.nunaBoot = function (P) {
             share = n == null ? 0 : n / s.obs;
         b.setAttribute("data-dir", o.same ? "fwd" : "rev");
         // No share to report (the occupant is outside the exported top-N) is UNKNOWN, not variable — the ramp
-        // would paint --c 0 as the hottest maroon it has. Take it off the ramp entirely instead.
+        // would paint --c 0 as the most divergent purple it has. Take it off the ramp entirely instead.
         if (n == null) b.classList.add("unknown");
         var fill = el("span", "fill");
         // TWO ORTHOGONAL AXES on one block.
@@ -3915,7 +4440,7 @@ window.nunaBoot = function (P) {
         //              position, which is what makes the axes independent — and what stops a hue computed over
         //              five genomes being read as the same finding as one computed over a hundred.
         // Read together: solid deep blue is a gene that always holds a position across the whole pangenome;
-        // faint maroon is one of several divergent options at a position only part of the species has.
+        // faint purple is one of several divergent options at a position only part of the species has.
         var pen = NGEN ? N.genomes[o.i] / NGEN : 1;
         fill.style.setProperty("--c", share.toFixed(3));
         fill.style.setProperty("--p", pen.toFixed(3));
@@ -3976,6 +4501,90 @@ window.nunaBoot = function (P) {
         return slot;
     }
 
+    /* ---- the fan: lines from the focal gene down to the arrangements that are ITS choices ----
+
+       The switcher used to be a full-width row below the page, which read as a property of the track rather
+       than of one locus (David, 2026-08-23). Drawing the line makes the ownership explicit.
+
+       ⛔ It has to be redrawn on SCROLL. The track scrolls horizontally and the focal gene is the middle slot,
+       so the gene moves under a panel that does not — a fan drawn once detaches from its gene the moment the
+       reader scrolls sideways, and then points confidently at the wrong block. Everything is measured from
+       live `getBoundingClientRect`s rather than cached, for the same reason.
+
+       Positions are relative to `.arr-wrap`, which is the SVG's own offset parent, so no page-scroll term is
+       needed and the lines survive vertical scrolling for free. The line is clipped to the scroller's own left
+       and right edges: when the focal gene is scrolled out of view the fan is hidden entirely rather than
+       drawn from a gene that is not on screen. */
+    function drawArrFan() {
+        var svg = document.getElementById("arr-fan"),
+            wrap = svg && svg.parentNode;
+        if (!svg || !wrap || !svg.setAttribute) return;
+        svg.textContent = ""; // same clear as every other host on the page
+        var block = trackEl.querySelector(".slot.focal .block");
+        var opts = wrap.querySelectorAll(".arr-opt");
+        if (!block || !opts.length || !block.getBoundingClientRect) return;
+        var W = wrap.getBoundingClientRect(),
+            B = block.getBoundingClientRect();
+        var scroll = document.querySelector(".track-scroll");
+        if (scroll && scroll.getBoundingClientRect) {
+            var S = scroll.getBoundingClientRect();
+            // the gene is off the side of the scroller — say nothing rather than point at nothing
+            if (B.right < S.left + 4 || B.left > S.right - 4) {
+                svg.setAttribute("height", "0");
+                return;
+            }
+        }
+        var x0 = B.left + B.width / 2 - W.left,
+            y0 = 0;
+        var h = 0;
+        for (var k = 0; k < opts.length; k++) {
+            var R = opts[k].getBoundingClientRect();
+            h = Math.max(h, R.top - W.top);
+        }
+        h = Math.max(8, h);
+        svg.setAttribute("height", String(h));
+        svg.setAttribute("width", String(W.width));
+        for (var j = 0; j < opts.length; j++) {
+            var r = opts[j].getBoundingClientRect();
+            var x1 = r.left + r.width / 2 - W.left,
+                y1 = r.top - W.top;
+            var path = document.createElementNS
+                ? document.createElementNS("http://www.w3.org/2000/svg", "path")
+                : null;
+            if (!path) return;
+            // A cubic that leaves the gene vertically and arrives vertically: a straight line to an option
+            // far to one side reads as a diagonal crossing the track, which is exactly the confusion the fan
+            // is meant to remove.
+            var mid = y0 + (y1 - y0) * 0.55;
+            path.setAttribute(
+                "d",
+                "M" +
+                    x0 +
+                    " " +
+                    y0 +
+                    " C" +
+                    x0 +
+                    " " +
+                    mid +
+                    " " +
+                    x1 +
+                    " " +
+                    mid +
+                    " " +
+                    x1 +
+                    " " +
+                    y1,
+            ); // fmt: skip
+            path.setAttribute(
+                "class",
+                opts[j].className.indexOf("on") >= 0
+                    ? "fan-line on"
+                    : "fan-line",
+            );
+            svg.appendChild(path);
+        }
+    }
+
     /* ---- the arrangement switcher ---- */
     function renderArrangements(i, list, sel) {
         var host = document.getElementById("arrangements");
@@ -3995,9 +4604,9 @@ window.nunaBoot = function (P) {
             host.appendChild(only);
             return;
         }
-        // Lead with the size of the thing, then how much of it the buttons below cover. Stating the coverage
-        // UP FRONT beats a remainder line underneath: a reader decides whether to trust the row before
-        // clicking it, not after.
+        // The size of the thing, and how much of it the buttons cover. It sits UNDER the buttons now, but it
+        // is still coverage-before-verdict: a reader who wants to know whether to trust the row finds the
+        // denominator in one place, and the bar directly above the buttons already shows the same split.
         var covered = list.reduce(function (t, a) {
             return t + a.genes;
         }, 0);
@@ -4015,8 +4624,10 @@ window.nunaBoot = function (P) {
                     " of its genes — browse them here:",
             ),
         );
-        host.appendChild(head);
-
+        // ⚠ Built here, appended AFTER the row (David, 2026-08-23). The buttons are what the fan points at,
+        // so they have to be the first thing under the gene; the sentence explaining them reads perfectly well
+        // beneath. Leaving the paragraph above would push the options a line further from the locus they
+        // belong to and break the line the fan is drawing.
         var row = el("div", "arr-row"),
             shown = 0;
         list.forEach(function (a) {
@@ -4066,6 +4677,7 @@ window.nunaBoot = function (P) {
             row.appendChild(btn);
         });
         host.appendChild(row);
+        host.appendChild(head);
 
         // A reversed arrangement is the one case where a displayed offset is not the recorded one, so say it
         // on the page rather than only in a tooltip — a reader comparing two rows would otherwise have no way
@@ -4085,6 +4697,7 @@ window.nunaBoot = function (P) {
 
         // no remainder line: the head already says what share the buttons cover, and saying it twice from
         // opposite ends ("top 4 = 77%" and "23 genes not shown") is one fact wearing two disguises.
+        drawArrFan();
     }
 
     /* ================================================================== the offset detail panel */
@@ -4095,40 +4708,42 @@ window.nunaBoot = function (P) {
     /* The card behind a white block. It carries what the block deliberately does not print on the track: what
        is in the gap, how long it is, and — never omitted — how many genomes that length was measured over.
        36.5% of adjacencies are seen in exactly ONE genome, so the denominator is part of the number. */
+    /* The card behind a click on the track's between-genes slot. TWO cards, because they are two objects:
+       a real gap is an intergenic region with a length and possibly contents; a meeting has neither, and
+       calling it a region was the mistake (David, 2026-08-21). */
     function gapCard(k) {
+        return GAPS.nt[k] <= 0 ? seamCard(k) : igrCard(k);
+    }
+
+    /* Two genes that meet or overlap. Everything here is a statement about the GENES — no region, no white
+       block, no catalogue line, because there is nothing between them to say any of that about. */
+    function seamCard(k) {
         var nt = GAPS.nt[k],
-            n = GAPS.n[k],
-            nf = GAPS.n_feat[k];
-        // Reuses the shell every popover shares, so a gap's card and a position's card cannot drift apart in
-        // how they close, where the title sits, or what the meta line looks like.
+            n = GAPS.n[k];
         var card = popCard(
             "gap-card",
-            nt > 0
-                ? "Intergenic region"
-                : nt === 0
-                  ? "Genes abut"
-                  : "Genes overlap",
-            "between " + displayOf(GAPS.a[k]) + " and " + displayOf(GAPS.b[k]),
+            nt === 0 ? "Genes abut" : "Genes overlap",
+            displayOf(GAPS.a[k]) + " and " + displayOf(GAPS.b[k]),
         );
         var lead = el("p", "gap-len");
         lead.appendChild(
             el(
                 "b",
                 null,
-                nt > 0
-                    ? nt.toLocaleString() + " bases between them"
-                    : nt === 0
-                      ? "They abut exactly"
-                      : "They overlap by " + -nt + " bases",
+                nt === 0
+                    ? "They abut exactly, base to base"
+                    : "They overlap by " +
+                          (n === 1 ? "" : "a median ") +
+                          plural(-nt, "base"),
             ),
         );
         lead.appendChild(
             document.createTextNode(
-                n === 1
+                (n === 1
                     ? " — seen in ONE genome, so this is a single observation, not a median"
-                    : " — median across the " +
-                          n +
-                          " genomes with this adjacency",
+                    : " — across the " +
+                      n +
+                      " genomes that have them adjacent") + gapSpread(k, n),
             ),
         );
         card.appendChild(lead);
@@ -4145,6 +4760,46 @@ window.nunaBoot = function (P) {
                         "genes that are translated together.",
                 ),
             );
+        card.appendChild(
+            el(
+                "p",
+                "muted",
+                "There is no intergenic region here — no space to hold one, and nothing annotated in any of " +
+                    "the overlapping or abutting pairs in this cohort.",
+            ),
+        );
+        return card;
+    }
+
+    function igrCard(k) {
+        var nt = GAPS.nt[k],
+            n = GAPS.n[k],
+            nf = GAPS.n_feat[k];
+        // Reuses the shell every popover shares, so a gap's card and a position's card cannot drift apart in
+        // how they close, where the title sits, or what the meta line looks like.
+        var card = popCard(
+            "gap-card",
+            "Intergenic region",
+            "between " + displayOf(GAPS.a[k]) + " and " + displayOf(GAPS.b[k]),
+        );
+        var lead = el("p", "gap-len");
+        lead.appendChild(el("b", null, plural(nt, "base") + " between them"));
+        lead.appendChild(
+            document.createTextNode(
+                (n === 1
+                    ? " — seen in ONE genome, so this is a single observation, not a median"
+                    : " — median across the " +
+                      n +
+                      " genomes with this IGR adjacency") + gapSpread(k, n),
+            ),
+        );
+        card.appendChild(lead);
+        // Its own paragraph, not a clause welded onto the median sentence with a middot: the two are
+        // different statistics over the same genomes — a median and a spread about the MODE — and running
+        // them together read as one confused sentence (David, 2026-08-23: "a bit mixed").
+        var vline = gapVarLine(k, n);
+        if (vline)
+            card.appendChild(el("p", "gap-var", vline.replace(/^\n/, "")));
 
         var shown = GAPS.fn[k];
         if (shown) {
@@ -4171,8 +4826,8 @@ window.nunaBoot = function (P) {
             el(
                 "p",
                 "muted",
-                "Not a Nuna locus: it has no cluster and no embedding, so it is not in the catalogue and " +
-                    "cannot be walked to. Typing these is what Bacformer-2 would make possible.",
+                "No IGR embeddings clustered by Nuna — coming with Bacformer II. Until then it has no " +
+                    "cluster and no embedding, so it is not in the catalogue and cannot be walked to.",
             ),
         );
         return card;
@@ -4242,36 +4897,82 @@ window.nunaBoot = function (P) {
     }
 
     /* A0: not "what else sits here" — by construction that is this locus, in every member gene — but which
-       sequence families fill it. Records to look up, so each row links out rather than walking. */
+       NEIGHBOURHOOD each member gene sits in.
+
+       ⛔ The card says what the bar says. It used to list the UniRef50 families while the bar above it was
+       divided into arrangements, so hovering and clicking the same strip gave two different answers (David,
+       2026-08-23). A popover that contradicts the thing it opens from is worse than no popover.
+
+       Nothing is lost: the families are listed in full, with their products and their links, in the node card
+       below the track. */
     function focalCard(i) {
-        var c = focalFams(i),
-            nf = N.n_u50 ? N.n_u50[i] : c.fams.length;
+        var list = arrOf(i, walkFlip),
+            size = N.size[i],
+            tot = ARR.tot[i] || list.length;
+        var sel = list.length ? list[Math.min(arrIdx, list.length - 1)] : null;
         var card = popCard(
             "focal-card",
             "A0 · this locus",
-            c.size +
+            size +
                 " member genes · " +
-                nf +
-                (nf === 1 ? " UniRef50 family" : " UniRef50 families"),
+                tot +
+                (tot === 1 ? " neighbourhood" : " neighbourhoods"),
         );
-        c.fams.forEach(function (x) {
-            var row = el("div", "alt alt-static");
+        var p = el("p", "pop-lede");
+        p.appendChild(document.createTextNode("This locus sits in "));
+        p.appendChild(el("b", null, String(tot)));
+        p.appendChild(
+            document.createTextNode(
+                (tot === 1 ? " neighbourhood" : " different neighbourhoods") +
+                    " across its " +
+                    size +
+                    " member genes. The bar above is that split; " +
+                    (tot === 1
+                        ? "there is nothing to choose between."
+                        : "pick one in the neighbourhood browser below the track to draw it."),
+            ),
+        );
+        card.appendChild(p);
+        list.forEach(function (a) {
+            var row = el(
+                "div",
+                "alt alt-static" + (a === sel ? " alt-on" : ""),
+            );
             var left = el("div");
-            var nm = el("div", "alt-name");
-            nm.appendChild(u50Link(x.label));
-            left.appendChild(nm);
             left.appendChild(
-                el("div", "alt-desc", x.prod || "no product annotation"),
+                el(
+                    "div",
+                    "alt-name",
+                    "#" + (a.rank + 1) + (a === sel ? " — drawn above" : ""),
+                ),
+            );
+            left.appendChild(
+                el(
+                    "div",
+                    "alt-desc",
+                    arrDiff(list[0], a) || "commonest arrangement",
+                ),
             );
             row.appendChild(left);
             row.appendChild(
-                el("div", "alt-n", x.n + " · " + pct(x.n / c.size)),
+                el("div", "alt-n", a.genes + " · " + pct(a.genes / size)),
             );
             card.appendChild(row);
         });
-        if (c.others)
+        var listed = list.reduce(function (t, a) {
+            return t + a.genes;
+        }, 0);
+        if (size > listed)
             card.appendChild(
-                el("p", "pop-tail", c.others + " genes in no listed family"),
+                el(
+                    "p",
+                    "pop-tail",
+                    size -
+                        listed +
+                        " genes in neighbourhoods past the " +
+                        list.length +
+                        " exported — real, and too rare to draw",
+                ),
             );
         return card;
     }
@@ -5861,6 +6562,10 @@ window.nunaBoot = function (P) {
     });
     var scroller = document.querySelector(".track-scroll");
     if (scroller) scroller.addEventListener("scroll", placePop);
+    // ⛔ The fan springs from the focal gene's LIVE position, so it has to follow the same two events the
+    // popover does. Without the scroll hook it points at whatever block has drifted under it.
+    if (scroller) scroller.addEventListener("scroll", drawArrFan);
+    window.addEventListener("resize", drawArrFan);
 
     /* ================================================================== search box */
     var input = document.getElementById("q"),
@@ -6032,6 +6737,24 @@ window.nunaBoot = function (P) {
     }
     swatchRow("swatches", "c");
     swatchRow("swatches-pen", "p");
+
+    /* The IGR-variance toggle. ⛔ On a payload with no score the control is REMOVED, not left unchecked: an
+       unchecked box invites a click that would paint every gap white, and "white everywhere" is exactly what
+       a measured, fully-conserved cohort would look like. A control that cannot tell those apart must not be
+       offered. */
+    (function () {
+        var wrap = document.getElementById("igr-var-wrap"),
+            box = document.getElementById("igr-var");
+        if (!wrap || !box) return;
+        if (!HAS_VAR) {
+            wrap.remove();
+            return;
+        }
+        wrap.hidden = false;
+        box.addEventListener("change", function () {
+            trackEl.classList.toggle("igr-var", box.checked);
+        });
+    })();
 
     renderPangenome();
     fromHash();
