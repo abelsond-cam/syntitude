@@ -45,7 +45,7 @@
        constraint that set the ceiling on L, since `.block.pale` only takes over below 0.45 penetrance. */
     --ramp-hi: #1657d5;
     --ramp-lo: #8630b7;
-    --teal: #0d6e63;
+    --win: #c3643b;
     --gold: #8a5f10;
     --rust: #a83a2a;
     --focus: #1657d5;
@@ -107,7 +107,7 @@
         --rule-2: #19222f;
         --ramp-hi: #6798f3;
         --ramp-lo: #b57edd;
-        --teal: #4fbfae;
+        --win: #e9916e;
         --gold: #d6a94a;
         --rust: #ec9081;
         --focus: #6798f3;
@@ -138,7 +138,7 @@
     --rule-2: #19222f;
     --ramp-hi: #6798f3;
     --ramp-lo: #b57edd;
-    --teal: #4fbfae;
+    --win: #e9916e;
     --gold: #d6a94a;
     --rust: #ec9081;
     --focus: #6798f3;
@@ -167,7 +167,7 @@
     --rule-2: #e6ebf3;
     --ramp-hi: #1657d5;
     --ramp-lo: #8630b7;
-    --teal: #0d6e63;
+    --win: #c3643b;
     --gold: #8a5f10;
     --rust: #a83a2a;
     --focus: #1657d5;
@@ -592,6 +592,16 @@ a {
     border-top: 3px solid var(--anchor);
 }
 
+/* Since schema 13 this card lists EVERY arrangement, and a locus can have 84 of them. Without a ceiling the
+   card runs off the bottom of the viewport and the rows past the fold are unreachable — the popover is
+   absolutely positioned, so the page does not grow to contain it. The ROWS scroll, not the card: scrolling
+   the card would carry its heading and its close button away with them. */
+.arr-scroll {
+    max-height: 46vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 .focal-card > h2 {
     color: var(--anchor);
 }
@@ -676,6 +686,9 @@ a {
 .arr-wrap {
     position: relative;
     margin-top: var(--s3);
+    /* the left gutter the anchor-genome control sits in, and the symmetric padding that keeps the option row
+       centred under the focal gene regardless of it — one number, so the two cannot drift */
+    --arr-gutter: 260px;
 }
 
 .arr-fan {
@@ -708,6 +721,8 @@ a {
 
 .arr-switch {
     margin-top: 0;
+    /* symmetric, so the option row's centre is the page's centre with or without the gutter panel beside it */
+    padding: 0 var(--arr-gutter);
 }
 
 .arr-switch:empty {
@@ -779,6 +794,19 @@ a {
     background: var(--anchor-wash);
     color: var(--ink);
     box-shadow: inset 0 0 0 1px var(--anchor);
+}
+
+/* The anchored genome's own arrangement. Dashed, so it reads as "this one is yours" and stays distinct from
+   `.on` ("this one is drawn") — they are usually the same button and sometimes deliberately are not, which is
+   exactly when the reader needs to see two marks rather than one. */
+.arr-opt.anchored {
+    border-style: dashed;
+    border-color: var(--anchor);
+}
+
+.arr-anch-mark {
+    margin-right: 4px;
+    color: var(--anchor);
 }
 
 .arr-top {
@@ -1723,7 +1751,7 @@ a {
 }
 
 .chip.win {
-    color: var(--teal);
+    color: var(--win);
 }
 
 .chip.warn {
@@ -1928,8 +1956,16 @@ td.fam-sym {
     border-left: 4px solid var(--gold);
 }
 
+/* ⛔ `--win` was `--teal` and was green until 2026-08-24; it is now the mark's sail orange, the same value as
+   `--anchor` (David: *"change the green beside the sequence diversity and bakta annotations to same orange"*).
+   Renamed with it, because a token called `--teal` holding an orange is a lie the next reader has to discover.
+
+   Checked before swapping, since win/warn/bad all become warm: the three verdicts sit at OKLab dE 11.6 (win vs
+   warn), 10.9 (win vs bad) and 10.6 (warn vs bad) — MORE evenly spaced than the green set they replace
+   (15.4 / 22.5 / 10.6), and the orange is the lightest of the three (L 0.608 against 0.519 and 0.503), so
+   lightness reinforces hue rather than leaving the distinction to hue alone. */
 .card.pf-win {
-    border-left: 4px solid color-mix(in oklab, var(--teal) 60%, transparent);
+    border-left: 4px solid color-mix(in oklab, var(--win) 60%, transparent);
 }
 
 .verdict-note {
@@ -2634,6 +2670,127 @@ td.fam-sym {
     color: var(--ink-3);
     padding-right: 0.15em;
 }
+
+/* ---- the anchor-genome control ----
+   It lives in the switcher's LEFT GUTTER, absolutely positioned, so the option row stays exactly centred
+   under the focal gene. A flow-positioned panel would push the options right by half its width and the fan
+   would start pointing at a row that is no longer beneath its gene — which is the whole point of the fan.
+
+   `.arr-switch` carries symmetric padding of the same width, so the centre is the centre with or without it. */
+.arr-anchor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--arr-gutter);
+    text-align: left;
+}
+
+.arr-anchor-box {
+    position: relative;
+    display: block;
+}
+
+.arr-anchor-box input {
+    width: 100%;
+    padding: 7px 26px 7px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.arr-anchor-box input::placeholder {
+    color: var(--ink-3);
+}
+
+/* Anchored: the box takes the same sail orange the focal gene and the A0 card take, so at a glance the mode
+   is visible from the control itself and not only from the sentence under the buttons. */
+.arr-anchor.on .arr-anchor-box input {
+    border-color: var(--anchor);
+    background: var(--anchor-wash);
+    color: var(--ink);
+}
+
+/* The dropdown. `.results` in the header is positioned under `.search`, so this one needs its own frame —
+   same tokens, different anchor. It overlays the option row rather than pushing it down: the fan is drawn to
+   where the buttons ARE, and a list that displaced them would leave every line pointing at empty space. */
+.anchor-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 30;
+    max-height: 280px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.anchor-hit {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 9px;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink);
+}
+
+.anchor-hit:last-child {
+    border-bottom: 0;
+}
+
+.anchor-hit:hover,
+.anchor-hit[aria-selected="true"] {
+    background: var(--rule-2);
+}
+
+/* "most common arrangement" — the off switch, and the only row that is not an accession */
+.anchor-hit.clear {
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--ink-2);
+}
+
+.anchor-hit .anchor-n {
+    flex: none;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.arr-anchor-caret {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: var(--ink-3);
+    pointer-events: none;
+}
+
+/* Narrow: the gutter cannot hold a 260px panel beside a centred row, so the panel goes back into the flow
+   above the options and the padding is released. Centring is preserved either way. */
+@media (max-width: 900px) {
+    .arr-anchor {
+        position: static;
+        width: auto;
+        margin: 0 auto var(--s2);
+        max-width: 320px;
+    }
+
+    .arr-switch {
+        padding: 0;
+    }
+}
 </style>
 </head>
 <body>
@@ -2813,6 +2970,21 @@ td.fam-sym {
          under a panel that does not. -->
     <div class="arr-wrap">
       <svg id="arr-fan" class="arr-fan" aria-hidden="true" focusable="false"></svg>
+      <!-- Pick one genome and the track draws ITS neighbourhood at every locus, instead of the commonest one.
+           No prose around the box (David, 2026-08-24): the placeholder says what it does, and the switcher
+           below says what happened, so a paragraph here would only be a third place for the same fact to go
+           stale. It sits in the LEFT GUTTER of the switcher — `.arr-switch` is padded symmetrically so the
+           options stay centred under the focal gene whether this panel is there or not.
+           ⚠ REMOVED, not disabled, on a payload with no genome membership — see `wireAnchor` in app.js. -->
+      <div class="arr-anchor" id="anchor-wrap">
+        <label class="arr-anchor-box" for="anchor-genome">
+          <input id="anchor-genome" type="search" autocomplete="off" spellcheck="false"
+                 placeholder="Anchor to a genome — search"
+                 aria-label="Anchor the neighbourhood to one genome" />
+          <span class="arr-anchor-caret" aria-hidden="true">▾</span>
+        </label>
+        <div id="anchor-results" class="results anchor-results" role="listbox"></div>
+      </div>
       <div id="arrangements" class="arr-switch"></div>
     </div>
   </div>
@@ -2944,7 +3116,7 @@ td.fam-sym {
       Prototype built from a single <em>Klebsiella pneumoniae</em> clustering. Every number on this page is read from that
       model's own output and its accessory-fidelity audit &mdash; nothing is re-derived for display.
     </p>
-    <dl><div><dt>representation</dt><dd>bacformer</dd></div><div><dt>provenance</dt><dd>3 run manifests (read, not decoded)</dd></div><div><dt>step 1 · dedup</dt><dd>MMseqs2 --min-seq-id 0.98 -c 0.95 (coverage = pipeline default, not in run_id)</dd></div><div><dt>step 2 · merge over families</dt><dd>esm · γ 0.98 · k100 · ρ off · excl(h) off</dd></div><div><dt>step 3 · split within groups</dt><dd>bacformer · γ 0.5 · k100 · ρ ≤ 1 pairwise_max</dd></div><div><dt>step 4 · merge over a prior partition</dt><dd>bacformer · γ 0.1 · k100 · ρ ≤ 1 ceiling · excl(h) on</dd></div><div><dt>merge algorithm</dt><dd>CPM (leidenalg CPMVertexPartition)</dd></div><div><dt>graph construction</dt><dd>density(s) · ρ≤1 · explode(mᵢmⱼ) · excl(h)</dd></div><div><dt>seed</dt><dd>0</dd></div><div><dt>model</dt><dd>kp_bacformer_clever_exploded_preclusterkp98pm3b-3b0.5-excl_k100_g100_res0.1_seed0</dd></div><div><dt>built</dt><dd>2026-08-23</dd></div><div><dt>code</dt><dd>8272cd2</dd></div></dl>
+    <dl><div><dt>representation</dt><dd>bacformer</dd></div><div><dt>provenance</dt><dd>3 run manifests (read, not decoded)</dd></div><div><dt>step 1 · dedup</dt><dd>MMseqs2 --min-seq-id 0.98 -c 0.95 (coverage = pipeline default, not in run_id)</dd></div><div><dt>step 2 · merge over families</dt><dd>esm · γ 0.98 · k100 · ρ off · excl(h) off</dd></div><div><dt>step 3 · split within groups</dt><dd>bacformer · γ 0.5 · k100 · ρ ≤ 1 pairwise_max</dd></div><div><dt>step 4 · merge over a prior partition</dt><dd>bacformer · γ 0.1 · k100 · ρ ≤ 1 ceiling · excl(h) on</dd></div><div><dt>merge algorithm</dt><dd>CPM (leidenalg CPMVertexPartition)</dd></div><div><dt>graph construction</dt><dd>density(s) · ρ≤1 · explode(mᵢmⱼ) · excl(h)</dd></div><div><dt>seed</dt><dd>0</dd></div><div><dt>model</dt><dd>kp_bacformer_clever_exploded_preclusterkp98pm3b-3b0.5-excl_k100_g100_res0.1_seed0</dd></div><div><dt>built</dt><dd>2026-08-24</dd></div><div><dt>code</dt><dd>f00002d</dd></div></dl>
     <details class='foot-detail'><summary>Accessory-fidelity audit &mdash; what was counted against this model</summary><dl><div><dt>clusters graded</dt><dd>15,670</dd></div><div><dt>genes</dt><dd>532,851</dd></div><div><dt>synteny only — no homology by mmseqs</dt><dd>11 clusters</dd></div><div><dt>synteny only, as a gene rate</dt><dd>0.0445%</dd></div><div><dt>Pfam conflict</dt><dd>53 clusters</dd></div><div><dt>loci Pfam can judge (≥2 annotated members)</dt><dd>8,589 clusters</dd></div><div><dt>UniRef50 family split across loci</dt><dd>2.90% of genes</dd></div><div><dt>rescued by ESM homology</dt><dd>116 clusters</dd></div></dl><p class='muted'>Read verbatim from kp_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL_pfam_concordance.tsv, kp_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL_audit_summary.json. <b>Synteny only</b> means no homology mmseqs, Pfam or ESM could find &mdash; the members were grouped on genomic context. That names the evidence, not a mistake: many are good calls, and the way to tell is the evidence beside each one. Clusters rescued by Pfam or by ESM are homologous and are not counted here.</p></details>
     <details class='foot-detail'><summary>Every locus grouped on context alone (17)</summary><p class='muted'>No sequence, Pfam or ESM homology behind the grouping &mdash; genomic context is all there was. Worth looking at every one: this is where the model is doing something an identity threshold cannot, and also where it would go wrong. Each is one click away.</p><div class='goto-list'><button type="button" class="goto-row" data-goto="4806"><b>funZ</b> <span class="lid">&middot;4806</span><span class="goto-ev">shell · 41 genes · 6 UniRef50 · 1 architectures · A5 0.34 · ESM 0.96/0.99</span></button><button type="button" class="goto-row" data-goto="4902"><b>locus 4902</b> <span class="lid">&middot;4902</span><span class="goto-ev">shell · 38 genes · 9 UniRef50 · 6 architectures · A5 0.28 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="5119"><b>parA</b> <span class="lid">&middot;5119</span><span class="goto-ev">shell · 33 genes · 5 UniRef50 · 3 architectures · A5 0.41 · ESM 0.94/0.98</span></button><button type="button" class="goto-row" data-goto="5556"><b>tnpA</b> <span class="lid">&middot;5556</span><span class="goto-ev">shell · 24 genes · 5 UniRef50 · 2 architectures · A5 0.27 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5595"><b>dnaT</b> <span class="lid">&middot;5595</span><span class="goto-ev">shell · 23 genes · 4 UniRef50 · 4 architectures · A5 0.29 · ESM 0.97/0.97</span></button><button type="button" class="goto-row" data-goto="5596"><b>yraN</b> <span class="lid">&middot;5596</span><span class="goto-ev">shell · 23 genes · 3 UniRef50 · 1 architectures · A5 0.26 · ESM 0.96/0.97</span></button><button type="button" class="goto-row" data-goto="5900"><b>locus 5900</b> <span class="lid">&middot;5900</span><span class="goto-ev">shell · 19 genes · 5 UniRef50 · 0 architectures · A5 0.18 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="6194"><b>locus 6194</b> <span class="lid">&middot;6194</span><span class="goto-ev">shell · 16 genes · 5 UniRef50 · 1 architectures · A5 0.42 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="7065"><b>locus 7065</b> <span class="lid">&middot;7065</span><span class="goto-ev">cloud · 10 genes · 2 UniRef50 · 0 architectures · A5 0.52 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="7999"><b>locus 7999</b> <span class="lid">&middot;7999</span><span class="goto-ev">cloud · 5 genes · 3 UniRef50 · 0 architectures · A5 0.80 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="8134"><b>gamL</b> <span class="lid">&middot;8134</span><span class="goto-ev">cloud · 5 genes · 3 UniRef50 · 1 architectures · A5 0.54 · ESM 0.98/1.00</span></button><button type="button" class="goto-row" data-goto="8391"><b>locus 8391</b> <span class="lid">&middot;8391</span><span class="goto-ev">cloud · 4 genes · 2 UniRef50 · 0 architectures · A5 0.38 · ESM 0.99/1.00</span></button><button type="button" class="goto-row" data-goto="8467"><b>locus 8467</b> <span class="lid">&middot;8467</span><span class="goto-ev">cloud · 4 genes · 2 UniRef50 · 2 architectures · A5 0.76 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="9756"><b>locus 9756</b> <span class="lid">&middot;9756</span><span class="goto-ev">cloud · 2 genes · 1 UniRef50 · 0 architectures · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="9968"><b>locus 9968</b> <span class="lid">&middot;9968</span><span class="goto-ev">cloud · 2 genes · 2 UniRef50 · 1 architectures · A5 0.75 · ESM 0.99/1.00</span></button><button type="button" class="goto-row" data-goto="10070"><b>locus 10070</b> <span class="lid">&middot;10070</span><span class="goto-ev">cloud · 2 genes · 2 UniRef50 · 2 architectures · A5 0.50 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="10289"><b>locus 10289</b> <span class="lid">&middot;10289</span><span class="goto-ev">cloud · 2 genes · 2 UniRef50 · 1 architectures · A5 0.50 · ESM 0.99/0.99</span></button></div></details><details class='foot-detail'><summary>Every Pfam conflict (53)</summary><p class='muted'>The annotated members carry domain architectures with no clan in common &mdash; evidence against the merge, but not a verdict: an HMM can miss homology ESM sees, and a locus whose members are all phage targets or all pilus variants is <em>expected</em> to look varied. A different domain order and a missing domain are both excluded before this count. Judge each against its synteny and its ESM pair.</p><div class='goto-list'><button type="button" class="goto-row" data-goto="250"><b>purR</b> <span class="lid">&middot;250</span><span class="goto-ev">core · 100 genes · 3 UniRef50 · 3 architectures · A5 0.98 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="3409"><b>narK</b> <span class="lid">&middot;3409</span><span class="goto-ev">core · 99 genes · 2 UniRef50 · 2 architectures · A5 0.96 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4240"><b>nagC</b> <span class="lid">&middot;4240</span><span class="goto-ev">shell · 93 genes · 2 UniRef50 · 2 architectures · A5 0.97 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="4319"><b>epsG</b> <span class="lid">&middot;4319</span><span class="goto-ev">shell · 83 genes · 25 UniRef50 · 2 architectures · A5 0.13 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="4402"><b>locus 4402</b> <span class="lid">&middot;4402</span><span class="goto-ev">shell · 69 genes · 2 UniRef50 · 2 architectures · A5 0.79 · ESM 1.00/0.92</span></button><button type="button" class="goto-row" data-goto="4428"><b>emrA</b> <span class="lid">&middot;4428</span><span class="goto-ev">shell · 65 genes · 2 UniRef50 · 4 architectures · A5 0.99 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4434"><b>wcaE</b> <span class="lid">&middot;4434</span><span class="goto-ev">shell · 64 genes · 7 UniRef50 · 5 architectures · A5 0.16 · ESM 0.96/0.95</span></button><button type="button" class="goto-row" data-goto="4597"><b>locus 4597</b> <span class="lid">&middot;4597</span><span class="goto-ev">shell · 51 genes · 15 UniRef50 · 4 architectures · A5 0.21 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="4698"><b>yqjQ</b> <span class="lid">&middot;4698</span><span class="goto-ev">shell · 46 genes · 2 UniRef50 · 2 architectures · A5 0.82 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="4820"><b>bet</b> <span class="lid">&middot;4820</span><span class="goto-ev">shell · 40 genes · 3 UniRef50 · 2 architectures · A5 0.28 · ESM 0.98/1.00</span></button><button type="button" class="goto-row" data-goto="4825"><b>blaNDM-1</b> <span class="lid">&middot;4825</span><span class="goto-ev">shell · 40 genes · 2 UniRef50 · 2 architectures · A5 0.48 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="4902"><b>locus 4902</b> <span class="lid">&middot;4902</span><span class="goto-ev">shell · 38 genes · 9 UniRef50 · 6 architectures · A5 0.28 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="5055"><b>acrR</b> <span class="lid">&middot;5055</span><span class="goto-ev">shell · 34 genes · 3 UniRef50 · 2 architectures · A5 0.70 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="5058"><b>locus 5058</b> <span class="lid">&middot;5058</span><span class="goto-ev">shell · 34 genes · 3 UniRef50 · 3 architectures · A5 0.89 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="5068"><b>alpA</b> <span class="lid">&middot;5068</span><span class="goto-ev">shell · 34 genes · 2 UniRef50 · 2 architectures · A5 0.89 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="5078"><b>locus 5078</b> <span class="lid">&middot;5078</span><span class="goto-ev">shell · 34 genes · 4 UniRef50 · 2 architectures · A5 0.84 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="5119"><b>parA</b> <span class="lid">&middot;5119</span><span class="goto-ev">shell · 33 genes · 5 UniRef50 · 3 architectures · A5 0.41 · ESM 0.94/0.98</span></button><button type="button" class="goto-row" data-goto="5123"><b>locus 5123</b> <span class="lid">&middot;5123</span><span class="goto-ev">shell · 33 genes · 2 UniRef50 · 2 architectures · A5 0.96 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5207"><b>insH</b> <span class="lid">&middot;5207</span><span class="goto-ev">shell · 31 genes · 4 UniRef50 · 3 architectures · A5 0.27 · ESM 1.00/0.91</span></button><button type="button" class="goto-row" data-goto="5278"><b>locus 5278</b> <span class="lid">&middot;5278</span><span class="goto-ev">shell · 29 genes · 2 UniRef50 · 3 architectures · A5 0.55 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="5315"><b>lysR</b> <span class="lid">&middot;5315</span><span class="goto-ev">shell · 28 genes · 4 UniRef50 · 2 architectures · A5 0.65 · ESM 1.00/0.90</span></button><button type="button" class="goto-row" data-goto="5316"><b>locus 5316</b> <span class="lid">&middot;5316</span><span class="goto-ev">shell · 28 genes · 2 UniRef50 · 2 architectures · A5 0.73 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5326"><b>locus 5326</b> <span class="lid">&middot;5326</span><span class="goto-ev">shell · 28 genes · 3 UniRef50 · 2 architectures · A5 0.96 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5456"><b>rfaH</b> <span class="lid">&middot;5456</span><span class="goto-ev">shell · 25 genes · 2 UniRef50 · 2 architectures · A5 0.51 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="5545"><b>locus 5545</b> <span class="lid">&middot;5545</span><span class="goto-ev">shell · 24 genes · 3 UniRef50 · 2 architectures · A5 0.62 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="5548"><b>tuf</b> <span class="lid">&middot;5548</span><span class="goto-ev">shell · 24 genes · 3 UniRef50 · 2 architectures · A5 0.96 · ESM 0.99/0.97</span></button><button type="button" class="goto-row" data-goto="5556"><b>tnpA</b> <span class="lid">&middot;5556</span><span class="goto-ev">shell · 24 genes · 5 UniRef50 · 2 architectures · A5 0.27 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5601"><b>locus 5601</b> <span class="lid">&middot;5601</span><span class="goto-ev">shell · 23 genes · 3 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="5643"><b>locus 5643</b> <span class="lid">&middot;5643</span><span class="goto-ev">shell · 23 genes · 2 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="5729"><b>epsG</b> <span class="lid">&middot;5729</span><span class="goto-ev">shell · 21 genes · 5 UniRef50 · 2 architectures · A5 0.47 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="5806"><b>fabG</b> <span class="lid">&middot;5806</span><span class="goto-ev">shell · 20 genes · 4 UniRef50 · 3 architectures · A5 0.93 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="5915"><b>traA</b> <span class="lid">&middot;5915</span><span class="goto-ev">shell · 19 genes · 3 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5921"><b>locus 5921</b> <span class="lid">&middot;5921</span><span class="goto-ev">shell · 19 genes · 10 UniRef50 · 3 architectures · A5 0.18 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5927"><b>hicB</b> <span class="lid">&middot;5927</span><span class="goto-ev">shell · 19 genes · 2 UniRef50 · 2 architectures · A5 0.74 · ESM 1.00/0.94</span></button><button type="button" class="goto-row" data-goto="6081"><b>locus 6081</b> <span class="lid">&middot;6081</span><span class="goto-ev">shell · 17 genes · 3 UniRef50 · 2 architectures · A5 0.26 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="6196"><b>bapA</b> <span class="lid">&middot;6196</span><span class="goto-ev">shell · 16 genes · 7 UniRef50 · 2 architectures · A5 0.84 · ESM 0.99/0.96</span></button><button type="button" class="goto-row" data-goto="6216"><b>locus 6216</b> <span class="lid">&middot;6216</span><span class="goto-ev">shell · 16 genes · 3 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="6409"><b>yadA</b> <span class="lid">&middot;6409</span><span class="goto-ev">shell · 15 genes · 3 UniRef50 · 2 architectures · A5 0.59 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="6506"><b>locus 6506</b> <span class="lid">&middot;6506</span><span class="goto-ev">cloud · 14 genes · 4 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="6518"><b>locus 6518</b> <span class="lid">&middot;6518</span><span class="goto-ev">cloud · 14 genes · 4 UniRef50 · 2 architectures · A5 0.32 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="6633"><b>locus 6633</b> <span class="lid">&middot;6633</span><span class="goto-ev">cloud · 13 genes · 3 UniRef50 · 4 architectures · A5 0.47 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="6636"><b>emrA</b> <span class="lid">&middot;6636</span><span class="goto-ev">cloud · 13 genes · 2 UniRef50 · 2 architectures · A5 0.52 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="6794"><b>locus 6794</b> <span class="lid">&middot;6794</span><span class="goto-ev">cloud · 12 genes · 4 UniRef50 · 2 architectures · A5 0.33 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="6866"><b>tnsE</b> <span class="lid">&middot;6866</span><span class="goto-ev">cloud · 12 genes · 2 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="6921"><b>tnpB</b> <span class="lid">&middot;6921</span><span class="goto-ev">cloud · 11 genes · 2 UniRef50 · 2 architectures · A5 0.46 · ESM 1.00/0.88</span></button><button type="button" class="goto-row" data-goto="7187"><b>traU</b> <span class="lid">&middot;7187</span><span class="goto-ev">cloud · 9 genes · 4 UniRef50 · 2 architectures · A5 0.93 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="7339"><b>perC</b> <span class="lid">&middot;7339</span><span class="goto-ev">cloud · 8 genes · 1 UniRef50 · 2 architectures · A5 0.32 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="7459"><b>psiB</b> <span class="lid">&middot;7459</span><span class="goto-ev">cloud · 8 genes · 2 UniRef50 · 2 architectures · A5 0.53 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="7853"><b>locus 7853</b> <span class="lid">&middot;7853</span><span class="goto-ev">cloud · 6 genes · 2 UniRef50 · 2 architectures · A5 0.83 · ESM 1.00/1.00</span></button><button type="button" class="goto-row" data-goto="7983"><b>locus 7983</b> <span class="lid">&middot;7983</span><span class="goto-ev">cloud · 5 genes · 3 UniRef50 · 2 architectures · A5 0.48 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="8022"><b>hypX</b> <span class="lid">&middot;8022</span><span class="goto-ev">cloud · 5 genes · 2 UniRef50 · 2 architectures · A5 0.52 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="8495"><b>yubP</b> <span class="lid">&middot;8495</span><span class="goto-ev">cloud · 4 genes · 2 UniRef50 · 2 architectures · A5 0.62 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="10511"><b>locus 10511</b> <span class="lid">&middot;10511</span><span class="goto-ev">cloud · 2 genes · 2 UniRef50 · 2 architectures · A5 0.64 · ESM 0.99/0.98</span></button></div></details>
     <p class="muted"></p>
@@ -3054,7 +3226,20 @@ window.nunaBoot = function (P) {
     // Pfam accession -> [short name, description, InterPro accession, InterPro name]; joined at render time
     // from the vendored reference table (see vendor_reference.py), never carried per model.
     var PFAM = P.pfam_names || {};
-    var ARR = P.arr || { n: [], tot: [], cnt: [], gen: [], flip: [], vec: [] };
+    var ARR = P.arr || {
+        n: [],
+        tot: [],
+        cnt: [],
+        gen: [],
+        flip: [],
+        vec: [],
+        gid: [],
+    };
+    /* How many arrangement buttons the switcher draws. ⛔ NOT how many exist — since schema 13 the payload
+       ships every one (up to 84 at a locus), which is what lets the anchor find a rare neighbourhood. Drawing
+       all of them would wrap the row to fifteen lines and turn the fan into 84 curves into one block, so the
+       DISPLAY cap and the EXPORT cap are deliberately different numbers. The full list is in the A0 card. */
+    var ARR_SHOW = 4;
 
     /* ---- run-length lists → offsets, prefix-summed once (this is why the payload ships lengths) ---- */
     function prefix(lens) {
@@ -3068,6 +3253,11 @@ window.nunaBoot = function (P) {
         return off;
     }
     var OFF = { ctx: prefix(C.n), arr: prefix(ARR.n) };
+    /* The membership index rides on `gen`, which was already each arrangement's genome count — so `gid` needs
+       no lengths of its own, only this second prefix sum over the SAME array. Copied into an Int32Array
+       because it is ~490k entries and a plain JS array holds them as boxed values. */
+    var GIDOFF = prefix(ARR.gen),
+        GID = Int32Array.from(ARR.gid || []);
     Object.keys(L).forEach(function (k) {
         OFF[k] = prefix(L[k].n);
     });
@@ -3149,6 +3339,104 @@ window.nunaBoot = function (P) {
             });
         }
         return out;
+    }
+
+    /* ---- the anchor: one named genome, drawn instead of the commonest arrangement ----
+       `anchorG` is an index into `meta.genomes`, and it is session state — deliberately not in the hash,
+       which already carries a trailing "r" for walk direction and would make every anchor change a history
+       entry. Switching species is a full navigation to a different payload, so the anchor drops with it,
+       which is right: the two BioSample sets are disjoint.
+
+       -1 is "no anchor", and it must be a value the page can hold without the control existing at all: a
+       payload from before schema 13 has no membership, and `wireAnchor` then REMOVES the box rather than
+       offering one that could only ever answer "not found". */
+    var GENOMES = (P.meta && P.meta.genomes) || null,
+        anchorG = -1;
+    var HAS_ANCHOR = !!(GENOMES && GENOMES.length && GID.length);
+
+    /* Which arrangement does the anchored genome carry at locus `i`? The runs are sorted, so this bisects;
+       and it returns the LOWEST rank, because a genome at rho > 1 can sit in two arrangements at one locus
+       and the track can only draw one of them.
+
+       Scanned per navigation rather than cached in a per-locus table: a locus has a handful of runs holding
+       at most a few hundred entries between them, and a cache would have to be invalidated every time the
+       anchor changed for no measurable gain. */
+    function inArr(g, k) {
+        var lo = GIDOFF[g],
+            hi = GIDOFF[g + 1] - 1;
+        while (lo <= hi) {
+            var mid = (lo + hi) >> 1;
+            if (GID[mid] === k) return true;
+            if (GID[mid] < k) lo = mid + 1;
+            else hi = mid - 1;
+        }
+        return false;
+    }
+
+    function anchorRanks(i) {
+        var out = [];
+        if (anchorG < 0 || !HAS_ANCHOR) return out;
+        var lo = OFF.arr[i],
+            n = ARR.n[i];
+        for (var k = 0; k < n; k++) if (inArr(lo + k, anchorG)) out.push(k);
+        return out;
+    }
+
+    /* The rank a locus OPENS on. Without an anchor that is rank 1, as it always was; with one it is that
+       genome's own neighbourhood, however rare — which is the entire point of having lifted the export cap. */
+    function defaultArr(i) {
+        var r = anchorRanks(i);
+        return r.length ? r[0] : 0;
+    }
+
+    /* ⛔ Is this locus's membership COMPLETE? The two sentences the page can say when an anchored genome has
+       no arrangement here are different claims, and only one of them is always true.
+
+       `coords` is an inner join in the export, so a gene whose GFF gave no coordinates never reaches a window
+       and its genome is counted in `nodes.genomes` while appearing in no arrangement. Measured on the shipped
+       payloads: 6.26 % of ecoli loci and 3.69 % of kp loci have at least one such genome (worst case 64 of
+       100). At those loci "this genome has no gene here" is simply false, and the page must not say it.
+
+       The payload can settle it without a new field: where the union of a locus's memberships equals
+       `nodes.genomes[i]`, every genome present IS in an arrangement and absence means absence. Computed only
+       when the anchor came up empty, so it costs nothing on the normal path. */
+    function membershipComplete(i) {
+        var lo = OFF.arr[i],
+            n = ARR.n[i],
+            seen = {},
+            k,
+            j;
+        for (k = 0; k < n; k++)
+            for (j = GIDOFF[lo + k]; j < GIDOFF[lo + k + 1]; j++)
+                seen[GID[j]] = 1;
+        return Object.keys(seen).length === N.genomes[i];
+    }
+
+    /* The subset the switcher and the focal bar DRAW: the commonest few, plus the selected one and the
+       anchored one wherever those are rarer than the cut. Normally all three coincide at rank 1 and this
+       changes nothing; it matters when a genome has been anchored and its own neighbourhood is #37, which is
+       exactly the case the export was uncapped for.
+
+       ⚠ BOTH, not just the selected one. Picking another arrangement by hand at an anchored locus would
+       otherwise drop the anchor's row off the end of the switcher — leaving the reader told in words that
+       their genome sits in #37 and with no button to go back to it.
+
+       ⛔ Sliced from the array `arrOf` returned, never from a fresh call. `focalHit` and `renderArrangements`
+       both test `a === sel` to mark the drawn row, and a second `arrOf` would build new objects that compare
+       false against every one of them — the row would silently stop being marked. Rank order is preserved so
+       `list[0]` is still rank 1, which `arrDiff` measures everything else against. */
+    function arrShown(list, sel, ranks) {
+        var out = list.slice(0, ARR_SHOW);
+        var extra = [];
+        if (sel && out.indexOf(sel) < 0) extra.push(sel);
+        (ranks || []).forEach(function (r) {
+            var a = list[r];
+            if (a && out.indexOf(a) < 0 && extra.indexOf(a) < 0) extra.push(a);
+        });
+        extra.sort(function (x, y) {
+            return x.rank - y.rank;
+        });
+        return out.concat(extra);
     }
 
     /* how an arrangement differs from rank 1, in the displayed frame — the one-line label on the switcher */
@@ -3837,13 +4125,14 @@ window.nunaBoot = function (P) {
         var list = arrOf(i, walkFlip);
         if (arrIdx >= list.length) arrIdx = 0;
         var a = list.length ? list[arrIdx] : null;
+        var shown = arrShown(list, a, anchorRanks(i));
         var f = frag();
         // Build the row as (element, locus) pairs first, so the intergenic blocks can be interleaved between
         // genes that are genuinely adjacent. A gap belongs to a PAIR, so it cannot be built inside either
         // slot's own builder without one of them knowing about the other.
         var row = [];
         for (var j = 0; j <= NSLOT; j++) {
-            if (j === NSLOT / 2) row.push([focalSlot(i, list, a), i]);
+            if (j === NSLOT / 2) row.push([focalSlot(i, shown, a), i]);
             if (j === NSLOT) break;
             row.push([neighbourSlot(i, j, a), occupantAt(i, j, a)]);
         }
@@ -3857,7 +4146,7 @@ window.nunaBoot = function (P) {
             f.appendChild(row[r][0]);
         }
         trackEl.appendChild(f);
-        renderArrangements(i, list, a);
+        renderArrangements(i, list, shown, a);
         centreFocal();
     }
 
@@ -3963,7 +4252,8 @@ window.nunaBoot = function (P) {
     }
 
     function focalHit(i, list, sel) {
-        var size = N.size[i];
+        var size = N.size[i],
+            tot = ARR.tot[i] || list.length;
         // no arrangements exported for this locus: a gap, not a bar of one segment claiming to be everything
         if (!list || !list.length || !size) return el("div", "marg marg-none");
         var bar = el("div", "marg"),
@@ -3993,7 +4283,12 @@ window.nunaBoot = function (P) {
             );
             bar.appendChild(seg);
         });
-        // the remainder is member genes in arrangements past the exported top-N — real, and not drawable
+        // The remainder is every arrangement this bar does not draw a segment for. ⚠ It used to say those
+        // were "too rare to have been exported", which since schema 13 is simply false — they ARE in the
+        // payload, they are in the A0 card, and the anchor can select one. It is a display cut, not a data
+        // cut, and one aggregate segment is the honest way to draw it: at 84 arrangements the individual
+        // segments would be sub-pixel and could not carry a tooltip.
+        var rest = Math.max(0, tot - list.length);
         var others = Math.max(0, size - listed);
         if (others) {
             var oth = el("i", "oth");
@@ -4003,9 +4298,12 @@ window.nunaBoot = function (P) {
                 others +
                     " of " +
                     size +
-                    " member genes sit in arrangements past the " +
-                    list.length +
-                    " shown — real neighbourhoods, too rare to have been exported",
+                    " member genes sit in " +
+                    rest +
+                    (rest === 1
+                        ? " further neighbourhood"
+                        : " further neighbourhoods") +
+                    " — click the bar for all of them",
             );
             bar.appendChild(oth);
         }
@@ -4021,10 +4319,15 @@ window.nunaBoot = function (P) {
             // Names its own position, like every other strip. With the visible A±n foot gone the strip's
             // label is where the position lives, and the focal one was the only strip that did not say which
             // position it was.
+            // ⚠ The plural keys on the TOTAL, not on how many are drawn: "1 of 10 arrangement" is the
+            // sentence you get when it keys on the subset, and it reads as a broken count rather than a
+            // display cut.
             "A0 — how this locus's member genes split between neighbourhoods — " +
                 list.length +
-                (list.length === 1 ? " arrangement" : " arrangements") +
-                " shown across " +
+                " of " +
+                tot +
+                (tot === 1 ? " arrangement" : " arrangements") +
+                " drawn across " +
                 size +
                 " member genes",
         );
@@ -4585,13 +4888,71 @@ window.nunaBoot = function (P) {
         }
     }
 
-    /* ---- the arrangement switcher ---- */
-    function renderArrangements(i, list, sel) {
+    /* What the anchor did at THIS locus, in one line. Three cases, and they are genuinely different claims:
+       the genome has no gene here; it has one and this is its neighbourhood; it has two copies sitting in
+       different neighbourhoods and only one of them can be drawn.
+
+       ⚠ "sits in 2 arrangements", never "2 copies" — `cnt` is genes per ARRANGEMENT, so a single genome's
+       copy number at a locus is not derivable from the payload, and the page must not imply it is. */
+    function anchorLine(i, ranks, sel) {
+        var p = el("p", "arr-anchored"),
+            who = GENOMES[anchorG];
+        p.appendChild(el("span", "arr-anch-mark", "⚓"));
+        p.appendChild(document.createTextNode(" Anchored to "));
+        p.appendChild(el("b", null, who));
+        if (!ranks.length) {
+            p.className = "arr-anchored muted";
+            p.appendChild(
+                document.createTextNode(
+                    membershipComplete(i)
+                        ? ", which has no gene in this locus — so the commonest arrangement is drawn."
+                        : ", which has no recorded neighbourhood here. Some of this locus's genes have no " +
+                              "coordinates, so it may still carry one. The commonest arrangement is drawn.",
+                ),
+            );
+            return p;
+        }
+        p.appendChild(
+            document.createTextNode(
+                ranks.length > 1
+                    ? ", which sits in " +
+                          ranks.length +
+                          " of this locus's arrangements (#" +
+                          ranks
+                              .map(function (r) {
+                                  return r + 1;
+                              })
+                              .join(", #") +
+                          ")."
+                    : ". Its neighbourhood here is #" + (ranks[0] + 1) + ".",
+            ),
+        );
+        // Only worth saying when the two disagree — which happens when the reader has picked another
+        // arrangement by hand at this locus. Walking on re-anchors, so the override is deliberately local.
+        if (sel && ranks.indexOf(sel.rank) < 0)
+            p.appendChild(
+                document.createTextNode(
+                    " You are viewing #" + (sel.rank + 1) + " instead.",
+                ),
+            );
+        return p;
+    }
+
+    /* ---- the arrangement switcher ----
+       `list` is every arrangement at the locus; `shown` is the handful drawn as buttons (see `arrShown`).
+       Both are needed: the sentence counts the first, the row draws the second, and conflating them is how
+       the page came to claim that four arrangements were all there were. */
+    function renderArrangements(i, list, shown, sel) {
         var host = document.getElementById("arrangements");
         if (!host) return;
         host.textContent = "";
         if (!list.length) return;
         var tot = ARR.tot[i] || list.length;
+        var ranks = anchorRanks(i);
+        // ⚠ BEFORE the single-arrangement early return below. An anchored reader at a locus their genome does
+        // not carry needs to be told so most of all, and that is exactly a locus likely to have one
+        // arrangement — putting this line after the return is how it would never be seen where it matters.
+        if (anchorG >= 0) host.appendChild(anchorLine(i, ranks, sel));
         if (tot <= 1) {
             var only = el("p", "arr-only");
             only.appendChild(document.createTextNode("All "));
@@ -4607,9 +4968,13 @@ window.nunaBoot = function (P) {
         // The size of the thing, and how much of it the buttons cover. It sits UNDER the buttons now, but it
         // is still coverage-before-verdict: a reader who wants to know whether to trust the row finds the
         // denominator in one place, and the bar directly above the buttons already shows the same split.
-        var covered = list.reduce(function (t, a) {
+        // ⚠ Summed over what is DRAWN, not over `list`. Every arrangement is exported now, so summing the
+        // full list would print "100% of its genes" at every locus — a true sentence that tells the reader
+        // nothing about the buttons in front of them, which is the thing this line exists to qualify.
+        var covered = shown.reduce(function (t, a) {
             return t + a.genes;
         }, 0);
+        var rest = Math.max(0, tot - shown.length);
         var head = el("p", "arr-head");
         head.appendChild(document.createTextNode("This locus sits in "));
         head.appendChild(el("b", null, String(tot)));
@@ -4617,27 +4982,42 @@ window.nunaBoot = function (P) {
         head.appendChild(el("b", null, String(N.genomes[i])));
         head.appendChild(
             document.createTextNode(
-                " genomes. The top " +
-                    list.length +
-                    " account for " +
+                " genomes. The " +
+                    shown.length +
+                    (shown.length === 1
+                        ? " here accounts for "
+                        : " here account for ") +
                     pct(covered / N.size[i]) +
-                    " of its genes — browse them here:",
+                    " of its genes" +
+                    (rest
+                        ? "; the other " + rest + " are in the A0 card above."
+                        : " — all of them."),
             ),
         );
         // ⚠ Built here, appended AFTER the row (David, 2026-08-23). The buttons are what the fan points at,
         // so they have to be the first thing under the gene; the sentence explaining them reads perfectly well
         // beneath. Leaving the paragraph above would push the options a line further from the locus they
         // belong to and break the line the fan is drawing.
-        var row = el("div", "arr-row"),
-            shown = 0;
-        list.forEach(function (a) {
-            shown += a.genes;
+        var row = el("div", "arr-row");
+        shown.forEach(function (a) {
+            var mine = ranks.indexOf(a.rank) >= 0;
             var btn = el(
                 "button",
-                "arr-opt" + (a === sel ? " on" : "") + (a.flip ? " flip" : ""),
+                "arr-opt" +
+                    (a === sel ? " on" : "") +
+                    (mine ? " anchored" : "") +
+                    (a.flip ? " flip" : ""),
             );
             btn.type = "button";
             var top = el("div", "arr-top");
+            // Two marks, not one: `.on` is "this is drawn", the anchor mark is "this is yours". They are
+            // usually the same button, and the case where they are not — a manual pick overriding the anchor
+            // at this locus — is precisely when the reader has to be able to see both.
+            if (mine) {
+                var am = el("span", "arr-anch-mark", "⚓");
+                tip(am, GENOMES[anchorG] + " carries this arrangement");
+                top.appendChild(am);
+            }
             top.appendChild(el("span", "arr-rank", "#" + (a.rank + 1)));
             if (a.flip) {
                 var m = el("span", "arr-inv", "↺");
@@ -4926,13 +5306,18 @@ window.nunaBoot = function (P) {
                 (tot === 1 ? " neighbourhood" : " different neighbourhoods") +
                     " across its " +
                     size +
-                    " member genes. The bar above is that split; " +
+                    " member genes, every one of them listed below. The bar above draws the commonest few; " +
                     (tot === 1
                         ? "there is nothing to choose between."
-                        : "pick one in the neighbourhood browser below the track to draw it."),
+                        : "pick one in the neighbourhood browser under the track to draw it."),
             ),
         );
         card.appendChild(p);
+        // ⛔ The FULL list, not the drawn subset. The switcher shows four buttons because a row of eighty-four
+        // is unreadable, but the payload has them all now and the reader has to be able to see the whole
+        // split somewhere — so this card is where the accounting closes. The rows go in their own scroller
+        // rather than the card scrolling as a whole, which would carry the heading and the close button away.
+        var scroll = el("div", "arr-scroll");
         list.forEach(function (a) {
             var row = el(
                 "div",
@@ -4957,8 +5342,12 @@ window.nunaBoot = function (P) {
             row.appendChild(
                 el("div", "alt-n", a.genes + " · " + pct(a.genes / size)),
             );
-            card.appendChild(row);
+            scroll.appendChild(row);
         });
+        card.appendChild(scroll);
+        // ⚠ No "past the N exported" tail any more. Since schema 13 nothing is left out, so the only
+        // remainder that could appear here is member genes with no recorded neighbourhood at all — a
+        // different claim, and one the export reports on rather than the page guessing at.
         var listed = list.reduce(function (t, a) {
             return t + a.genes;
         }, 0);
@@ -4969,9 +5358,7 @@ window.nunaBoot = function (P) {
                     "pop-tail",
                     size -
                         listed +
-                        " genes in neighbourhoods past the " +
-                        list.length +
-                        " exported — real, and too rare to draw",
+                        " member genes have no recorded neighbourhood — no coordinates for the gene, so no window",
                 ),
             );
         return card;
@@ -6477,7 +6864,10 @@ window.nunaBoot = function (P) {
         // never fought.
         if (current !== i) showView("view-node");
         current = i;
-        arrIdx = 0; // a new locus has its own arrangements; rank 1 is the commonest
+        // A new locus has its own arrangements. Unanchored that means rank 1, the commonest, as it always
+        // did; anchored it means whichever one THIS genome carries here — the anchor is a default per locus,
+        // so a manual pick still wins until the reader walks on.
+        arrIdx = defaultArr(i);
         // `selected` now means "the position whose popover is open", so a new locus opens with none. The old
         // panel lived in a fixed column and could sensibly default to A-1; a popover that opened by itself on
         // every step would sit over the track the reader is trying to read.
@@ -6659,8 +7049,189 @@ window.nunaBoot = function (P) {
         setTimeout(closeResults, 120);
     });
 
+    /* ================================================================== the anchor-genome control
+       Same idiom as the search box above, deliberately: input -> filter -> a list of buttons, an
+       ArrowUp/Down/Enter cursor, `mousedown` prevented so blur cannot beat the click, and a delayed close on
+       blur. A second interaction grammar for the same shape of control is a thing readers have to learn
+       twice.
+
+       ⛔ REMOVED, not disabled, when the payload carries no membership. That is the rule the IGR-variance
+       toggle already set: a control that cannot distinguish "this genome is not here" from "the page has no
+       idea" must not be offered, because those are different claims and the box would make the same face at
+       both. */
+    var anchorBox = document.getElementById("anchor-genome"),
+        anchorWrap = document.getElementById("anchor-wrap"),
+        anchorRes = document.getElementById("anchor-results");
+    var anchorCursor = -1,
+        anchorHits = [];
+    // How many loci each genome carries. Derived on FIRST OPEN, not at boot: it is one pass over ~490k
+    // membership entries, and a reader who never opens the list should not pay for it. Without it the
+    // dropdown is a column of a hundred near-identical accessions with nothing to choose between them.
+    var GENOME_N = null;
+
+    function genomeCounts() {
+        if (GENOME_N) return GENOME_N;
+        GENOME_N = new Int32Array(GENOMES.length);
+        // Per LOCUS, not per arrangement: a genome at rho > 1 can appear in two of a locus's arrangements and
+        // must still be counted once, or the number would exceed the catalogue size and mean nothing.
+        var seen = new Int32Array(GENOMES.length).fill(-1);
+        for (var i = 0; i < NLOCI; i++) {
+            var lo = OFF.arr[i],
+                n = ARR.n[i];
+            for (var k = 0; k < n; k++) {
+                var g = lo + k;
+                for (var j = GIDOFF[g]; j < GIDOFF[g + 1]; j++) {
+                    var b = GID[j];
+                    if (seen[b] !== i) {
+                        seen[b] = i;
+                        GENOME_N[b]++;
+                    }
+                }
+            }
+        }
+        return GENOME_N;
+    }
+
+    function anchorSearch(q) {
+        q = q.trim().toUpperCase();
+        var out = [];
+        for (var k = 0; k < GENOMES.length; k++)
+            if (!q || GENOMES[k].toUpperCase().indexOf(q) >= 0) out.push(k);
+        return out;
+    }
+
+    function setAnchor(k) {
+        anchorG = k;
+        anchorBox.value = k < 0 ? "" : GENOMES[k];
+        anchorWrap.classList.toggle("on", k >= 0);
+        closeAnchor();
+        // Re-derive from the new anchor rather than keeping whatever was drawn: `show` is what owns the
+        // "which arrangement does this locus open on" rule, and duplicating it here is how the two would
+        // eventually disagree.
+        if (current >= 0) {
+            arrIdx = defaultArr(current);
+            renderTrack(current);
+            renderPosition(current);
+        }
+    }
+
+    function renderAnchor() {
+        anchorRes.textContent = "";
+        if (!anchorHits.length && anchorBox.value.trim()) {
+            anchorRes.appendChild(
+                el(
+                    "div",
+                    "hit-none",
+                    "No genome in this catalogue matches “" +
+                        anchorBox.value.trim() +
+                        "”.",
+                ),
+            );
+            return;
+        }
+        // Always first, and never hidden behind a separate × — it is the off switch, and an off switch the
+        // reader has to hunt for is one they will conclude does not exist.
+        var clear = el("button", "anchor-hit clear", "most common arrangement");
+        clear.type = "button";
+        clear.setAttribute(
+            "aria-selected",
+            anchorCursor === -1 ? "true" : "false",
+        );
+        clear.addEventListener("mousedown", function (e) {
+            e.preventDefault();
+        });
+        clear.addEventListener("click", function () {
+            setAnchor(-1);
+        });
+        anchorRes.appendChild(clear);
+        var counts = genomeCounts();
+        anchorHits.forEach(function (k, j) {
+            var b = el("button", "anchor-hit");
+            b.type = "button";
+            b.setAttribute(
+                "aria-selected",
+                j === anchorCursor ? "true" : "false",
+            );
+            b.appendChild(el("span", null, GENOMES[k]));
+            b.appendChild(
+                el("span", "anchor-n", counts[k].toLocaleString() + " loci"),
+            );
+            b.addEventListener("mousedown", function (e) {
+                e.preventDefault();
+            });
+            b.addEventListener("click", function () {
+                setAnchor(k);
+            });
+            anchorRes.appendChild(b);
+        });
+    }
+
+    function closeAnchor() {
+        anchorHits = [];
+        anchorCursor = -1;
+        if (anchorRes) anchorRes.textContent = "";
+    }
+
+    function wireAnchor() {
+        if (!anchorBox || !anchorWrap || !anchorRes) return;
+        if (!HAS_ANCHOR) {
+            anchorWrap.remove();
+            return;
+        }
+        function open() {
+            anchorHits = anchorSearch(anchorBox.value);
+            anchorCursor = -1;
+            renderAnchor();
+        }
+        anchorBox.addEventListener("focus", open);
+        anchorBox.addEventListener("input", open);
+        anchorBox.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeAnchor();
+                anchorBox.blur();
+                return;
+            }
+            if (!anchorHits.length) return;
+            // -1 is the "most common arrangement" row, so the cursor runs from -1 and wraps through it.
+            if (e.key === "ArrowDown") {
+                anchorCursor =
+                    anchorCursor + 1 >= anchorHits.length
+                        ? -1
+                        : anchorCursor + 1;
+                renderAnchor();
+                e.preventDefault();
+            } else if (e.key === "ArrowUp") {
+                anchorCursor =
+                    anchorCursor <= -1
+                        ? anchorHits.length - 1
+                        : anchorCursor - 1;
+                renderAnchor();
+                e.preventDefault();
+            } else if (e.key === "Enter") {
+                setAnchor(anchorCursor < 0 ? -1 : anchorHits[anchorCursor]);
+                anchorBox.blur();
+                e.preventDefault();
+            }
+        });
+        anchorBox.addEventListener("blur", function () {
+            setTimeout(closeAnchor, 120);
+        });
+        // The document-level closer dismisses the popover on any outside click, and it would take this list
+        // with it before a click on a row could land.
+        anchorRes.addEventListener("click", function (ev) {
+            ev.stopPropagation();
+        });
+    }
+    wireAnchor();
+
     document.addEventListener("keydown", function (e) {
-        if (e.key === "/" && document.activeElement !== input) {
+        // ⚠ Both search boxes are excluded. Without the second, typing the "/" in an accession would throw
+        // focus out of the anchor box and into the locus search mid-word.
+        if (
+            e.key === "/" &&
+            document.activeElement !== input &&
+            document.activeElement !== anchorBox
+        ) {
             input.focus();
             e.preventDefault();
         }
