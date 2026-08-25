@@ -739,6 +739,7 @@ a {
 .arr-switch {
     grid-column: 2;
     grid-row: 2;
+    align-self: center;
     margin-top: 0;
 }
 
@@ -929,8 +930,10 @@ a {
     --label-angle: 60deg; /* measured from HORIZONTAL */
     --notch: 5px; /* the arrow point, shallowed from 11px: the lanes carry direction now, this corroborates */
 
+    /* No right gutter any more: the node key moved into the switcher's own empty right column (David,
+       2026-08-25), which is what lets the track run the full width of the page. `position: relative` stays —
+       the popover anchors to it. */
     position: relative;
-    padding-right: 200px;
 }
 
 /* The band's label AND its colour key. The key used to sit in the legend under the track, three rows away
@@ -941,12 +944,15 @@ a {
    Centred on the band rather than aligned to its top: the block is ~101px tall and the band row is ~26px, so
    an anchored top would hang the whole key below the strands it belongs to. The offset is half the block's
    height less half the band's — change --band-ends height and this follows. */
+/* The switcher's RIGHT gutter — the column that mirrors the anchor control and was reserved and empty. Both
+   gutters carry `align-self: center` and so does the option row between them, so all three sit on one axis:
+   the control stays in line with the buttons it acts on however tall this key is. */
 .band-note {
-    position: absolute;
-    right: 0;
-    width: 186px;
+    grid-column: 3;
+    grid-row: 2;
+    align-self: center;
+    justify-self: end;
     margin: 0;
-    top: calc(var(--s2) + var(--label-h) + var(--block-h) - 38px);
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -2817,9 +2823,15 @@ td.fam-sym {
         grid-row: 3;
     }
 
-    .arr-notes {
+    .band-note {
         grid-column: 1;
         grid-row: 4;
+        justify-self: center;
+    }
+
+    .arr-notes {
+        grid-column: 1;
+        grid-row: 5;
     }
 }
 </style>
@@ -2965,23 +2977,6 @@ td.fam-sym {
       <div class="track-scroll">
         <div id="track" class="track"></div>
       </div>
-      <!-- One key for both of a block's channels, beside the blocks themselves. A block carries two
-           independent quantities and a reader shown one key reads the other wrong, so they belong together —
-           and three rows away, above the track, is far enough that a reader has to leave what they are
-           reading to use them. Colour first, then transparency, in the order the eye meets them. -->
-      <div class="band-note">
-        <span class="band-title">Graph nodes</span>
-        <span class="band-key">
-          <span class="band-ch">
-            <i class="band-ramp" aria-hidden="true"></i>
-            <span class="band-ends"><em>divergent</em><em>always this one</em></span>
-          </span>
-          <span class="band-ch">
-            <i class="band-pen" aria-hidden="true"></i>
-            <span class="band-ends"><em>all genomes</em><em>few genomes</em></span>
-          </span>
-        </span>
-      </div>
     </div>
     <div id="pop" class="pop" role="dialog" aria-label="Position detail" hidden></div>
     <div id="tip" class="tip" role="tooltip" hidden></div>
@@ -2995,8 +2990,8 @@ td.fam-sym {
       <!-- Pick one genome and the track draws ITS neighbourhood at every locus, instead of the commonest one.
            No prose around the box (David, 2026-08-24): the placeholder says what it does, and the switcher
            below says what happened, so a paragraph here would only be a third place for the same fact to go
-           stale. It sits in the LEFT GUTTER of the switcher — `.arr-switch` is padded symmetrically so the
-           options stay centred under the focal gene whether this panel is there or not.
+           stale. It sits in the LEFT GUTTER of the switcher — the two gutter columns mirror each other, so
+           the options stay centred under the focal gene whichever of them is occupied.
            ⚠ REMOVED, not disabled, on a payload with no genome membership — see `wireAnchor` in app.js. -->
       <div class="arr-anchor" id="anchor-wrap">
         <label class="arr-anchor-box" for="anchor-genome">
@@ -3009,6 +3004,24 @@ td.fam-sym {
         <div id="anchor-results" class="results anchor-results" role="listbox"></div>
       </div>
       <div id="arrangements" class="arr-switch"></div>
+      <!-- One key for both of a block's channels. A block carries two independent quantities and a reader
+           shown one key reads the other wrong, so they belong together. It sits in the switcher's RIGHT
+           gutter (David, 2026-08-25) — the column mirroring the anchor control was reserved and empty, and
+           taking it back out of the track's own gutter is what lets the track run the full width of the page.
+           Colour first, then transparency, in the order the eye meets them. -->
+      <div class="band-note">
+        <span class="band-title">Graph nodes</span>
+        <span class="band-key">
+          <span class="band-ch">
+            <i class="band-ramp" aria-hidden="true"></i>
+            <span class="band-ends"><em>divergent</em><em>always this one</em></span>
+          </span>
+          <span class="band-ch">
+            <i class="band-pen" aria-hidden="true"></i>
+            <span class="band-ends"><em>all genomes</em><em>few genomes</em></span>
+          </span>
+        </span>
+      </div>
       <!-- The sentences live OUTSIDE the option row so the row can be its own grid row: that is what lets the
            anchor box sit vertically centred against the buttons instead of level with the fan above them. -->
       <div id="arr-notes" class="arr-notes"></div>
