@@ -2834,6 +2834,221 @@ td.fam-sym {
         grid-row: 5;
     }
 }
+
+/* ============================================================================ the Sequence view
+   One genome's own DNA at the locus on screen. Everything here is styled from the same tokens as the rest of
+   the page, so both themes follow without a second palette.
+
+   The layout answers one question the reader brings: which of these blocks is the gene? Three monospace
+   blocks of A/C/G/T look identical at a glance, and a guide designed against flanking DNA believing it to be
+   coding is a wasted experiment — so the coding block is the only one that carries the accent, the flanks are
+   deliberately dimmer, and the sentence saying so sits above all three rather than under them. */
+.seq-anchor {
+    max-width: 360px;
+    margin: 0 0 var(--s4);
+}
+
+.seq-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s4);
+}
+
+.seq-head {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-2);
+}
+
+.seq-head b {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+.seq-gene {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--rule-2);
+}
+
+.seq-gene:first-of-type {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.seq-copy-h {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* The stats strip. `auto-fit` rather than a fixed count so the six facts reflow to one column on a phone
+   without a media query of their own. */
+.seq-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: var(--s2) var(--s3);
+    margin: 0;
+    padding: var(--s3);
+    background: var(--panel-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+}
+
+.seq-stat dt {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.seq-stat dd {
+    margin: 2px 0 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    /* Contig names and spans are long; wrapping beats a strip that scrolls sideways. */
+    overflow-wrap: anywhere;
+}
+
+/* ⛔ The claim the panel exists to make. It gets the accent border and sits ABOVE the blocks, because a
+   caveat printed underneath three identical-looking sequences is one the reader meets after copying. */
+.seq-warn {
+    margin: 0;
+    padding: var(--s2) var(--s3);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    background: var(--anchor-wash);
+    border-left: 3px solid var(--anchor);
+    border-radius: 0 3px 3px 0;
+}
+
+.seq-warn strong,
+.seq-block.up h4,
+.seq-block.down h4 {
+    color: var(--ink-2);
+}
+
+/* A short flank is a property of the ASSEMBLY, not of the gene, so it reads as a note rather than an error. */
+.seq-edge {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-3);
+}
+
+.seq-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+}
+
+.seq-bh {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s2);
+}
+
+.seq-bh h4 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.seq-block.cds .seq-bh h4,
+.seq-block.aa .seq-bh h4 {
+    color: var(--ink);
+}
+
+.seq-note {
+    margin: 0;
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+.seq-none {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+}
+
+/* ⚠ `overflow-x: auto` on the block itself, never on the page. A 60-column ruler fits most widths, but a
+   narrow window must scroll the sequence and not the document. */
+.seq-pre {
+    margin: 0;
+    padding: var(--s2) var(--s3);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    tab-size: 4;
+}
+
+/* The gene, and only the gene, carries the accent — the same sail orange the focal block on the track wears,
+   so the thing the page is about is one colour throughout. */
+.seq-block.cds .seq-pre {
+    color: var(--ink);
+    background: var(--anchor-wash);
+    border-color: var(--anchor);
+}
+
+.seq-block.aa .seq-pre {
+    color: var(--ink);
+}
+
+.seq-copy {
+    flex: none;
+    padding: 3px 9px;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-2);
+    cursor: pointer;
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.seq-copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+}
+
+.seq-copy:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.seq-both {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+.seq-both-note {
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+.seq-err {
+    margin: 0;
+    font-size: 13px;
+    color: var(--rust);
+}
 </style>
 </head>
 <body>
@@ -3120,19 +3335,31 @@ td.fam-sym {
 
   <section id="view-sequence" class="view-panel" role="tabpanel" aria-label="Sequence" hidden>
     <div class="wrap">
-      <p class="lede">To be completed.</p>
-      <p class="muted">
-      <b>No longer blocked on a server.</b> The cohort's protein sequence is ~147&nbsp;MB, far past what one
-      page can carry — but the site is static files now, so sequence ships as small per-locus files the page
-      fetches when you open one. What is left is generating and sharding them, not standing up a database.
-      </p>
-      <p class="muted">
-      <b>The plan:</b> a drop-down to choose a sample, then the sequence of this locus's gene
-      <em>in that genome</em> — so a guide can be designed against the genome you actually mean rather than
-      against a cluster exemplar — with the match reported against the locus's other members. A cluster
-      exemplar is the wrong thing to design against: the members of a locus differ, and which differences
-      matter depends on the genome you intend to target.
-      </p>
+      <!-- The anchor, mounted a SECOND time. One state, two boxes: `app.js::mountAnchor` registers both and
+           `setAnchor` writes through every instance, so anchoring here moves the track too and anchoring
+           there fills this in. It is the top of the panel because it is the precondition for everything
+           below it -- without a genome named, there is no sequence to show, only a cluster to average. -->
+      <div id="seq-anchor-wrap" class="arr-anchor seq-anchor">
+        <label class="arr-anchor-box" for="seq-anchor-genome">
+          <input id="seq-anchor-genome" type="search" autocomplete="off" spellcheck="false"
+                 placeholder="Anchor to a genome — search"
+                 aria-label="Anchor the sequence to one genome" />
+          <span class="arr-anchor-mark" aria-hidden="true">⚓</span>
+          <span class="arr-anchor-caret" aria-hidden="true">▾</span>
+        </label>
+        <div id="seq-anchor-results" class="results anchor-results" role="listbox"></div>
+      </div>
+
+      <!-- Filled per locus by app.js::renderSequence. The copy below is what a payload built before schema 14
+           shows: no meta.seq, so no sequence was published with it and the tab has nothing to fetch. -->
+      <div id="seq-body" class="seq-body">
+        <p class="lede">Not published with this catalogue.</p>
+        <p class="muted">
+        Sequence ships beside the catalogue as one file per genome, and this page was built from a payload
+        that carries no <code>meta.seq</code> — so there is nothing here to fetch. Rebuild with
+        <code>nuna.tl.locus_browser.genome_sequence</code> and re-export with <code>--seq-dir</code>.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -3155,7 +3382,7 @@ td.fam-sym {
       Prototype built from a single <em>Escherichia coli</em> clustering. Every number on this page is read from that
       model's own output and its accessory-fidelity audit &mdash; nothing is re-derived for display.
     </p>
-    <dl><div><dt>representation</dt><dd>bacformer</dd></div><div><dt>provenance</dt><dd>3 run manifests (read, not decoded)</dd></div><div><dt>step 1 · dedup</dt><dd>MMseqs2 --min-seq-id 0.98 -c 0.95 (coverage = pipeline default, not in run_id)</dd></div><div><dt>step 2 · merge over families</dt><dd>esm · γ 0.98 · k100 · ρ off · excl(h) off</dd></div><div><dt>step 3 · split within groups</dt><dd>bacformer · γ 0.5 · k100 · ρ ≤ 1 pairwise_max</dd></div><div><dt>step 4 · merge over a prior partition</dt><dd>bacformer · γ 0.1 · k100 · ρ ≤ 1 ceiling · excl(h) on</dd></div><div><dt>merge algorithm</dt><dd>CPM (leidenalg CPMVertexPartition)</dd></div><div><dt>graph construction</dt><dd>density(s) · ρ≤1 · explode(mᵢmⱼ) · excl(h)</dd></div><div><dt>seed</dt><dd>0</dd></div><div><dt>model</dt><dd>ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0</dd></div><div><dt>built</dt><dd>2026-08-24</dd></div><div><dt>code</dt><dd>f00002d</dd></div></dl>
+    <dl><div><dt>representation</dt><dd>bacformer</dd></div><div><dt>provenance</dt><dd>3 run manifests (read, not decoded)</dd></div><div><dt>step 1 · dedup</dt><dd>MMseqs2 --min-seq-id 0.98 -c 0.95 (coverage = pipeline default, not in run_id)</dd></div><div><dt>step 2 · merge over families</dt><dd>esm · γ 0.98 · k100 · ρ off · excl(h) off</dd></div><div><dt>step 3 · split within groups</dt><dd>bacformer · γ 0.5 · k100 · ρ ≤ 1 pairwise_max</dd></div><div><dt>step 4 · merge over a prior partition</dt><dd>bacformer · γ 0.1 · k100 · ρ ≤ 1 ceiling · excl(h) on</dd></div><div><dt>merge algorithm</dt><dd>CPM (leidenalg CPMVertexPartition)</dd></div><div><dt>graph construction</dt><dd>density(s) · ρ≤1 · explode(mᵢmⱼ) · excl(h)</dd></div><div><dt>seed</dt><dd>0</dd></div><div><dt>model</dt><dd>ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0</dd></div><div><dt>built</dt><dd>2026-08-25</dd></div><div><dt>code</dt><dd>41e94f4</dd></div></dl>
     <details class='foot-detail'><summary>Accessory-fidelity audit &mdash; what was counted against this model</summary><dl><div><dt>clusters graded</dt><dd>17,531</dd></div><div><dt>genes</dt><dd>489,146</dd></div><div><dt>synteny only — no homology by mmseqs</dt><dd>8 clusters</dd></div><div><dt>synteny only, as a gene rate</dt><dd>0.0335%</dd></div><div><dt>Pfam conflict</dt><dd>42 clusters</dd></div><div><dt>loci Pfam can judge (≥2 annotated members)</dt><dd>9,297 clusters</dd></div><div><dt>UniRef50 family split across loci</dt><dd>3.26% of genes</dd></div><div><dt>rescued by ESM homology</dt><dd>138 clusters</dd></div></dl><p class='muted'>Read verbatim from ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL_pfam_concordance.tsv, ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL_audit_summary.json. <b>Synteny only</b> means no homology mmseqs, Pfam or ESM could find &mdash; the members were grouped on genomic context. That names the evidence, not a mistake: many are good calls, and the way to tell is the evidence beside each one. Clusters rescued by Pfam or by ESM are homologous and are not counted here.</p></details>
     <details class='foot-detail'><summary>Every locus grouped on context alone (10)</summary><p class='muted'>No sequence, Pfam or ESM homology behind the grouping &mdash; genomic context is all there was. Worth looking at every one: this is where the model is doing something an identity threshold cannot, and also where it would go wrong. Each is one click away.</p><div class='goto-list'><button type="button" class="goto-row" data-goto="4976"><b>ydcD</b> <span class="lid">&middot;4976</span><span class="goto-ev">shell · 32 genes · 3 UniRef50 · 0 architectures · A5 0.35 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="5169"><b>spaO</b> <span class="lid">&middot;5169</span><span class="goto-ev">shell · 27 genes · 3 UniRef50 · 1 architectures · A5 0.64 · ESM 0.97/0.99</span></button><button type="button" class="goto-row" data-goto="5296"><b>locus 5296</b> <span class="lid">&middot;5296</span><span class="goto-ev">shell · 24 genes · 3 UniRef50 · 0 architectures · A5 0.78 · ESM 0.97/0.99</span></button><button type="button" class="goto-row" data-goto="5413"><b>locus 5413</b> <span class="lid">&middot;5413</span><span class="goto-ev">shell · 22 genes · 2 UniRef50 · 0 architectures · A5 0.66 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5479"><b>locus 5479</b> <span class="lid">&middot;5479</span><span class="goto-ev">shell · 21 genes · 6 UniRef50 · 3 architectures · A5 0.57 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5580"><b>yffB</b> <span class="lid">&middot;5580</span><span class="goto-ev">shell · 20 genes · 7 UniRef50 · 0 architectures · A5 0.30 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="6764"><b>locus 6764</b> <span class="lid">&middot;6764</span><span class="goto-ev">cloud · 10 genes · 2 UniRef50 · 1 architectures · A5 0.40 · ESM 0.97/0.97</span></button><button type="button" class="goto-row" data-goto="10252"><b>locus 10252</b> <span class="lid">&middot;10252</span><span class="goto-ev">cloud · 2 genes · 2 UniRef50 · 1 architectures · A5 0.60 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="10515"><b>locus 10515</b> <span class="lid">&middot;10515</span><span class="goto-ev">cloud · 2 genes · 1 UniRef50 · 0 architectures · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="17237"><b>locus 17237</b> <span class="lid">&middot;17237</span><span class="goto-ev">cloud · 8 genes · 2 UniRef50 · 1 architectures · A5 1.00 · ESM 1.00/1.00</span></button></div></details><details class='foot-detail'><summary>Every Pfam conflict (42)</summary><p class='muted'>The annotated members carry domain architectures with no clan in common &mdash; evidence against the merge, but not a verdict: an HMM can miss homology ESM sees, and a locus whose members are all phage targets or all pilus variants is <em>expected</em> to look varied. A different domain order and a missing domain are both excluded before this count. Judge each against its synteny and its ESM pair.</p><div class='goto-list'><button type="button" class="goto-row" data-goto="1"><b>yjjJ</b> <span class="lid">&middot;1</span><span class="goto-ev">core · 100 genes · 5 UniRef50 · 4 architectures · A5 0.52 · ESM 0.98/0.97</span></button><button type="button" class="goto-row" data-goto="3374"><b>wzy</b> <span class="lid">&middot;3374</span><span class="goto-ev">shell · 92 genes · 29 UniRef50 · 4 architectures · A5 0.18 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="3433"><b>ybiA</b> <span class="lid">&middot;3433</span><span class="goto-ev">shell · 87 genes · 3 UniRef50 · 2 architectures · A5 0.95 · ESM 1.00/0.92</span></button><button type="button" class="goto-row" data-goto="3435"><b>hokG</b> <span class="lid">&middot;3435</span><span class="goto-ev">shell · 87 genes · 4 UniRef50 · 3 architectures · A5 0.69 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="3976"><b>locus 3976</b> <span class="lid">&middot;3976</span><span class="goto-ev">shell · 52 genes · 4 UniRef50 · 2 architectures · A5 0.91 · ESM 1.00/0.92</span></button><button type="button" class="goto-row" data-goto="4056"><b>gam</b> <span class="lid">&middot;4056</span><span class="goto-ev">shell · 49 genes · 4 UniRef50 · 2 architectures · A5 0.70 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4064"><b>locus 4064</b> <span class="lid">&middot;4064</span><span class="goto-ev">shell · 48 genes · 3 UniRef50 · 2 architectures · A5 0.46 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="4105"><b>ymjC</b> <span class="lid">&middot;4105</span><span class="goto-ev">shell · 47 genes · 2 UniRef50 · 2 architectures · A5 0.70 · ESM 1.00/0.91</span></button><button type="button" class="goto-row" data-goto="4106"><b>waaU</b> <span class="lid">&middot;4106</span><span class="goto-ev">shell · 47 genes · 2 UniRef50 · 2 architectures · A5 0.88 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4193"><b>nanK2</b> <span class="lid">&middot;4193</span><span class="goto-ev">shell · 44 genes · 3 UniRef50 · 2 architectures · A5 0.64 · ESM 1.00/0.93</span></button><button type="button" class="goto-row" data-goto="4220"><b>yagP</b> <span class="lid">&middot;4220</span><span class="goto-ev">shell · 43 genes · 2 UniRef50 · 2 architectures · A5 0.53 · ESM 1.00/0.93</span></button><button type="button" class="goto-row" data-goto="4379"><b>locus 4379</b> <span class="lid">&middot;4379</span><span class="goto-ev">shell · 39 genes · 7 UniRef50 · 4 architectures · A5 0.70 · ESM 0.99/0.93</span></button><button type="button" class="goto-row" data-goto="4382"><b>locus 4382</b> <span class="lid">&middot;4382</span><span class="goto-ev">shell · 39 genes · 4 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="4567"><b>ylbF</b> <span class="lid">&middot;4567</span><span class="goto-ev">shell · 36 genes · 4 UniRef50 · 2 architectures · A5 0.40 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="4568"><b>locus 4568</b> <span class="lid">&middot;4568</span><span class="goto-ev">shell · 36 genes · 8 UniRef50 · 5 architectures · A5 0.56 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="4571"><b>ret</b> <span class="lid">&middot;4571</span><span class="goto-ev">shell · 36 genes · 3 UniRef50 · 2 architectures · A5 0.91 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="4707"><b>locus 4707</b> <span class="lid">&middot;4707</span><span class="goto-ev">shell · 35 genes · 2 UniRef50 · 2 architectures · A5 0.97 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="4977"><b>papB</b> <span class="lid">&middot;4977</span><span class="goto-ev">shell · 32 genes · 7 UniRef50 · 2 architectures · A5 0.23 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="5102"><b>yagA</b> <span class="lid">&middot;5102</span><span class="goto-ev">shell · 29 genes · 4 UniRef50 · 3 architectures · A5 0.34 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="5479"><b>locus 5479</b> <span class="lid">&middot;5479</span><span class="goto-ev">shell · 21 genes · 6 UniRef50 · 3 architectures · A5 0.57 · ESM 0.99/0.99</span></button><button type="button" class="goto-row" data-goto="5492"><b>kfiD</b> <span class="lid">&middot;5492</span><span class="goto-ev">shell · 21 genes · 3 UniRef50 · 2 architectures · A5 0.42 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5563"><b>locus 5563</b> <span class="lid">&middot;5563</span><span class="goto-ev">shell · 20 genes · 2 UniRef50 · 2 architectures · A5 0.93 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="5573"><b>tnp</b> <span class="lid">&middot;5573</span><span class="goto-ev">shell · 20 genes · 2 UniRef50 · 3 architectures · A5 0.48 · ESM 1.00/0.95</span></button><button type="button" class="goto-row" data-goto="5583"><b>locus 5583</b> <span class="lid">&middot;5583</span><span class="goto-ev">shell · 20 genes · 3 UniRef50 · 2 architectures · A5 0.51 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="5616"><b>locus 5616</b> <span class="lid">&middot;5616</span><span class="goto-ev">shell · 19 genes · 3 UniRef50 · 3 architectures · A5 0.43 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="5673"><b>deoR</b> <span class="lid">&middot;5673</span><span class="goto-ev">shell · 18 genes · 4 UniRef50 · 2 architectures · A5 0.54 · ESM 1.00/0.94</span></button><button type="button" class="goto-row" data-goto="5727"><b>rloB</b> <span class="lid">&middot;5727</span><span class="goto-ev">shell · 17 genes · 4 UniRef50 · 3 architectures · A5 0.33 · ESM 0.98/0.97</span></button><button type="button" class="goto-row" data-goto="5839"><b>rfbG</b> <span class="lid">&middot;5839</span><span class="goto-ev">shell · 16 genes · 4 UniRef50 · 4 architectures · A5 0.33 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5841"><b>locus 5841</b> <span class="lid">&middot;5841</span><span class="goto-ev">shell · 16 genes · 8 UniRef50 · 5 architectures · A5 0.24 · ESM 0.98/0.98</span></button><button type="button" class="goto-row" data-goto="5849"><b>locus 5849</b> <span class="lid">&middot;5849</span><span class="goto-ev">shell · 16 genes · 2 UniRef50 · 2 architectures · A5 0.61 · ESM 1.00/0.97</span></button><button type="button" class="goto-row" data-goto="5858"><b>finQ</b> <span class="lid">&middot;5858</span><span class="goto-ev">shell · 16 genes · 3 UniRef50 · 2 architectures · A5 0.72 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="5988"><b>araC</b> <span class="lid">&middot;5988</span><span class="goto-ev">shell · 15 genes · 2 UniRef50 · 2 architectures · A5 0.62 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="6119"><b>insB</b> <span class="lid">&middot;6119</span><span class="goto-ev">cloud · 14 genes · 3 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.94</span></button><button type="button" class="goto-row" data-goto="6269"><b>locus 6269</b> <span class="lid">&middot;6269</span><span class="goto-ev">cloud · 13 genes · 2 UniRef50 · 2 architectures · A5 0.61 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="6418"><b>locus 6418</b> <span class="lid">&middot;6418</span><span class="goto-ev">cloud · 12 genes · 5 UniRef50 · 3 architectures · A5 0.24 · ESM 0.98/0.97</span></button><button type="button" class="goto-row" data-goto="6449"><b>mrr</b> <span class="lid">&middot;6449</span><span class="goto-ev">cloud · 12 genes · 3 UniRef50 · 2 architectures · A5 0.26 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="6566"><b>locus 6566</b> <span class="lid">&middot;6566</span><span class="goto-ev">cloud · 11 genes · 2 UniRef50 · 2 architectures · A5 0.55 · ESM 1.00/0.96</span></button><button type="button" class="goto-row" data-goto="7058"><b>locus 7058</b> <span class="lid">&middot;7058</span><span class="goto-ev">cloud · 9 genes · 3 UniRef50 · 3 architectures · A5 0.53 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="7778"><b>aMBF1</b> <span class="lid">&middot;7778</span><span class="goto-ev">cloud · 6 genes · 4 UniRef50 · 3 architectures · A5 0.39 · ESM 0.99/0.98</span></button><button type="button" class="goto-row" data-goto="8044"><b>locus 8044</b> <span class="lid">&middot;8044</span><span class="goto-ev">cloud · 5 genes · 2 UniRef50 · 2 architectures · A5 0.50 · ESM 1.00/0.98</span></button><button type="button" class="goto-row" data-goto="9002"><b>locus 9002</b> <span class="lid">&middot;9002</span><span class="goto-ev">cloud · 3 genes · 2 UniRef50 · 2 architectures · A5 0.56 · ESM 1.00/0.99</span></button><button type="button" class="goto-row" data-goto="17308"><b>yeeT</b> <span class="lid">&middot;17308</span><span class="goto-ev">cloud · 11 genes · 3 UniRef50 · 2 architectures · A5 0.24 · ESM 1.00/0.99</span></button></div></details>
     <p class="muted"></p>
@@ -3387,7 +3614,7 @@ window.nunaBoot = function (P) {
        which is right: the two BioSample sets are disjoint.
 
        -1 is "no anchor", and it must be a value the page can hold without the control existing at all: a
-       payload from before schema 13 has no membership, and `wireAnchor` then REMOVES the box rather than
+       payload from before schema 13 has no membership, and `mountAnchor` then REMOVES the box rather than
        offering one that could only ever answer "not found". */
     var GENOMES = (P.meta && P.meta.genomes) || null,
         anchorG = -1;
@@ -6887,7 +7114,11 @@ window.nunaBoot = function (P) {
         // the Sequence tab can click a gene -- and without this the evidence would change off screen.
         // Guarded on an actual change of locus, so switching tabs on the locus you are already reading is
         // never fought.
-        if (current !== i) showView("view-node");
+        // Walking to a locus is a request to SEE it, so a reader deep in the documentation is brought back to
+        // the locus view. ⛔ Not from Sequence, though: that tab is per-locus content too, and a reader
+        // stepping along the track is precisely the one who wants its sequence to follow rather than to be
+        // thrown back a tab on every step.
+        if (current !== i && curView !== "view-sequence") showView("view-node");
         current = i;
         // A new locus has its own arrangements. Unanchored that means rank 1, the commonest, as it always
         // did; anchored it means whichever one THIS genome carries here — the anchor is a default per locus,
@@ -6909,6 +7140,7 @@ window.nunaBoot = function (P) {
         renderTrack(i);
         renderPosition(i);
         renderCard(i);
+        renderSequence(i);
     }
 
     /* `sameStrand` distinguishes a WALK from a JUMP, and is the orientation as DRAWN — the direction the
@@ -7083,12 +7315,14 @@ window.nunaBoot = function (P) {
        ⛔ REMOVED, not disabled, when the payload carries no membership. That is the rule the IGR-variance
        toggle already set: a control that cannot distinguish "this genome is not here" from "the page has no
        idea" must not be offered, because those are different claims and the box would make the same face at
-       both. */
-    var anchorBox = document.getElementById("anchor-genome"),
-        anchorWrap = document.getElementById("anchor-wrap"),
-        anchorRes = document.getElementById("anchor-results");
-    var anchorCursor = -1,
-        anchorHits = [];
+       both.
+
+       ⛔ ONE anchor, MOUNTED TWICE — the switcher's gutter and the top of the Sequence tab. `anchorG` stays a
+       single module-level index and `setAnchor` writes through every instance in `ANCHORS`; the boxes are two
+       views of one state, not two states that are kept in step. Anchoring from either moves the track AND the
+       sequence, which is the whole reason the sequence tab has a box at all rather than a sentence telling the
+       reader to go and use the other one. */
+    var ANCHORS = [];
     // How many loci each genome carries. Derived on FIRST OPEN, not at boot: it is one pass over ~490k
     // membership entries, and a reader who never opens the list should not pay for it. Without it the
     // dropdown is a column of a hundred near-identical accessions with nothing to choose between them.
@@ -7127,11 +7361,15 @@ window.nunaBoot = function (P) {
 
     function setAnchor(k) {
         anchorG = k;
-        anchorBox.value = k < 0 ? "" : GENOMES[k];
-        // The mark lives beside the control while anchored (David, 2026-08-25), so the mode is legible from
-        // the thing that set it and not only from a sentence further down the panel.
-        anchorWrap.classList.toggle("on", k >= 0);
-        closeAnchor();
+        // EVERY mounting, because there is one anchor and more than one box showing it. A control left
+        // holding a stale accession is a page telling the reader two different things about one state.
+        ANCHORS.forEach(function (A) {
+            A.box.value = k < 0 ? "" : GENOMES[k];
+            // The mark lives beside the control while anchored (David, 2026-08-25), so the mode is legible
+            // from the thing that set it and not only from a sentence further down the panel.
+            A.wrap.classList.toggle("on", k >= 0);
+            closeAnchor(A);
+        });
         // Re-derive from the new anchor rather than keeping whatever was drawn: `show` is what owns the
         // "which arrangement does this locus open on" rule, and duplicating it here is how the two would
         // eventually disagree.
@@ -7139,46 +7377,47 @@ window.nunaBoot = function (P) {
             arrIdx = defaultArr(current);
             renderTrack(current);
             renderPosition(current);
+            renderSequence(current);
         }
     }
 
-    function renderAnchor() {
-        anchorRes.textContent = "";
-        if (!anchorHits.length && anchorBox.value.trim()) {
-            anchorRes.appendChild(
+    function closeAnchor(A) {
+        A.hits = [];
+        A.cursor = -1;
+        if (A.res) A.res.textContent = "";
+    }
+
+    function renderAnchor(A) {
+        A.res.textContent = "";
+        if (!A.hits.length && A.box.value.trim()) {
+            A.res.appendChild(
                 el(
                     "div",
                     "hit-none",
-                    "No genome in this catalogue matches “" +
-                        anchorBox.value.trim() +
-                        "”.",
+                    "No genome in this catalogue matches \u201c" +
+                        A.box.value.trim() +
+                        "\u201d.",
                 ),
             );
             return;
         }
-        // Always first, and never hidden behind a separate × — it is the off switch, and an off switch the
+        // Always first, and never hidden behind a separate \u00d7 \u2014 it is the off switch, and an off switch the
         // reader has to hunt for is one they will conclude does not exist.
         var clear = el("button", "anchor-hit clear", "most common arrangement");
         clear.type = "button";
-        clear.setAttribute(
-            "aria-selected",
-            anchorCursor === -1 ? "true" : "false",
-        );
+        clear.setAttribute("aria-selected", A.cursor === -1 ? "true" : "false");
         clear.addEventListener("mousedown", function (e) {
             e.preventDefault();
         });
         clear.addEventListener("click", function () {
             setAnchor(-1);
         });
-        anchorRes.appendChild(clear);
+        A.res.appendChild(clear);
         var counts = genomeCounts();
-        anchorHits.forEach(function (k, j) {
+        A.hits.forEach(function (k, j) {
             var b = el("button", "anchor-hit");
             b.type = "button";
-            b.setAttribute(
-                "aria-selected",
-                j === anchorCursor ? "true" : "false",
-            );
+            b.setAttribute("aria-selected", j === A.cursor ? "true" : "false");
             b.appendChild(el("span", null, GENOMES[k]));
             b.appendChild(
                 el("span", "anchor-n", counts[k].toLocaleString() + " loci"),
@@ -7189,76 +7428,77 @@ window.nunaBoot = function (P) {
             b.addEventListener("click", function () {
                 setAnchor(k);
             });
-            anchorRes.appendChild(b);
+            A.res.appendChild(b);
         });
     }
 
-    function closeAnchor() {
-        anchorHits = [];
-        anchorCursor = -1;
-        if (anchorRes) anchorRes.textContent = "";
-    }
-
-    function wireAnchor() {
-        if (!anchorBox || !anchorWrap || !anchorRes) return;
+    /* Mount one instance. Returns nothing; the instance registers itself in `ANCHORS`, which is what
+       `setAnchor` and the "/" handler iterate. Called once per box on the page \u2014 the switcher's gutter and the
+       top of the Sequence tab \u2014 and the two are the SAME control, not two anchors that happen to agree. */
+    function mountAnchor(wrapId, boxId, resId) {
+        var A = {
+            wrap: document.getElementById(wrapId),
+            box: document.getElementById(boxId),
+            res: document.getElementById(resId),
+            cursor: -1,
+            hits: [],
+        };
+        if (!A.wrap || !A.box || !A.res) return;
         if (!HAS_ANCHOR) {
-            anchorWrap.remove();
+            A.wrap.remove();
             return;
         }
+        ANCHORS.push(A);
         function open() {
-            anchorHits = anchorSearch(anchorBox.value);
-            anchorCursor = -1;
-            renderAnchor();
+            A.hits = anchorSearch(A.box.value);
+            A.cursor = -1;
+            renderAnchor(A);
         }
-        anchorBox.addEventListener("focus", open);
-        anchorBox.addEventListener("input", open);
-        anchorBox.addEventListener("keydown", function (e) {
+        A.box.addEventListener("focus", open);
+        A.box.addEventListener("input", open);
+        A.box.addEventListener("keydown", function (e) {
             if (e.key === "Escape") {
-                closeAnchor();
-                anchorBox.blur();
+                closeAnchor(A);
+                A.box.blur();
                 return;
             }
-            if (!anchorHits.length) return;
+            if (!A.hits.length) return;
             // -1 is the "most common arrangement" row, so the cursor runs from -1 and wraps through it.
             if (e.key === "ArrowDown") {
-                anchorCursor =
-                    anchorCursor + 1 >= anchorHits.length
-                        ? -1
-                        : anchorCursor + 1;
-                renderAnchor();
+                A.cursor = A.cursor + 1 >= A.hits.length ? -1 : A.cursor + 1;
+                renderAnchor(A);
                 e.preventDefault();
             } else if (e.key === "ArrowUp") {
-                anchorCursor =
-                    anchorCursor <= -1
-                        ? anchorHits.length - 1
-                        : anchorCursor - 1;
-                renderAnchor();
+                A.cursor = A.cursor <= -1 ? A.hits.length - 1 : A.cursor - 1;
+                renderAnchor(A);
                 e.preventDefault();
             } else if (e.key === "Enter") {
-                setAnchor(anchorCursor < 0 ? -1 : anchorHits[anchorCursor]);
-                anchorBox.blur();
+                setAnchor(A.cursor < 0 ? -1 : A.hits[A.cursor]);
+                A.box.blur();
                 e.preventDefault();
             }
         });
-        anchorBox.addEventListener("blur", function () {
-            setTimeout(closeAnchor, 120);
+        A.box.addEventListener("blur", function () {
+            setTimeout(function () {
+                closeAnchor(A);
+            }, 120);
         });
         // The document-level closer dismisses the popover on any outside click, and it would take this list
         // with it before a click on a row could land.
-        anchorRes.addEventListener("click", function (ev) {
+        A.res.addEventListener("click", function (ev) {
             ev.stopPropagation();
         });
     }
-    wireAnchor();
+    mountAnchor("anchor-wrap", "anchor-genome", "anchor-results");
+    mountAnchor("seq-anchor-wrap", "seq-anchor-genome", "seq-anchor-results");
 
     document.addEventListener("keydown", function (e) {
         // ⚠ Both search boxes are excluded. Without the second, typing the "/" in an accession would throw
         // focus out of the anchor box and into the locus search mid-word.
-        if (
-            e.key === "/" &&
-            document.activeElement !== input &&
-            document.activeElement !== anchorBox
-        ) {
+        var inAnchor = ANCHORS.some(function (A) {
+            return document.activeElement === A.box;
+        });
+        if (e.key === "/" && document.activeElement !== input && !inAnchor) {
             input.focus();
             e.preventDefault();
         }
@@ -7271,6 +7511,522 @@ window.nunaBoot = function (P) {
         });
     });
 
+    /* ================================================================== the Sequence view
+       The catalogue carries no sequence and no absolute coordinate, deliberately -- it is O(loci) and stays
+       that way. Sequence lives BESIDE it: one 2-bit genome per BioSample (`{BS}.nseq`, ~1.3 MB) plus the
+       model's own locus mapping (`{BS}.loci`, ~20 kB), fetched only when a reader opens this tab with an
+       anchor set. A reader who never does downloads none of it -- which matters, because the catalogue alone
+       is already 4.5 MB gzipped and over the budget serving_at_scale.md sets.
+
+       ⛔ WHOLE FILES, never byte ranges. GitHub Pages advertises `accept-ranges` and answers 206, but under
+       `Accept-Encoding: gzip` -- which every browser sends -- the range applies to the COMPRESSED stream, so
+       a build-time offset returns 100 bytes of plausible-looking wrong sequence with no error at all. That is
+       measured, not feared: docs/design/serving_at_scale.md section 5.
+
+       ⛔ Two files, because they have two lifetimes. The DNA is a property of the GENOME and must survive a
+       model re-export untouched; the locus mapping is a property of the MODEL. Folded together, every export
+       would rewrite ~280 MB of git history permanently.
+
+       This is the only network request the page makes after boot. app.js is otherwise wholly synchronous by
+       choice (see the header note), so the asynchrony is confined to `withSeq` and never leaks upward. */
+    var SEQ = (P.meta && P.meta.seq) || null;
+    var HAS_SEQ = !!(
+        SEQ &&
+        SEQ.dir &&
+        HAS_ANCHOR &&
+        typeof fetch === "function"
+    );
+    var FLANK = (SEQ && SEQ.flank) || 100;
+    var seqStore = {}, // genome index -> store object once loaded
+        seqBusy = {}, // genome index -> true while in flight, so a second click fetches once
+        seqTok = 0; // guards a slow fetch against painting a locus the reader has already left
+
+    function utf8(u8) {
+        if (typeof TextDecoder === "function")
+            return new TextDecoder().decode(u8);
+        var out = "";
+        for (var k = 0; k < u8.length; k++) out += String.fromCharCode(u8[k]);
+        return out;
+    }
+
+    /* Decode one `.nseq`. The layout is in schemas/genome_sequence.schema.md, and the magic is checked because
+       a mis-served or half-written file must announce itself rather than decode into plausible nonsense. */
+    function decodeNseq(buf) {
+        var u8 = new Uint8Array(buf);
+        if (utf8(u8.subarray(0, 7)) !== "NUNASEQ")
+            throw new Error("not a .nseq file (bad magic)");
+        var dv = new DataView(buf),
+            hlen = dv.getUint32(8, true),
+            head = JSON.parse(utf8(u8.subarray(12, 12 + hlen))),
+            off = 12 + hlen;
+        // `slice`, not a view: the gene table starts at 12+hlen, which is not a multiple of 4, and a
+        // Uint32Array view onto an unaligned offset throws. 78 kB copied once per genome.
+        var genes = new Uint32Array(buf.slice(off, off + head.n_genes * 16));
+        off += head.n_genes * 16;
+        var coff = new Float64Array(head.clen.length + 1);
+        for (var k = 0; k < head.clen.length; k++)
+            coff[k + 1] = coff[k] + head.clen[k];
+        return {
+            head: head,
+            genes: genes,
+            coff: coff,
+            packed: u8.subarray(off),
+            loci: null,
+        };
+    }
+
+    /* One base by ABSOLUTE index into the concatenated 2-bit stream. Contigs are packed as one run, so a
+       contig may begin mid-byte -- which costs nothing, because nothing here reads a contig sequentially. */
+    function baseAt(ST, abs) {
+        return "ACGT"[(ST.packed[abs >> 2] >> (6 - 2 * (abs & 3))) & 3];
+    }
+
+    /* A 1-based inclusive span of one contig, CLAMPED to it and reporting what it actually got. Clamping
+       rather than padding is the point: these are draft assemblies (348 contigs on a real genome, ~14 genes
+       each), so a gene within 100 bp of a contig end is common, and quietly returning a short string that
+       looks like a full flank is how someone designs a guide against sequence that was never there. */
+    function contigSpan(ST, ci, from, to) {
+        var len = ST.head.clen[ci],
+            a = Math.max(1, from),
+            b = Math.min(len, to);
+        if (b < a) return { seq: "", from: 0, to: 0, want: to - from + 1 };
+        var base = ST.coff[ci],
+            out = new Array(b - a + 1);
+        for (var k = a; k <= b; k++) out[k - a] = baseAt(ST, base + k - 1);
+        // Ambiguity is held out of the 2-bit stream and painted back here, so an N reads as an N rather than
+        // as the A it was packed as. The runs are absolute and few, so a linear pass over them is right.
+        var amb = ST.head.ambiguous || [];
+        for (var r = 0; r < amb.length; r++) {
+            var s0 = amb[r][0] - base + 1,
+                s1 = s0 + amb[r][1] - 1;
+            for (var q = Math.max(a, s0); q <= Math.min(b, s1); q++)
+                out[q - a] = "N";
+        }
+        return { seq: out.join(""), from: a, to: b, want: to - from + 1 };
+    }
+
+    var COMP = { A: "T", C: "G", G: "C", T: "A", N: "N" };
+
+    function rc(seq) {
+        var out = new Array(seq.length);
+        for (var k = 0; k < seq.length; k++)
+            out[seq.length - 1 - k] = COMP[seq[k]] || "N";
+        return out.join("");
+    }
+
+    var CODONS =
+        "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
+    var CODON_IDX = { T: 0, C: 1, A: 2, G: 3 };
+    // Table 11 initiators. A CDS beginning with any of these has its first residue written M -- the plain
+    // table renders GTG/TTG as V/L because it treats every codon as internal, and Bakta's own translations
+    // start with M. Measured on nhaA: stored M, plain table V.
+    var INITIATORS = { ATG: 1, GTG: 1, TTG: 1, CTG: 1, ATT: 1, ATC: 1, ATA: 1 };
+
+    /* Table 11, reproducing genome_sequence.translate_cds -- which in turn reproduces the extractor that wrote
+       the stored protein. The build gates on every gene in the cohort agreeing, so this is the same arithmetic
+       already checked against ~1M answers, not a second opinion. The ORDER is the load-bearing part: drop
+       `phase` bases first (a non-zero phase means the CDS is 5'-partial and does not begin at a start codon),
+       then trim to a codon boundary, then translate, then promote -- and never promote a 5'-partial CDS. */
+    function translate(nt, phase, partial5) {
+        if (phase) nt = nt.slice(phase);
+        nt = nt.slice(0, nt.length - (nt.length % 3));
+        if (nt.length < 3) return "";
+        var out = [];
+        for (var k = 0; k < nt.length; k += 3) {
+            var a = CODON_IDX[nt[k]],
+                b = CODON_IDX[nt[k + 1]],
+                c = CODON_IDX[nt[k + 2]];
+            out.push(
+                a === undefined || b === undefined || c === undefined
+                    ? "X"
+                    : CODONS[a * 16 + b * 4 + c],
+            );
+        }
+        if (out[out.length - 1] === "*") out.pop();
+        if (
+            !partial5 &&
+            out.length &&
+            out[0] !== "M" &&
+            INITIATORS[nt.slice(0, 3)]
+        )
+            out[0] = "M";
+        return out.join("");
+    }
+
+    function gcPct(seq) {
+        var g = 0,
+            n = 0;
+        for (var k = 0; k < seq.length; k++) {
+            var ch = seq[k];
+            if (ch === "G" || ch === "C") g++;
+            if (ch !== "N") n++;
+        }
+        return n ? (100 * g) / n : 0;
+    }
+
+    /* Every gene THIS genome has at THIS locus. A linear scan of ~4,900 int32 is sub-millisecond and needs no
+       inverse index to keep consistent -- and it returns all of them, which is what makes a genome at rho > 1
+       (two copies at one locus) something the page can show rather than something it has to average away. */
+    function genesAtLocus(ST, i) {
+        var out = [],
+            L = ST.loci;
+        for (var j = 0; j < L.length; j++) if (L[j] === i) out.push(j);
+        return out;
+    }
+
+    function withSeq(gi, then, fail) {
+        if (seqStore[gi]) return then(seqStore[gi]);
+        if (seqBusy[gi]) return;
+        seqBusy[gi] = true;
+        var base = SEQ.dir + "/" + GENOMES[gi];
+        function grab(suffix) {
+            return fetch(base + suffix).then(function (r) {
+                if (!r.ok)
+                    throw new Error(r.status + " on " + GENOMES[gi] + suffix);
+                return r.arrayBuffer();
+            });
+        }
+        Promise.all([grab(".nseq"), grab(".loci")])
+            .then(function (bufs) {
+                var ST = decodeNseq(bufs[0]);
+                ST.loci = new Int32Array(bufs[1]);
+                if (ST.loci.length !== ST.head.n_genes)
+                    throw new Error(
+                        "the locus index has " +
+                            ST.loci.length +
+                            " entries for " +
+                            ST.head.n_genes +
+                            " genes, so the two files are from different builds",
+                    );
+                seqStore[gi] = ST;
+                seqBusy[gi] = false;
+                then(ST);
+            })
+            .catch(function (e) {
+                seqBusy[gi] = false;
+                fail(e);
+            });
+    }
+
+    /* ---- drawing ---------------------------------------------------------------------------------- */
+    var seqBody = document.getElementById("seq-body");
+
+    function seqSay(cls, text) {
+        seqBody.textContent = "";
+        seqBody.appendChild(el("p", cls, text));
+    }
+
+    /* A sequence block, numbered from 1 WITHIN ITSELF and captioned with its true contig span. Numbering each
+       block from its own 1 and putting the real coordinates in the heading beats one signed ruler running
+       across all three: the reader is copying a block at a time, and a "-100" gutter invites exactly the
+       reading -- that the flank is part of the gene -- which this panel exists to prevent. */
+    function seqPre(seq) {
+        var W = 60,
+            out = [],
+            w = String(seq.length).length;
+        for (var k = 0; k < seq.length; k += W) {
+            var pos = String(k + 1);
+            while (pos.length < w) pos = " " + pos;
+            out.push(pos + "  " + seq.slice(k, k + W));
+        }
+        return el("pre", "seq-pre", out.join("\n"));
+    }
+
+    function copyBtn(label, what, text) {
+        var b = el("button", "seq-copy", label);
+        b.type = "button";
+        b.setAttribute("aria-label", "Copy " + what);
+        b.addEventListener("click", function () {
+            if (typeof navigator === "undefined" || !navigator.clipboard)
+                return;
+            navigator.clipboard.writeText(text).then(function () {
+                b.textContent = "copied";
+                setTimeout(function () {
+                    b.textContent = label;
+                }, 1200);
+            });
+        });
+        return b;
+    }
+
+    function seqBlock(kind, heading, note, seq, copyWhat) {
+        var d = el("div", "seq-block " + kind);
+        var h = el("div", "seq-bh");
+        h.appendChild(el("h4", null, heading));
+        if (seq) h.appendChild(copyBtn("copy", copyWhat, seq));
+        d.appendChild(h);
+        if (note) d.appendChild(el("p", "seq-note", note));
+        d.appendChild(
+            seq ? seqPre(seq) : el("p", "seq-none", "None in the assembly."),
+        );
+        return d;
+    }
+
+    // HTML5 allows a <div> to wrap a dt/dd group inside a <dl>, which is what lets the stats lay out as a
+    // strip of cards rather than as two columns running down the page.
+    function statRow(d, k, v) {
+        var g = el("div", "seq-stat");
+        g.appendChild(el("dt", null, k));
+        g.appendChild(el("dd", null, v));
+        d.appendChild(g);
+    }
+
+    function seqGene(ST, j, ord, nGenes) {
+        var g = ST.genes,
+            start = g[4 * j],
+            end = g[4 * j + 1],
+            ci = g[4 * j + 2],
+            flags = g[4 * j + 3];
+        var minus = !!(flags & 1),
+            partial5 = !!(flags & 2),
+            phase = flags >> 2,
+            cname = ST.head.cname[ci];
+
+        var body = contigSpan(ST, ci, start, end);
+        var nt = minus ? rc(body.seq) : body.seq;
+        var aa = translate(nt, phase, partial5);
+        // Upstream and downstream are in the GENE's reading direction, not the contig's: on a minus-strand
+        // gene the upstream flank sits at HIGHER contig coordinates and is reverse-complemented with it. That
+        // is the repo's own convention (load_meta_flanks orients on strand) and the only one a guide can be
+        // designed against without silently targeting the opposite end of the gene.
+        var upRaw = minus
+                ? contigSpan(ST, ci, end + 1, end + FLANK)
+                : contigSpan(ST, ci, start - FLANK, start - 1),
+            dnRaw = minus
+                ? contigSpan(ST, ci, start - FLANK, start - 1)
+                : contigSpan(ST, ci, end + 1, end + FLANK);
+        var up = minus ? rc(upRaw.seq) : upRaw.seq,
+            dn = minus ? rc(dnRaw.seq) : dnRaw.seq;
+
+        var wrap = el("div", "seq-gene");
+        if (nGenes > 1)
+            wrap.appendChild(
+                el(
+                    "h3",
+                    "seq-copy-h",
+                    "Copy " + ord + " of " + nGenes + " at this locus",
+                ),
+            );
+
+        var dl = el("dl", "seq-stats");
+        statRow(dl, "Contig", cname);
+        statRow(
+            dl,
+            "Span",
+            start.toLocaleString() +
+                "–" +
+                end.toLocaleString() +
+                " (1-based, inclusive)",
+        );
+        statRow(dl, "Strand", minus ? "− (reverse)" : "+ (forward)");
+        statRow(
+            dl,
+            "Direction",
+            minus
+                ? "read as the reverse complement of the contig"
+                : "read as the contig is written",
+        );
+        statRow(
+            dl,
+            "Length",
+            nt.length.toLocaleString() +
+                " bp · " +
+                aa.length.toLocaleString() +
+                " aa",
+        );
+        statRow(dl, "GC content", gcPct(nt).toFixed(1) + "%");
+        if (partial5)
+            statRow(
+                dl,
+                "Note",
+                "5′-partial — this CDS does not begin at a start codon",
+            );
+        wrap.appendChild(dl);
+
+        // ⛔ The one sentence this panel exists to make unmissable. The reader's purpose is guide design, and a
+        // guide designed against flanking DNA believing it to be coding is a wasted experiment.
+        wrap.appendChild(
+            el(
+                "p",
+                "seq-warn",
+                "The two flanking blocks are NOT part of the gene. They are the " +
+                    FLANK +
+                    " bases of genomic DNA either side of it, shown so a guide can be designed across either " +
+                    "end — only the middle block is the coding sequence.",
+            ),
+        );
+
+        var edge = [];
+        if (upRaw.seq.length < upRaw.want) edge.push("upstream");
+        if (dnRaw.seq.length < dnRaw.want) edge.push("downstream");
+        if (edge.length)
+            wrap.appendChild(
+                el(
+                    "p",
+                    "seq-edge",
+                    "This gene sits within " +
+                        FLANK +
+                        " bases of the end of " +
+                        cname +
+                        ", so the " +
+                        edge.join(" and ") +
+                        " flank" +
+                        (edge.length > 1 ? "s are" : " is") +
+                        " short. These are draft assemblies of a few hundred contigs each, so that is common " +
+                        "rather than exceptional — the missing bases are not in the assembly at all.",
+                ),
+            );
+
+        function span(raw) {
+            return raw.seq.length
+                ? "Contig " +
+                      raw.from.toLocaleString() +
+                      "–" +
+                      raw.to.toLocaleString() +
+                      (minus ? ", reverse-complemented" : "")
+                : "";
+        }
+
+        wrap.appendChild(
+            seqBlock(
+                "up",
+                FLANK + " bases upstream — not the gene",
+                span(upRaw),
+                up,
+                "the upstream flank",
+            ),
+        );
+        wrap.appendChild(
+            seqBlock(
+                "cds",
+                "The gene — " + nt.length.toLocaleString() + " bases",
+                "Contig " +
+                    start.toLocaleString() +
+                    "–" +
+                    end.toLocaleString() +
+                    (minus ? ", reverse-complemented" : "") +
+                    ". Includes the stop codon.",
+                nt,
+                "the coding sequence",
+            ),
+        );
+        wrap.appendChild(
+            seqBlock(
+                "down",
+                FLANK + " bases downstream — not the gene",
+                span(dnRaw),
+                dn,
+                "the downstream flank",
+            ),
+        );
+        wrap.appendChild(
+            seqBlock(
+                "aa",
+                "Protein — " + aa.length.toLocaleString() + " residues",
+                "Translated here with NCBI table 11 from the bases above.",
+                aa,
+                "the protein sequence",
+            ),
+        );
+
+        var both = el("p", "seq-both");
+        both.appendChild(
+            copyBtn(
+                "copy gene + " + FLANK + " bp each side",
+                "the gene with its flanks, which is not the coding sequence alone",
+                up + nt + dn,
+            ),
+        );
+        both.appendChild(
+            el(
+                "span",
+                "seq-both-note",
+                (up.length + nt.length + dn.length).toLocaleString() +
+                    " bases: " +
+                    up.length +
+                    " + " +
+                    nt.length +
+                    " + " +
+                    dn.length +
+                    ".",
+            ),
+        );
+        wrap.appendChild(both);
+        return wrap;
+    }
+
+    function renderSequence(i) {
+        // ⛔ The guard lives HERE, not at the three call sites. Anchoring from the switcher's gutter while
+        // reading the track must not quietly pull 1.3 MB of DNA the reader never asked to see, and a rule
+        // repeated at every caller is one that will eventually be missing from a fourth.
+        if (!HAS_SEQ || !seqBody || curView !== "view-sequence" || i < 0)
+            return;
+        var tok = ++seqTok;
+        if (anchorG < 0) {
+            seqSay(
+                "lede",
+                "Anchor to a genome above, and this tab shows that genome’s own DNA at whichever locus " +
+                    "you are reading — the gene, " +
+                    FLANK +
+                    " bases either side of it, and the protein.",
+            );
+            return;
+        }
+        var who = GENOMES[anchorG];
+        seqSay("muted", "Loading sequence for " + who + "…");
+        withSeq(
+            anchorG,
+            function (ST) {
+                if (tok !== seqTok) return; // the reader walked on while this was in flight
+                var hits = genesAtLocus(ST, i);
+                seqBody.textContent = "";
+                var head = el("p", "seq-head");
+                head.appendChild(el("b", null, who));
+                if (!hits.length) {
+                    head.appendChild(
+                        document.createTextNode(
+                            " has no gene at " +
+                                displayOf(i) +
+                                " ·" +
+                                N.label[i] +
+                                ". Walk to a locus it carries, or clear the anchor.",
+                        ),
+                    );
+                    seqBody.appendChild(head);
+                    return;
+                }
+                head.appendChild(
+                    document.createTextNode(
+                        " at " +
+                            displayOf(i) +
+                            " ·" +
+                            N.label[i] +
+                            (hits.length > 1
+                                ? " — " + hits.length + " copies here"
+                                : ""),
+                    ),
+                );
+                seqBody.appendChild(head);
+                hits.forEach(function (j, k) {
+                    seqBody.appendChild(seqGene(ST, j, k + 1, hits.length));
+                });
+            },
+            function (e) {
+                if (tok !== seqTok) return;
+                // Name the file and the status. A sequence panel that fails silently is one a reader will read
+                // as "this genome has nothing here", which is a different claim and a false one.
+                seqSay(
+                    "seq-err",
+                    "Could not load sequence for " +
+                        who +
+                        " — " +
+                        e.message +
+                        ".",
+                );
+            },
+        );
+    }
+
     /* ================================================================== the view tabs
        Four views of one locus. `Syntolog Loci` is home and carries the gene's own evidence; the other three are
        the site's documentation and two reserved slots. They get their OWN classes for the reason recorded in
@@ -7279,6 +8035,7 @@ window.nunaBoot = function (P) {
 
        `view-*`, not `doc-*`: one of these tabs holds the primary content now, and a class calling it
        documentation would mislead. Panels are static markup in the template — this only decides which shows. */
+    var curView = "view-node";
     var VIEW_TABS = [
         ["view-node", "Syntolog Loci"],
         ["view-navigating", "Navigating Syntitude"],
@@ -7295,6 +8052,7 @@ window.nunaBoot = function (P) {
     function showView(id) {
         var strip = document.getElementById("view-tabs");
         if (!strip) return;
+        curView = id;
         viewLive.forEach(function (t, k) {
             var on = t[0] === id;
             document.getElementById(t[0]).hidden = !on;
@@ -7303,6 +8061,9 @@ window.nunaBoot = function (P) {
             b.classList[on ? "add" : "remove"]("on");
             b.setAttribute("aria-selected", on ? "true" : "false");
         });
+        // Drawn on arrival rather than on every walk, because it is the only view that costs a network
+        // request: a reader who never opens this tab fetches no sequence at all.
+        if (id === "view-sequence") renderSequence(current);
     }
 
     (function () {
