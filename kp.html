@@ -683,12 +683,29 @@ a {
 /* ---- the arrangement switcher, anchored under the focal gene ----
    The wrap is the SVG's offset parent, so the fan's coordinates need no page-scroll term and survive vertical
    scrolling for free. */
+/* Three grid rows: the fan, then the options with the anchor control beside them, then the sentences.
+   The columns are SYMMETRIC — gutter, options, gutter — which is what keeps the option row's centre the page's
+   centre whether the control is there or not, and therefore what the fan can point at. (It was a padding on
+   the switcher and an absolutely-positioned panel; that pinned the box to the wrap's TOP, level with the fan,
+   so it never sat in line with the buttons it acts on — David, 2026-08-25.) */
 .arr-wrap {
     position: relative;
     margin-top: var(--s3);
-    /* the left gutter the anchor-genome control sits in, and the symmetric padding that keeps the option row
-       centred under the focal gene regardless of it — one number, so the two cannot drift */
+    display: grid;
+    grid-template-columns: var(--arr-gutter) minmax(0, 1fr) var(--arr-gutter);
+    /* the left gutter the anchor-genome control sits in, and the mirrored column on the right that keeps the
+       option row centred under the focal gene regardless of it — one number, so the two cannot drift */
     --arr-gutter: 260px;
+}
+
+.arr-fan {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.arr-notes {
+    grid-column: 1 / -1;
+    grid-row: 3;
 }
 
 .arr-fan {
@@ -720,9 +737,9 @@ a {
 }
 
 .arr-switch {
+    grid-column: 2;
+    grid-row: 2;
     margin-top: 0;
-    /* symmetric, so the option row's centre is the page's centre with or without the gutter panel beside it */
-    padding: 0 var(--arr-gutter);
 }
 
 .arr-switch:empty {
@@ -762,8 +779,28 @@ a {
 /* the sentence under them is centred with them, or it reads as belonging to the next thing down the page */
 .arr-head,
 .arr-only,
-.arr-flip {
+.arr-flip,
+.arr-anchored {
     text-align: center;
+}
+
+/* What the anchor did at this locus. It sits BELOW the options, centred in their column — above them it
+   pushed the whole row down the moment a genome was picked, leaving the box out of line with the buttons it
+   acts on. Takes the accent so it reads with the box and the marked option rather than as body text. */
+.arr-anchored {
+    margin: var(--s2) 0 0;
+    font-size: 12.5px;
+    color: var(--anchor);
+}
+
+.arr-anchored b {
+    font-family: var(--mono);
+    font-weight: 620;
+}
+
+/* the "no gene here" case is a caveat, not an accent — it says the anchor found nothing to point at */
+.arr-anchored.muted {
+    color: var(--ink-3);
 }
 
 .arr-opt {
@@ -893,7 +930,7 @@ a {
     --notch: 5px; /* the arrow point, shallowed from 11px: the lanes carry direction now, this corroborates */
 
     position: relative;
-    padding-right: 132px;
+    padding-right: 200px;
 }
 
 /* The band's label AND its colour key. The key used to sit in the legend under the track, three rows away
@@ -907,7 +944,7 @@ a {
 .band-note {
     position: absolute;
     right: 0;
-    width: 118px;
+    width: 186px;
     margin: 0;
     top: calc(var(--s2) + var(--label-h) + var(--block-h) - 38px);
     display: flex;
@@ -924,20 +961,47 @@ a {
     color: var(--ink-2);
 }
 
+/* Two channels side by side (David, 2026-08-25), each its own bar and its own pair of ends. A block carries
+   two independent quantities, so a reader shown one key reads the other wrong — they belong together, and
+   beside the blocks rather than three rows above them. */
 .band-key {
     display: flex;
     align-items: stretch;
-    gap: 6px;
+    gap: var(--s2);
 }
 
-/* Maroon at the top, blue at the bottom, from the SAME two tokens `.block .fill` mixes between — so the key
+.band-ch {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Purple at the top, blue at the bottom, from the SAME two tokens `.block .fill` mixes between — so the key
    cannot drift from the track it describes, in either theme. Twice the height it had as a plain rule, which
-   is what makes it read as a ramp rather than a border. */
+   is what makes it read as a ramp rather than a border.
+   ⚠ Written out in full rather than sharing a selector list with `.band-pen`: each bar is checked against the
+   property of `.block .fill` it claims to describe, and a shared rule makes "the .band-pen rule" ambiguous. */
 .band-ramp {
     flex: 0 0 auto;
     width: 8px;
     border-radius: 2px;
     background: linear-gradient(to bottom, var(--ramp-lo), var(--ramp-hi));
+}
+
+/* ⛔ The SAME 18 % floor `.block .fill` clamps its opacity to, or the key stops describing the track beside
+   it: a block in one genome is faint, not invisible, and a key fading to nothing would promise otherwise.
+   Held at `--c` = 1 so this bar varies one channel only, exactly as the ramp beside it does. */
+.band-pen {
+    flex: 0 0 auto;
+    width: 8px;
+    border-radius: 2px;
+    background: linear-gradient(
+        to bottom,
+        var(--ramp-hi),
+        color-mix(in oklab, var(--ramp-hi) 18%, transparent)
+    );
 }
 
 /* The ramp has no height of its own — it stretches to this, so the bar and the words that label its ends
@@ -1148,41 +1212,6 @@ a {
             rgba(255, 198, 60, var(--v, 0))
         );
     }
-}
-
-.toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    cursor: pointer;
-    user-select: none;
-}
-
-.toggle input {
-    margin: 0;
-    cursor: pointer;
-}
-
-.igr-ramp {
-    display: inline-block;
-    width: 54px;
-    height: 9px;
-    border: 1px solid var(--ink-3);
-    border-radius: 2px;
-    background: linear-gradient(to right, var(--panel), rgb(232, 168, 20));
-}
-
-@media (prefers-color-scheme: dark) {
-    .igr-ramp {
-        background: linear-gradient(to right, var(--panel), rgb(255, 198, 60));
-    }
-}
-
-.igr-ends {
-    display: inline-flex;
-    gap: 0.5em;
-    font-style: italic;
-    color: var(--ink-3);
 }
 
 .slot.gap .fill {
@@ -1574,43 +1603,6 @@ a {
 .track-key b {
     color: var(--ink);
     font-weight: 700;
-}
-
-/* Above the track since 2026-08-23 — these are keys for reading the blocks, so they come before the blocks. */
-.scale {
-    display: flex;
-    align-items: center;
-    gap: var(--s2);
-    margin: var(--s3) 0 var(--s2);
-    font-family: var(--mono);
-    font-size: 10.5px;
-    color: var(--ink-3);
-}
-
-.scale .swatches {
-    display: flex;
-}
-
-.scale {
-    flex-wrap: wrap;
-}
-
-/* the two legends read as one run of swatches without a break between them */
-.scale-gap {
-    width: var(--s4);
-}
-
-.scale i {
-    width: 26px;
-    height: 9px;
-    display: block;
-    /* must match .block .fill exactly on BOTH channels, or the legend stops describing the track */
-    background: color-mix(
-        in oklab,
-        var(--ramp-hi) calc(var(--c) * 100%),
-        var(--ramp-lo)
-    );
-    opacity: max(0.18, var(--p, 1));
 }
 
 /* ============================================================================ working area */
@@ -2677,11 +2669,14 @@ td.fam-sym {
    would start pointing at a row that is no longer beneath its gene — which is the whole point of the fan.
 
    `.arr-switch` carries symmetric padding of the same width, so the centre is the centre with or without it. */
+/* ⛔ `align-self: center` is the whole point: the control sits MIDDLE-ALIGNED with the option row, not level
+   with the top of the panel. `position: relative` is for its own dropdown, which is absolutely positioned
+   inside it. */
 .arr-anchor {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: var(--arr-gutter);
+    position: relative;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
     text-align: left;
 }
 
@@ -2693,6 +2688,7 @@ td.fam-sym {
 .arr-anchor-box input {
     width: 100%;
     padding: 7px 26px 7px 10px;
+    transition: padding-left 0.12s ease;
     font-family: var(--mono);
     font-size: 12px;
     color: var(--ink);
@@ -2711,6 +2707,25 @@ td.fam-sym {
     border-color: var(--anchor);
     background: var(--anchor-wash);
     color: var(--ink);
+    padding-left: 26px;
+}
+
+/* ⚓ beside the control while anchored (David, 2026-08-25) — the same mark each arrangement this genome sits
+   in carries, so the control and the buttons it acts on read as one object. Hidden otherwise: an anchor on an
+   empty box would be a claim about a genome nobody has chosen. */
+.arr-anchor-mark {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--anchor);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.arr-anchor.on .arr-anchor-mark {
+    opacity: 1;
 }
 
 /* The dropdown. `.results` in the header is positioned under `.search`, so this one needs its own frame —
@@ -2777,18 +2792,34 @@ td.fam-sym {
     pointer-events: none;
 }
 
-/* Narrow: the gutter cannot hold a 260px panel beside a centred row, so the panel goes back into the flow
-   above the options and the padding is released. Centring is preserved either way. */
+/* Narrow: the gutter cannot hold a 260px panel beside a centred row, so the grid collapses to one column and
+   the panel stacks above the options. Centring is preserved either way. */
 @media (max-width: 900px) {
+    .arr-wrap {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .arr-fan {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
     .arr-anchor {
-        position: static;
-        width: auto;
-        margin: 0 auto var(--s2);
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
         max-width: 320px;
+        margin: 0 auto var(--s2);
     }
 
     .arr-switch {
-        padding: 0;
+        grid-column: 1;
+        grid-row: 3;
+    }
+
+    .arr-notes {
+        grid-column: 1;
+        grid-row: 4;
     }
 }
 </style>
@@ -2925,39 +2956,30 @@ td.fam-sym {
   <div class="wrap">
     <h2 class="panel-head">Structural locus browser</h2>
     <div id="trail" class="trail"></div>
-    <!-- The channel keys sit ABOVE the track (David, 2026-08-23). They describe how to read the blocks, so a
-         reader meets them before the thing they explain rather than after scrolling past it — and it frees the
-         space directly under the track for the arrangement switcher, which now has to be there because it is
-         anchored to the focal gene. -->
-    <div class="scale">
-      <span class="legend">white = intergenic</span>
-      <!-- The IGR variance channel is OFF by default and stays a toggle, because it colours the one thing on
-           the track that is deliberately uncoloured. A white block means "not a Nuna locus, we have not typed
-           it"; switching this on overloads it with a second meaning, which is fine while a reader has asked
-           for it and misleading while they have not. The toggle hides itself on a payload older than schema
-           12 — see app.js — rather than colouring everything white, which would be indistinguishable from
-           "measured, and nothing varies". -->
-      <label class="toggle" id="igr-var-wrap" hidden>
-        <input type="checkbox" id="igr-var">
-        <span>IGR size variance</span>
-        <i class="igr-ramp" aria-hidden="true"></i>
-        <span class="igr-ends"><em>identical</em><em>varies</em></span>
-      </label>
-      <span class="scale-gap"></span>
-      <span class="legend">transparency = genome penetrance at node</span>
-      <span>few</span>
-      <span id="swatches-pen" class="swatches"></span>
-      <span>all</span>
-    </div>
+    <!-- ⛔ The row of channel keys that used to sit here is GONE (David, 2026-08-25). It carried four things:
+         a label for the uncoloured blocks, the IGR-variance toggle with its own two-ended ramp, and a sentence
+         naming the transparency channel — and read as a mess. Both node channels now share ONE key beside the
+         track, below; the IGR tint is simply always on and needs no key, because a tinted gap and an untinted
+         one read as more and less varying without being told. -->
     <div class="track-frame">
       <div class="track-scroll">
         <div id="track" class="track"></div>
       </div>
+      <!-- One key for both of a block's channels, beside the blocks themselves. A block carries two
+           independent quantities and a reader shown one key reads the other wrong, so they belong together —
+           and three rows away, above the track, is far enough that a reader has to leave what they are
+           reading to use them. Colour first, then transparency, in the order the eye meets them. -->
       <div class="band-note">
-        <span class="band-title">Graph divergence at nodes</span>
+        <span class="band-title">Graph nodes</span>
         <span class="band-key">
-          <i class="band-ramp" aria-hidden="true"></i>
-          <span class="band-ends"><em>divergent</em><em>always this one</em></span>
+          <span class="band-ch">
+            <i class="band-ramp" aria-hidden="true"></i>
+            <span class="band-ends"><em>divergent</em><em>always this one</em></span>
+          </span>
+          <span class="band-ch">
+            <i class="band-pen" aria-hidden="true"></i>
+            <span class="band-ends"><em>all genomes</em><em>few genomes</em></span>
+          </span>
         </span>
       </div>
     </div>
@@ -2981,11 +3003,15 @@ td.fam-sym {
           <input id="anchor-genome" type="search" autocomplete="off" spellcheck="false"
                  placeholder="Anchor to a genome — search"
                  aria-label="Anchor the neighbourhood to one genome" />
+          <span class="arr-anchor-mark" aria-hidden="true">⚓</span>
           <span class="arr-anchor-caret" aria-hidden="true">▾</span>
         </label>
         <div id="anchor-results" class="results anchor-results" role="listbox"></div>
       </div>
       <div id="arrangements" class="arr-switch"></div>
+      <!-- The sentences live OUTSIDE the option row so the row can be its own grid row: that is what lets the
+           anchor box sit vertically centred against the buttons instead of level with the fan above them. -->
+      <div id="arr-notes" class="arr-notes"></div>
     </div>
   </div>
 </section>
@@ -4888,53 +4914,33 @@ window.nunaBoot = function (P) {
         }
     }
 
-    /* What the anchor did at THIS locus, in one line. Three cases, and they are genuinely different claims:
-       the genome has no gene here; it has one and this is its neighbourhood; it has two copies sitting in
-       different neighbourhoods and only one of them can be drawn.
+    /* What the anchor did at this locus — ONE SHORT LINE, two states (David, 2026-08-25: "Is all too long
+       and messy"). Everything the older sentence spelled out is already on screen and better placed: WHICH
+       arrangement is the one wearing the ⚓; whether the reader has overridden it is the ⚓ and the solid `.on`
+       being different buttons; a genome sitting in several of them carries the mark on each. Saying it again
+       in prose was a second, slower copy of a fact the buttons state directly.
 
-       ⚠ "sits in 2 arrangements", never "2 copies" — `cnt` is genes per ARRANGEMENT, so a single genome's
-       copy number at a locus is not derivable from the payload, and the page must not imply it is. */
-    function anchorLine(i, ranks, sel) {
+       No ⚓ here either — the control carries one, and so does every arrangement this genome is in. */
+    function anchorLine(i, ranks) {
         var p = el("p", "arr-anchored"),
             who = GENOMES[anchorG];
-        p.appendChild(el("span", "arr-anch-mark", "⚓"));
-        p.appendChild(document.createTextNode(" Anchored to "));
-        p.appendChild(el("b", null, who));
-        if (!ranks.length) {
-            p.className = "arr-anchored muted";
-            p.appendChild(
-                document.createTextNode(
-                    membershipComplete(i)
-                        ? ", which has no gene in this locus — so the commonest arrangement is drawn."
-                        : ", which has no recorded neighbourhood here. Some of this locus's genes have no " +
-                              "coordinates, so it may still carry one. The commonest arrangement is drawn.",
-                ),
-            );
+        if (ranks.length) {
+            p.appendChild(document.createTextNode("Anchored to "));
+            p.appendChild(el("b", null, who));
             return p;
         }
+        p.className = "arr-anchored muted";
+        p.appendChild(el("b", null, who));
+        // ⛔ The two absences remain different claims and the shorter line must not merge them. `coords` is an
+        // inner join in the export, so a gene with no coordinates never reaches a window: at 6.26% of ecoli
+        // loci a genome is counted present and sits in no arrangement, and "has no gene here" is false there.
         p.appendChild(
             document.createTextNode(
-                ranks.length > 1
-                    ? ", which sits in " +
-                          ranks.length +
-                          " of this locus's arrangements (#" +
-                          ranks
-                              .map(function (r) {
-                                  return r + 1;
-                              })
-                              .join(", #") +
-                          ")."
-                    : ". Its neighbourhood here is #" + (ranks[0] + 1) + ".",
+                membershipComplete(i)
+                    ? " has no gene at this locus — the most common neighbourhood is shown instead"
+                    : " has no recorded neighbourhood at this locus — the most common is shown instead",
             ),
         );
-        // Only worth saying when the two disagree — which happens when the reader has picked another
-        // arrangement by hand at this locus. Walking on re-anchors, so the override is deliberately local.
-        if (sel && ranks.indexOf(sel.rank) < 0)
-            p.appendChild(
-                document.createTextNode(
-                    " You are viewing #" + (sel.rank + 1) + " instead.",
-                ),
-            );
         return p;
     }
 
@@ -4943,16 +4949,17 @@ window.nunaBoot = function (P) {
        Both are needed: the sentence counts the first, the row draws the second, and conflating them is how
        the page came to claim that four arrangements were all there were. */
     function renderArrangements(i, list, shown, sel) {
-        var host = document.getElementById("arrangements");
-        if (!host) return;
+        // ⛔ Two hosts, and the split is structural rather than cosmetic. The option row is a grid row of its
+        // own so the anchor control beside it can sit vertically centred ON the buttons; anything appended
+        // into the row's box would grow it and pull the control off centre again.
+        var host = document.getElementById("arrangements"),
+            notes = document.getElementById("arr-notes");
+        if (!host || !notes) return;
         host.textContent = "";
+        notes.textContent = "";
         if (!list.length) return;
         var tot = ARR.tot[i] || list.length;
         var ranks = anchorRanks(i);
-        // ⚠ BEFORE the single-arrangement early return below. An anchored reader at a locus their genome does
-        // not carry needs to be told so most of all, and that is exactly a locus likely to have one
-        // arrangement — putting this line after the return is how it would never be seen where it matters.
-        if (anchorG >= 0) host.appendChild(anchorLine(i, ranks, sel));
         if (tot <= 1) {
             var only = el("p", "arr-only");
             only.appendChild(document.createTextNode("All "));
@@ -4962,7 +4969,10 @@ window.nunaBoot = function (P) {
                     " genomes put the same genes around this locus — one arrangement.",
                 ),
             );
-            host.appendChild(only);
+            notes.appendChild(only);
+            // ⚠ The single-arrangement locus needs the anchor line MOST — it is the shape a locus an anchored
+            // genome does not carry usually has — so this branch cannot simply return without it.
+            if (anchorG >= 0) notes.appendChild(anchorLine(i, ranks));
             return;
         }
         // The size of the thing, and how much of it the buttons cover. It sits UNDER the buttons now, but it
@@ -4974,7 +4984,6 @@ window.nunaBoot = function (P) {
         var covered = shown.reduce(function (t, a) {
             return t + a.genes;
         }, 0);
-        var rest = Math.max(0, tot - shown.length);
         var head = el("p", "arr-head");
         head.appendChild(document.createTextNode("This locus sits in "));
         head.appendChild(el("b", null, String(tot)));
@@ -4982,16 +4991,16 @@ window.nunaBoot = function (P) {
         head.appendChild(el("b", null, String(N.genomes[i])));
         head.appendChild(
             document.createTextNode(
+                // ⚠ No "; the other N are in the A0 card above" (David, 2026-08-25). A third clause on an
+                // already long line, pointing at a card the reader reaches by clicking the bar in front of
+                // them. The two numbers that qualify the buttons are enough.
                 " genomes. The " +
                     shown.length +
                     (shown.length === 1
                         ? " here accounts for "
                         : " here account for ") +
                     pct(covered / N.size[i]) +
-                    " of its genes" +
-                    (rest
-                        ? "; the other " + rest + " are in the A0 card above."
-                        : " — all of them."),
+                    " of its genes.",
             ),
         );
         // ⚠ Built here, appended AFTER the row (David, 2026-08-23). The buttons are what the fan points at,
@@ -5057,7 +5066,10 @@ window.nunaBoot = function (P) {
             row.appendChild(btn);
         });
         host.appendChild(row);
-        host.appendChild(head);
+        // Below the row, in their own grid row, so nothing here can move the buttons or the control beside
+        // them (David, 2026-08-25 — prepended, this paragraph did exactly that).
+        if (anchorG >= 0) notes.appendChild(anchorLine(i, ranks));
+        notes.appendChild(head);
 
         // A reversed arrangement is the one case where a displayed offset is not the recorded one, so say it
         // on the page rather than only in a tooltip — a reader comparing two rows would otherwise have no way
@@ -5072,7 +5084,7 @@ window.nunaBoot = function (P) {
                         " inverted, drawn reversed so the columns line up. Counts come from the mirrored position.",
                 ),
             );
-            host.appendChild(fn);
+            notes.appendChild(fn);
         }
 
         // no remainder line: the head already says what share the buttons cover, and saying it twice from
@@ -6738,7 +6750,7 @@ window.nunaBoot = function (P) {
                                 ? " (" + pf.length + " listed)"
                                 : "")
                           : " · one architecture across the locus") +
-                      ". Discordant architectures condemn a merge; concordant ones do not exonerate it.";
+                      ".";
             c.appendChild(el("p", "muted", cov));
         }
         f.appendChild(c);
@@ -7103,6 +7115,8 @@ window.nunaBoot = function (P) {
     function setAnchor(k) {
         anchorG = k;
         anchorBox.value = k < 0 ? "" : GENOMES[k];
+        // The mark lives beside the control while anchored (David, 2026-08-25), so the mode is legible from
+        // the thing that set it and not only from a sentence further down the panel.
         anchorWrap.classList.toggle("on", k >= 0);
         closeAnchor();
         // Re-derive from the new anchor rather than keeping whatever was drawn: `show` is what owns the
@@ -7293,39 +7307,15 @@ window.nunaBoot = function (P) {
         });
     })();
 
-    /* Two legends, because the block now carries two quantities. Each varies ONE of them and holds the other
-       fixed, so a reader can see which channel is which rather than being told. */
-    function swatchRow(id, vary) {
-        var host = document.getElementById(id);
-        if (!host) return;
-        [0, 0.25, 0.5, 0.75, 1].forEach(function (v) {
-            var s = el("i");
-            // the held-fixed channel sits at 1, so each strip is a clean single-axis ramp
-            s.style.setProperty("--c", vary === "c" ? String(v) : "1");
-            s.style.setProperty("--p", vary === "p" ? String(v) : "1");
-            host.appendChild(s);
-        });
-    }
-    swatchRow("swatches", "c");
-    swatchRow("swatches-pen", "p");
+    /* The IGR size-variance tint is simply ON (David, 2026-08-25). It was a toggle because it colours the one
+       thing on the track that is deliberately uncoloured — a white block means "not a Nuna locus" — but in use
+       the second meaning did not compete: a coloured gap and a white one read as more and less varying without
+       a key, and the toggle plus its own two-ended ramp was three controls' worth of furniture for one tint.
 
-    /* The IGR-variance toggle. ⛔ On a payload with no score the control is REMOVED, not left unchecked: an
-       unchecked box invites a click that would paint every gap white, and "white everywhere" is exactly what
-       a measured, fully-conserved cohort would look like. A control that cannot tell those apart must not be
-       offered. */
-    (function () {
-        var wrap = document.getElementById("igr-var-wrap"),
-            box = document.getElementById("igr-var");
-        if (!wrap || !box) return;
-        if (!HAS_VAR) {
-            wrap.remove();
-            return;
-        }
-        wrap.hidden = false;
-        box.addEventListener("change", function () {
-            trackEl.classList.toggle("igr-var", box.checked);
-        });
-    })();
+       ⛔ Still conditional on the payload HAVING scores. Without them every gap is white, which is exactly
+       what a measured, fully-conserved cohort looks like — so the class is withheld rather than making the
+       page claim a measurement it never had. */
+    if (HAS_VAR) trackEl.classList.add("igr-var");
 
     renderPangenome();
     fromHash();
