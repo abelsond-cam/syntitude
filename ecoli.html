@@ -479,6 +479,32 @@ a {
     position: relative;
 }
 
+/* The site is a pangenome navigator; the track is one instrument within it. The wordmark used to carry
+   "structural locus browser", which named the whole site after one of its parts — so the name moved down to
+   sit on the thing it actually names. Same eyebrow treatment as a card's h2: a section label, not a title. */
+
+/* ⛔ ONE row for the name and the breadcrumb (David, 2026-08-25). Stacked, they spent two lines and the gap
+   between them on ~20 px of text and pushed the track down for nothing. `baseline`, not `center`: the two are
+   different sizes (10.5 px tracked sans against 11.5 px mono) and centring them would leave neither sitting on
+   the other's line. The bar now carries the bottom margin that both children used to carry separately. */
+.panel-bar {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 var(--s3);
+    margin: 0 0 var(--s3);
+}
+
+.panel-head {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 620;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
 .pop {
     position: absolute;
     z-index: 40;
@@ -635,6 +661,40 @@ a {
 .marg-hit:focus-visible .marg {
     outline: 1px solid var(--ink-3);
     outline-offset: 1px;
+}
+
+.trail {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+}
+
+/* Only once there is a trail to divide from the name. `:empty` is exactly the state `renderTrail` leaves the
+   element in below two entries, so the rule and the code agree without either knowing about the other. */
+.trail:not(:empty)::before {
+    content: "";
+    align-self: center;
+    width: 1px;
+    height: 11px;
+    margin-right: 2px;
+    background: var(--rule);
+}
+
+.trail button {
+    font: inherit;
+    border: 0;
+    background: none;
+    padding: 0;
+    color: var(--ramp-hi);
+    cursor: pointer;
+}
+
+.trail .sep {
+    opacity: 0.55;
 }
 
 /* ---------------------------------------------------------------- arrangement switcher
@@ -3143,10 +3203,13 @@ td.fam-sym {
 
 <section class="track-panel">
   <div class="wrap">
-    <!-- ⛔ The panel heading and the breadcrumb trail are both GONE (David, 2026-08-25): "A history of where
-         you have been is not a major feature here." The heading named the instrument on a page already about
-         it. The trail was an in-page copy of history the browser itself keeps — navigation is hash routing,
-         so Back walks the same path — and a second visible copy of it was furniture. -->
+    <!-- Heading and breadcrumb share ONE row (David, 2026-08-25). They were stacked, which spent two lines
+         and a gap on ~20 px of text; inline they cost one line and the track starts higher. The divider is
+         drawn by `.trail:not(:empty)` so it appears with the trail and not before it. -->
+    <div class="panel-bar">
+      <h2 class="panel-head">Structural locus browser</h2>
+      <div id="trail" class="trail"></div>
+    </div>
     <!-- ⛔ The row of channel keys that used to sit here is GONE (David, 2026-08-25). It carried four things:
          a label for the uncoloured blocks, the IGR-variance toggle with its own two-ended ramp, and a sentence
          naming the transparency channel — and read as a mess. Both node channels now share ONE key beside the
@@ -4237,6 +4300,7 @@ window.nunaBoot = function (P) {
 
     /* ================================================================== the track */
     var trackEl = document.getElementById("track");
+    var trailEl = document.getElementById("trail");
     var sideEl = document.getElementById("side");
     var popEl = document.getElementById("pop");
     var cardEl = document.getElementById("card");
@@ -4346,7 +4410,8 @@ window.nunaBoot = function (P) {
         arrIdx = 0,
         // 1 when the reader arrived on a gene transcribed against their direction of travel. It is view
         // state, not data: the same locus reached by walking either way is the same locus, drawn mirrored.
-        walkFlip = 0;
+        walkFlip = 0,
+        trail = [];
 
     function renderTrack(i) {
         trackEl.textContent = "";
@@ -7046,20 +7111,38 @@ window.nunaBoot = function (P) {
         renderFunction(i);
     }
 
-    /* ================================================================== navigation
-       ⛔ There is no breadcrumb (David, 2026-08-25). Navigation is hash routing, so the browser's own Back
-       button already walks exactly the path a trail would have drawn — and where you have been is not what
-       this page is for. A second, visible copy of that history was furniture, not a feature. */
+    /* ================================================================== navigation */
+    function renderTrail() {
+        trailEl.textContent = "";
+        if (trail.length < 2) return;
+        trail.slice(-6).forEach(function (i, k, arr) {
+            if (k) trailEl.appendChild(el("span", "sep", "›"));
+            if (k === arr.length - 1) {
+                trailEl.appendChild(el("span", null, displayOf(i)));
+                return;
+            }
+            var b = el("button", null, displayOf(i));
+            b.type = "button";
+            b.addEventListener("click", function () {
+                go(i);
+            });
+            trailEl.appendChild(b);
+        });
+    }
+
     function select(j) {
         selected = j;
         renderTrack(current); // first: placePop() anchors to the .sel slot this re-render creates
         renderPosition(current);
     }
 
-    function show(i) {
+    function show(i, pushTrail) {
+        // Walking to a locus is a request to SEE it. The track stays visible in every view, so a reader on
+        // the Sequence tab can click a gene -- and without this the evidence would change off screen.
+        // Guarded on an actual change of locus, so switching tabs on the locus you are already reading is
+        // never fought.
         // Walking to a locus is a request to SEE it, so a reader deep in the documentation is brought back to
-        // the locus view. The track sits ABOVE the tabs and stays visible in every one of them, so a reader
-        // can always click a gene; without this the locus would change with nothing on screen to show for it. ⛔ Not from Sequence, though: that tab is per-locus content too, and a reader
+        // the locus view. ⛔ Not from Sequence, though: that tab is per-locus content too, and a reader
         // stepping along the track is precisely the one who wants its sequence to follow rather than to be
         // thrown back a tab on every step.
         if (current !== i && curView !== "view-sequence") showView("view-node");
@@ -7072,6 +7155,15 @@ window.nunaBoot = function (P) {
         // panel lived in a fixed column and could sensibly default to A-1; a popover that opened by itself on
         // every step would sit over the track the reader is trying to read.
         selected = null;
+        if (pushTrail !== false) {
+            // Back fires hashchange, which lands here — so pushing unconditionally made the breadcrumb GROW
+            // when the reader went backwards. Stepping onto the entry before the last one is a retreat: walk
+            // the trail back instead of extending it.
+            if (trail.length > 1 && trail[trail.length - 2] === i) trail.pop();
+            else if (trail[trail.length - 1] !== i) trail.push(i);
+            if (trail.length > 24) trail.shift();
+        }
+        renderTrail();
         renderTrack(i);
         renderPosition(i);
         renderCard(i);
