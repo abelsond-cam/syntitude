@@ -76,6 +76,18 @@ Writes are ours alone and offline; nothing on a request path inserts. The loader
 artifacts mirrored locally and `nuna` importable — the serving install needs neither.
 
 ```bash
+uv pip install --python .venv/bin/python -e backend           # from the repo root
+uv pip install --python .venv/bin/python -e ~/developer/nuna  # ingest only; never on the server
+uv pip install --python .venv/bin/python scikit-learn         # nuna.eval.metrics imports it at module scope
+```
+
+⭐ **The pangenome layer imports `nuna` and the genome layer does not**, and the split is deliberate.
+The genome layer needed one 20-line GFF reader, so it vendors it and cross-checks against the
+original. The pangenome layer needs `node_order`, `oriented_windows`, `arrangements`,
+`neighbour_counts`, `gap_table` and the vendored Pfam/GO/COG tables — the science itself — and a
+second implementation of any of those is exactly what this design exists to avoid.
+
+```bash
 export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
 
 # the genome layer: contigs, genes, functional labels. Model-INDEPENDENT — a new pangenome must

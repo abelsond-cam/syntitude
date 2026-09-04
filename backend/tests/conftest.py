@@ -5,7 +5,9 @@ exists because the constraints worth testing are on the REAL tables: a hand-writ
 a lookalike CHECK proves only that Postgres can evaluate a CHECK, which was never in doubt.
 """
 
+import json
 import os
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, text
@@ -13,6 +15,8 @@ from sqlalchemy.orm import Session
 
 import syntitude_backend.models  # noqa: F401  (registers every table on the metadata)
 from syntitude_backend.database import Base
+from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
+from syntitude_backend.ingest.published_catalogues import catalogue as published_catalogue
 from syntitude_backend.models.enumerations import (
     ExclusivityForm,
     ExclusivityFormSource,
@@ -149,3 +153,49 @@ def make_locus(seeded, *, ordinal=0, label="0", **overrides):
     )
     fields.update(overrides)
     return Locus(**fields)
+
+
+# ── the local artifact mirror ──────────────────────────────────────────────────────────────────
+#: Where the cluster artifacts are mirrored on this machine. ⚠ Overridable, because a machine that
+#: does not have them must SKIP rather than fail — the mirror is ~150 MB of pulled files and is not
+#: a checked-in fixture.
+NUNA_DATA_ROOT = Path(os.environ.get("SYNTITUDE_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
+
+#: ⭐ The SITE catalogue, not the export. `data/{species}.json` in this repo is what `render_site`
+#: shipped, so it alone carries `meta.landing`, `meta.examples` and the vendored `pfam_names` —
+#: `render` MUTATES the payload and the site build is the only caller that serialises afterwards.
+#: The export under `data/browser/` has none of the three, which is why it cannot be this oracle.
+PUBLISHED_SITE_CATALOGUE_DIR = Path(__file__).resolve().parents[2] / "data"
+
+requires_artifacts = pytest.mark.skipif(
+    not (NUNA_DATA_ROOT / "proc" / "embeddings" / "meta").is_dir(),
+    reason=f"the cluster artifact mirror is not present at {NUNA_DATA_ROOT}",
+)
+
+
+def artifacts_for(species_key: str) -> "CatalogueArtifacts":
+    """The published catalogue's artifacts, addressed from the checked-in triple — never guessed."""
+    entry = published_catalogue(species_key)
+    return CatalogueArtifacts(
+        data_root=NUNA_DATA_ROOT,
+        set_key=entry.set_key,
+        model_label=entry.model_label,
+        run_id=entry.run_id,
+        species_key=entry.species_key,
+    )
+
+
+@pytest.fixture(scope="session")
+def ecoli_artifacts():
+    if not (NUNA_DATA_ROOT / "proc" / "embeddings" / "meta").is_dir():
+        pytest.skip(f"the cluster artifact mirror is not present at {NUNA_DATA_ROOT}")
+    return artifacts_for("ecoli")
+
+
+@pytest.fixture(scope="session")
+def published_ecoli_site_catalogue():
+    """The shipped `ecoli.json`, decoded — the acceptance oracle for everything derived."""
+    path = PUBLISHED_SITE_CATALOGUE_DIR / "ecoli.json"
+    if not path.exists():
+        pytest.skip(f"the published site catalogue is not present at {path}")
+    return json.loads(path.read_text())
