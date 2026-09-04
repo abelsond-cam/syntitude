@@ -29,6 +29,9 @@ class Genome(Base):
     )
 
     #: ⭐ **The store key.** Every parquet, `.npy`, GFF and assignment file is named by this.
+    #: ⚠ The parquets' own `species` column is NOT the species key: it reads `ecoli | kpneumoniae`
+    #: (the only two values over all 280 genomes), while `pathogen_species.species_key` is
+    #: `ecoli | kp` (`published.tsv`). A direct string join drops every Klebsiella genome silently.
     sample_id: Mapped[str] = mapped_column(String(128), nullable=False)
     sample_id_kind: Mapped[SampleIdentifierKind] = mapped_column(nullable=False)
 

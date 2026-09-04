@@ -113,9 +113,19 @@ class GeneFunctionalAnnotation(Base):
     kegg_orthology_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
     cog_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
     cog_category: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    ec_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    #: The comma-joined sorted-unique `go` column, exploded. NULL = not annotated; `{}` is never
-    #: written, because an empty list and an absent one are different claims.
+    #: ⛔ **A SET, not a scalar — and `String(32)` was too narrow to hold it.** Bakta's `ec` column
+    #: is built exactly like `go`: `",".join(sorted(ec)) or None` (`bakta_dbxrefs.py:103`). Measured
+    #: over 40 probe genomes: **8,660 of 70,477 non-null values (12.3 %) carry more than one term,
+    #: up to 4 terms and 39 characters** — so the original scalar column would have raised on 12 %
+    #: of the rows it was given, or silently truncated them under a driver that did not.
+    #: Modelled as an array for the same reason `gene_ontology_terms` is: the reverse query ("which
+    #: genes carry EC 2.7.7.7") is real, and a comma-joined string answers it with `LIKE '%…%'`.
+    #: ⚠ NULL = not annotated; `{}` is never written.
+    ec_numbers: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
+    #: The comma-joined sorted-unique `go` column, exploded on `,` and nothing else. The `GO:`
+    #: prefix is retained deliberately — it is part of the identifier, unlike the others' prefixes.
+    #: Up to 26 terms / 285 characters measured. NULL = not annotated; `{}` is never written,
+    #: because an empty list and an absent one are different claims.
     gene_ontology_terms: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
 
 

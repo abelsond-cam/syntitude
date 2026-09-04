@@ -1,9 +1,32 @@
 """Intergenic regions — a property of an ADJACENCY, not of a position.
 
-⛔ Keyed on the **sorted pair** of flanking loci, which is what makes the whole block additive:
+⛔ Keyed on the **canonical pair** of flanking loci, which is what makes the whole block additive:
 nothing is inserted into any sequence, so the offsets, the marginal and the joint views are all
-untouched. Sorted, because the track is drawn in the focal gene's reading frame and a neighbourhood
-may be mirrored — an ordered key would miss on half of them.
+untouched. Canonical, because the track is drawn in the focal gene's reading frame and a
+neighbourhood may be mirrored — an orientation-dependent key would miss on half of them.
+
+⛔⛔ **THE CANONICAL ORDER IS BY `node_label`, WHICH IS TEXT — NOT BY ANY INTEGER.**
+`intergenic.gene_adjacencies` sorts the pair with ``left <= right`` on the **node ids**
+(`intergenic.py:106-118`), and node ids are text. Everything downstream inherits that ordering.
+
+This is not a stylistic choice, and getting it wrong has already cost the live site. The published
+page keys its gap lookup by payload INDEX —
+``GAPAT[(x < y ? x : y) + "|" + (x < y ? y : x)]`` (`app.js:75`) — against a map built from the
+label-sorted pairs the exporter shipped. Measured on the two published catalogues:
+
+    ecoli  22,838 gaps · 7,379 (32.3 %) have a > b by index · 100 % are label-sorted
+    kp     20,544 gaps · 6,108 (29.7 %) have a > b by index · 100 % are label-sorted
+
+Those 7,379 and 6,108 gaps **cannot be found by the page**: it asks for ``"890|3819"`` and the map
+holds ``"3819|890"``. `gapBetween` returns null, `gapSlot` returns null, and the track simply draws
+no intergenic block — which renders as *"these two genes are adjacent with nothing between them"*,
+a claim the data does not make. It is the exact failure mode this codebase names elsewhere: an
+absence that reads as a measurement.
+
+So the columns below are named `a`/`b` and **not** `low`/`high`, because there is no numeric
+ordering to appeal to, and a `CHECK (low <= high)` on surrogate ids would silently impose a second,
+different canonicalisation on top of the real one. The ordering invariant is asserted at ingest
+against the labels, and the API resolves a pair by sorting its two labels before it queries.
 
 ⚠ **Three things this is not.** A gap is not a locus — no cluster, no embedding, not in the locus
 count, not walkable. Its length is a **median over genomes that disagree**, not a distance. And the
@@ -26,13 +49,17 @@ class IntergenicGap(Base):
 
     __tablename__ = "intergenic_gap"
     __table_args__ = (
-        UniqueConstraint(
-            "pangenome_id", "flanking_locus_id_low", "flanking_locus_id_high"
-        ),
-        Index("ix_intergenic_gap__flanking_locus_id_low", "flanking_locus_id_low"),
-        Index("ix_intergenic_gap__flanking_locus_id_high", "flanking_locus_id_high"),
+        UniqueConstraint("pangenome_id", "flanking_locus_id_a", "flanking_locus_id_b"),
+        # ⭐ Both directions indexed, because the canonical order is by LABEL and a caller holding
+        # two locus ids cannot tell which is `a` without resolving them.
+        Index("ix_intergenic_gap__flanking_locus_id_a", "flanking_locus_id_a"),
+        Index("ix_intergenic_gap__flanking_locus_id_b", "flanking_locus_id_b"),
+        # ⛔ No `CHECK (a <= b)`. See the module docstring: the pair is canonicalised by node_label,
+        # and a numeric CHECK on surrogate ids would assert a DIFFERENT ordering that happens to be
+        # satisfiable — the schema would then look correct while holding the pairs the wrong way
+        # round for a third of the table.
         CheckConstraint(
-            "flanking_locus_id_low <= flanking_locus_id_high", name="flanking_pair_is_sorted"
+            "flanking_locus_id_a <> flanking_locus_id_b", name="flanking_pair_is_two_distinct_loci"
         ),
         *nan_guards("length_variance_score"),
     )
@@ -41,10 +68,12 @@ class IntergenicGap(Base):
     pangenome_id: Mapped[int] = mapped_column(
         ForeignKey("pangenome.pangenome_id", ondelete="CASCADE"), nullable=False
     )
-    flanking_locus_id_low: Mapped[int] = mapped_column(
+    #: The locus whose `node_label` sorts FIRST as text. ⛔ Not the smaller id — see the docstring.
+    flanking_locus_id_a: Mapped[int] = mapped_column(
         ForeignKey("locus.locus_id", ondelete="CASCADE"), nullable=False
     )
-    flanking_locus_id_high: Mapped[int] = mapped_column(
+    #: The locus whose `node_label` sorts SECOND as text.
+    flanking_locus_id_b: Mapped[int] = mapped_column(
         ForeignKey("locus.locus_id", ondelete="CASCADE"), nullable=False
     )
 
@@ -68,7 +97,15 @@ class IntergenicGap(Base):
     #: triple existed only because a JSON array cannot be sparse, and there "absent" meant
     #: agreement. Stored densely the meaning INVERTS, so it is spelled out here: white on the track
     #: has to mean "identical in every genome", never "small".
+    #: ⛔ **`0.0` is the MAJORITY case and it means *every genome agrees*.** The payload ships this
+    #: as a sparse triple (`gaps.vi/vd/vmd`) over the gaps that vary at all, and 86.1 % of ecoli's
+    #: gaps are absent from it — every one of them a measured zero. `app.js::gapVarRaw` reads
+    #: absence-from-the-index as `0` and absence-of-the-whole-block as `null`, and the two are not
+    #: interchangeable. Stored dense, so NULL here means only *this run did not measure variance*.
+    #: ⚠ The payload's `vd` is the score × 1000; this column holds the score itself.
     length_variance_score: Mapped[float | None] = measurement()
+    #: ⚠ NULL for a gap absent from the sparse index — the mode was simply not carried. So ONE
+    #: absence has two different fates: the variance becomes `0.0`, the mode stays NULL.
     modal_length_nt: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     #: Distinct named features seen in it — the coverage behind the capped list below.

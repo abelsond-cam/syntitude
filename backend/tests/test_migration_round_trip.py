@@ -124,3 +124,61 @@ def test_the_migration_still_matches_the_models(probe_engine):
     finally:
         if generated and generated.exists():
             generated.unlink()
+
+
+def test_the_ec_rename_preserves_the_values_it_retypes(probe_engine):
+    """⭐ The claim the second migration actually makes, exercised with real rows.
+
+    Autogenerate proposed drop-and-add for `ec_number` → `ec_numbers`. With no deployment yet the
+    two are indistinguishable — which is exactly why the difference has to be pinned now rather
+    than discovered at 406 M rows, where a drop-and-add is a table rewrite and a data loss.
+
+    ⚠ Three values, three different fates: a single term, a multi-term set (the 12.3 % case that
+    overflowed the old `String(32)`), and NULL — which must stay NULL and never become `{}`.
+    """
+    assert _alembic("upgrade", "3bb9b090284b").returncode == 0
+    assert _alembic("downgrade", "167f47ef6e68").returncode == 0
+
+    with probe_engine.connect() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO pathogen_species (species_key, scientific_name)"
+                " VALUES ('ecrt', 'Escherichia coli') RETURNING pathogen_species_id"
+            )
+        )
+        species_id = connection.execute(
+            text("SELECT pathogen_species_id FROM pathogen_species WHERE species_key = 'ecrt'")
+        ).scalar_one()
+        genome_id = connection.execute(
+            text(
+                "INSERT INTO genome (pathogen_species_id, sample_id, sample_id_kind, strand_is_observed)"
+                " VALUES (:s, 'SAMEA_EC_RENAME', 'BIOSAMPLE', true) RETURNING genome_id"
+            ),
+            {"s": species_id},
+        ).scalar_one()
+        connection.execute(
+            text(
+                "INSERT INTO gene_functional_annotation (genome_id, flat_index, ec_number) VALUES"
+                " (:g, 0, '2.7.7.7'), (:g, 1, '1.1.1.1,2.7.7.7,3.4.21.-'), (:g, 2, NULL)"
+            ),
+            {"g": genome_id},
+        )
+        connection.commit()
+
+    assert _alembic("upgrade", "3bb9b090284b").returncode == 0
+
+    with probe_engine.connect() as connection:
+        rows = dict(
+            connection.execute(
+                text("SELECT flat_index, ec_numbers FROM gene_functional_annotation ORDER BY flat_index")
+            ).all()
+        )
+    assert rows[0] == ["2.7.7.7"]
+    assert rows[1] == ["1.1.1.1", "2.7.7.7", "3.4.21.-"], "the multi-term set did not survive the cast"
+    assert rows[2] is None, "NULL became an empty array — 'not annotated' is not 'annotated with nothing'"
+
+    with probe_engine.connect() as connection:
+        connection.execute(text("DELETE FROM gene_functional_annotation WHERE genome_id = :g"), {"g": genome_id})
+        connection.execute(text("DELETE FROM genome WHERE genome_id = :g"), {"g": genome_id})
+        connection.execute(text("DELETE FROM pathogen_species WHERE species_key = 'ecrt'"))
+        connection.commit()
