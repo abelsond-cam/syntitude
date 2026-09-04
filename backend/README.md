@@ -107,6 +107,30 @@ export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitu
   --run-id kp_bacformer_clever_exploded_preclusterkp98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
 ```
 
+Then **publish** — a separate, explicit step, because the pointer is what the service reads and a
+load that is not published changes nothing a reader can see. `--publish` verifies eight things about
+the catalogue (locus count against the row count, the landing locus, both map representations, every
+locus named …) and refuses to move the pointer if any fails.
+
+```bash
+.venv/bin/python -m syntitude_backend.ingest --stage pangenome --publish  ...  # as above
+```
+
+## The API
+
+| endpoint | replaces |
+|---|---|
+| `GET /api/v1/species` | `published.tsv` |
+| `GET /api/v1/species/{key}` | `meta`, the census, the footer provenance, `meta.landing`/`examples` |
+| `GET /api/v1/species/{key}/loci/{label}` | ⭐ the hot path — `show(i)` minus the function tab |
+| `GET …/loci/{label}/arrangements` | `focalCard`'s full scroller, paged |
+| `GET …/loci/{label}/function` | `renderFunction`, on tab open |
+| `GET /api/v1/species/{key}/search` | `search()` and the 3.0 MB `HAY` |
+
+Measured on the loaded *E. coli* catalogue: the landing locus is **11.8 kB in 36 ms**, and a locus
+view is **8 statements whether it resolves 2 neighbours or 49** — the property
+`tests/test_api_endpoints.py` asserts, rather than a recorded budget that could be re-baselined.
+
 ⭐ **The parity suites need a loaded database.** `tests/test_catalogue_parity.py` (T1, T3a, T5, T7)
 reads `SYNTITUDE_DATABASE_URL` and compares every locus against the published catalogue in
 `data/{species}.json`. Without that variable, or with the run not loaded, it **skips with the

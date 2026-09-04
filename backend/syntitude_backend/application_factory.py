@@ -10,11 +10,12 @@ from __future__ import annotations
 from flask import Flask
 
 from syntitude_backend.api.blueprint_health import health_blueprint
+from syntitude_backend.api.blueprint_species import species_blueprint
 from syntitude_backend.configuration import Configuration
 from syntitude_backend.database import Database
 
 #: Every blueprint the application serves, in registration order. One line per resource.
-BLUEPRINTS = (health_blueprint,)
+BLUEPRINTS = (health_blueprint, species_blueprint)
 
 #: All API routes live under this prefix. The version is in the path rather than a header so a
 #: breaking change can run alongside its predecessor instead of replacing it.

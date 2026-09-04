@@ -37,6 +37,7 @@ from syntitude_backend.ingest.ingest_nuna_model_registry import (
 )
 from syntitude_backend.ingest.ingest_pangenome_run import ingest_pangenome_run
 from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
+from syntitude_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
 from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
 from syntitude_backend.models.genome import Genome, GenomeContig
 from syntitude_backend.models.locus import Locus
@@ -269,6 +270,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--stage", choices=("genomes", "pangenome", "all"), default="all",
                         help="`genomes` is model-INDEPENDENT and a new pangenome must never rewrite "
                              "it; `pangenome` needs it already loaded")
+    parser.add_argument("--publish", action="store_true",
+                        help="after loading, VERIFY the catalogue and point its species at it. The "
+                             "pointer is what the service reads, so this is a separate, explicit "
+                             "step: a load that is not published changes nothing a reader can see")
     parser.add_argument("--species-key", default=None,
                         help="the browser key (`ecoli` | `kp`); defaults to the artifacts' own")
     parser.add_argument("--limit", type=int, help="stop after N genomes (a smoke run, not a mode)")
@@ -307,6 +312,14 @@ def main(argv: list[str] | None = None) -> int:
                 print(line)
             session.commit()
             differences += reconcile_pangenome(session, artifacts)
+            if args.publish:
+                try:
+                    print(publish_pangenome(session, run_id=artifacts.run_id).render())
+                    session.commit()
+                except PublishRefused as error:
+                    session.rollback()
+                    print(f"PUBLISH REFUSED: {error}", file=sys.stderr)
+                    differences.append("the catalogue was loaded but not published")
 
     # ⚠ Reconciliation is only meaningful on a FULL load: a --limit or --only run writes a subset
     # into a table that may already hold more, so a difference there is expected, not a fault.

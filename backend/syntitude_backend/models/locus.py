@@ -36,6 +36,18 @@ class Locus(Base):
         # at 889,160 loci a genome retraction should not be an outage — see the note on
         # `gene_locus_membership`, where the same omission cost an 8-minute stall.
         Index("ix_locus__medoid_genome_id", "medoid_genome_id"),
+        # ⭐⭐ **THE TRIGRAM INDEX IS WHAT MAKES SEARCH THE SAME QUESTION IT IS TODAY.**
+        # `serving_at_scale.md` §6 could not choose between static prefix buckets — which LOSE
+        # mid-word substring, so `ligase` stops finding *O-antigen ligase RfaL* — and trigram
+        # postings. `gin_trgm_ops` accelerates `LIKE '%q%'` directly, so `app.js`'s
+        # `HAY[i].indexOf(q)` is preserved rather than approximated. Without this index the same
+        # query still returns the same rows, by sequential scan: correct, and unusable at 889k loci.
+        Index(
+            "ix_locus__search_text_trigram",
+            "search_text",
+            postgresql_using="gin",
+            postgresql_ops={"search_text": "gin_trgm_ops"},
+        ),
         *nan_guards(
             "syntenic_a5",
             "uniref50_impurity",

@@ -48,6 +48,11 @@ def engine():
             connection.execute(text("SELECT 1"))
     except Exception as error:  # noqa: BLE001
         pytest.skip(f"probe database unavailable at {PROBE_URL}: {error}")
+    # ⛔ `pg_trgm` BEFORE `create_all`: `ix_locus__search_text_trigram` uses `gin_trgm_ops`, and
+    # without the extension the whole schema build fails on that one index — which reads as "the
+    # probe database is broken" rather than "an extension is missing".
+    with engine.begin() as connection:
+        connection.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     return engine
