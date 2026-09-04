@@ -23,6 +23,11 @@ dependencies = [
 # private repo with no index presence — it is supplied by PYTHONPATH or an editable install
 # from ~/developer/nuna. Declaring it would make `pip install .[ingest]` fail for everyone.
 ingest = ["pandas>=2.0", "pyarrow>=15", "numpy>=1.26"]
+# ⚠ The nuna cross-check (tests/test_gff_reader_against_nuna.py) is NOT run from this venv.
+# `nuna/__init__.py` pulls anndata, which pulls sklearn, and mirroring that chain here would put
+# the whole science stack in a serving package's test extra to prove one 20-line function still
+# matches. It is run from nuna's own venv instead -- see backend/README.md -- which has the chain
+# already and is where the thing being matched actually lives.
 test = ["pytest>=8", "pytest-postgresql>=6"]
 
 [tool.ruff]

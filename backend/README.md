@@ -77,3 +77,22 @@ and a migration that drops a constraint by name works only for whoever wrote it.
 ```
 
 They need the `syntitude_dev` database running; override with `SYNTITUDE_TEST_DATABASE_URL`.
+
+### ⚠ The `nuna` cross-check runs from nuna's venv, not this one
+
+`gff/` carries **pinned copies** of two rules that live in `nuna` — `open_text`'s gzip-by-magic-number
+and `genome_sequence.translate_cds` — because the serving install must not depend on a private repo.
+A copy is only safe while something fails when it diverges, and that something is
+`tests/test_gff_reader_against_nuna.py`. It is **not** run by the command above: `nuna/__init__.py`
+pulls anndata, which pulls sklearn, and mirroring that chain into a serving package's test extra to
+prove one 20-line function still matches would be the wrong trade. Run it where nuna already lives:
+
+```bash
+cd ~/developer/nuna
+PYTHONPATH=~/developer/syntitude/backend .venv/bin/python -m pytest \
+  ~/developer/syntitude/backend/tests/test_gff_reader_against_nuna.py -q
+```
+
+It skips — saying which is missing — if `nuna` is not importable or the probe GFFs have not been
+pulled to `~/developer/nuna/data/raw/gff`. **A skip here is not a pass**; if the cross-check cannot
+run, the vendored copies are unverified.
