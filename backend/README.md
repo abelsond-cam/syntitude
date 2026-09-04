@@ -1,0 +1,79 @@
+# `backend/` — the Syntitude API
+
+Postgres + Flask + SQLAlchemy. **Read-only for users**: no login, no accounts, no user writes.
+Everything that writes is an offline ingest step.
+
+Design of record: **`docs/design/serving_from_a_database.md`** in the `nuna` repo. Build order and
+status: **`PROJECT_STATE.md` §6 and §Layer 6** there. Nothing in this directory carries a status
+block.
+
+## Bring it up on a Mac
+
+```bash
+brew install postgresql@16 && brew services start postgresql@16
+export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
+createdb syntitude_dev
+psql -d syntitude_dev -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
+uv venv --python 3.13 .venv                    # from the repo root
+uv pip install --python .venv/bin/python -e backend
+
+export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
+.venv/bin/python -m syntitude_backend.serve --debug
+curl -s localhost:5000/api/v1/health | python3 -m json.tool
+```
+
+`pg_trgm` is not optional — it is what preserves the page's **exact substring** search semantics
+(`ligase` finds *O-antigen ligase RfaL* mid-string) rather than approximating them with prefixes.
+
+## Configuration
+
+Everything comes from the environment, resolved once at start-up, and a missing value is an
+exception then rather than a 404 on one endpoint three weeks later.
+
+| variable | meaning |
+|---|---|
+| `SYNTITUDE_DATABASE_URL` | required |
+| `SYNTITUDE_PROFILE` | `development` (default) or `production` |
+| `SYNTITUDE_SQL_ECHO` | `1` to log SQL |
+| `SYNTITUDE_ROOT_GFF` | where the gzipped Bakta GFFs live — the **sequence source** |
+| `SYNTITUDE_ROOT_ASSEMBLIES` | assembly FASTAs, the fallback if a GFF carries no `##FASTA` |
+| `SYNTITUDE_ROOT_EMBEDDINGS` | ESM / Bacformer `.npy`; offline jobs only, never a request |
+| `SYNTITUDE_ROOT_ANALYSIS` | audit tables, catalogue maps, assignment TSVs |
+
+An `artifact_pointer` row stores a root **key** plus a relative path, so moving the store is a
+config change and never a database migration.
+
+## Layout
+
+| path | what |
+|---|---|
+| `application_factory.py` | `create_application(configuration) -> Flask`; registers blueprints and decides nothing |
+| `configuration.py` | the only module that reads `os.environ` |
+| `database.py` | engine, session, declarative base — **and the constraint naming convention** |
+| `api/` | one blueprint per resource |
+| `services/` | the work; no Flask imports, so it is testable without a request context |
+| `serialisers/` | dicts only — no ORM object escapes a serialiser |
+| `models/` | SQLAlchemy models, one module per entity group |
+| `ingest/` | the **only** writer. Offline. The one place that imports `nuna` |
+| `gff/` | the one place a GFF is opened or parsed |
+| `queries/` | hand-written SQL for hot paths, each with its `EXPLAIN` checked in |
+| `migrations/` | alembic |
+
+## Two rules that are load-bearing
+
+**The serving install must not need `nuna`.** It is a private repo; the med school server has no
+access to it and does not need any of it. Only `ingest/` imports it, and only on a machine that
+already has the science package. That is why `nuna` is not in `dependencies`.
+
+**The constraint naming convention in `database.py` had to exist before the first migration.**
+Without it Postgres invents names, Alembic autogenerate produces a different one on each machine,
+and a migration that drops a constraint by name works only for whoever wrote it.
+
+## Tests
+
+```bash
+.venv/bin/python -m pytest backend/tests -q
+```
+
+They need the `syntitude_dev` database running; override with `SYNTITUDE_TEST_DATABASE_URL`.

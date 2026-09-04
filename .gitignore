@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Node / frontend build
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Local environment — never commit a database url
+.env
+.env.local
+
+# macOS
+.DS_Store
