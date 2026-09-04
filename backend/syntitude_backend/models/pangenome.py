@@ -214,7 +214,14 @@ class PangenomeEvaluation(Base):
     )
     evaluation_kind: Mapped[EvaluationKind] = mapped_column(nullable=False)
     #: `G1`…`G4`, `GATE`, `synteny_only_gene_rate`, `single_copy_core`, …
-    metric_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    #: ⛔ **`String(128)`, and the ingest does NOT truncate.** The audit's keys are compositional
+    #: (`{family}_{measure}_{qualifier}_{sub}`) and the longest today is 52 characters
+    #: (`family_split_across_clusters_n_split_genes_singleton`) against a declared 64 — 81 % of the
+    #: width. That is close enough that a longer key is a matter of one more qualifier, and the
+    #: failure would not be a truncation alone: `metric_name` is part of the UNIQUE constraint, so
+    #: two long keys sharing a 64-character prefix would collide and one of them would be refused
+    #: — or, with an earlier `[:64]` slice, silently overwrite the other.
+    metric_name: Mapped[str] = mapped_column(String(128), nullable=False)
     numeric_value: Mapped[float | None] = mapped_column(Float, nullable=True)
     verdict: Mapped[GateVerdict | None] = mapped_column(nullable=True)
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)

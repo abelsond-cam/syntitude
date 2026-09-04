@@ -406,6 +406,34 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
     loci["uniref50_major_family_count"] = major_families.reindex(nodes).fillna(0).astype("int64").to_numpy()
     loci["uniref50_labelled_member_count"] = labelled_counts.reindex(nodes).fillna(0).astype("int64").to_numpy()
     loci["pfam_annotated_member_count"] = pfam_annotated.reindex(nodes).fillna(0).astype("int64").to_numpy()
+    # ⛔⛔ **SIX COLUMNS THE CLUSTER TABLE CARRIES AND THIS INGEST ONCE DID NOT READ.** Each is
+    # documented on `locus` in detail and each was 100 % NULL, which for `uniref50_impurity` is
+    # indistinguishable from its DOCUMENTED meaning — *"NULL below 5 labelled members"*. A reader
+    # querying `WHERE uniref50_impurity IS NULL` would have concluded that all 17,531 loci have
+    # fewer than five labelled members, when in fact **8,576 carry a measured impurity** and the
+    # rest were simply never loaded. That is the exact shape of "a column whose meaning and its
+    # contents differ", and the payload cannot catch it because the payload does not carry them.
+    loci["uniref50_impurity"] = _floats(evidence_column("u50_impurity"), nd=6)
+    loci["uniref50_coverage"] = _floats(evidence_column("u50_coverage"), nd=6)
+    loci["seqid_coverage"] = _floats(evidence_column("seqid_coverage"), nd=6)
+    if "seqid_coverage" not in evidence.columns or not evidence["seqid_coverage"].notna().any():
+        # ⛔ NULL now means *the audit did not measure this*, and it says so. Before this ingest read
+        # the column at all, NULL meant *we never looked* — the same value carrying a different
+        # fact, which is exactly the confusion an omission record exists to prevent. nuna's own
+        # comment on the source: *"seqid lens not measured — NaN (not 0, which would read as
+        # 'divergent')"*.
+        omitted["seqid_to_medoid"] = (
+            "the audit ran with --skip-seqid-to-medoid, so member-vs-medoid identity was never "
+            "measured — seqid_coverage is NULL for every locus, and that is a fact about the RUN"
+        )
+    loci["embed_within_over_nearest"] = _floats(evidence_column("embed_within_over_nearest"), nd=6)
+    #: ⚠ The medoid is a GENE — one real member, named by its genome and its flat_index — and not a
+    #: centroid. Carried so the page can say WHICH gene the geometry is measured from.
+    loci["medoid_sample_id"] = evidence_column("medoid_sample_id").to_numpy()
+    loci["medoid_flat_index"] = [
+        None if not numpy.isfinite(float(value)) else int(value)
+        for value in evidence_column("medoid_flat_index")
+    ]
     loci["syntenic_a5"] = _floats(synteny.reindex(nodes), nd=SYNTENY_DECIMALS)
     loci["collapse_tier"] = evidence_column("tier").to_numpy()
     loci["collapse_bucket"] = evidence_column("bucket").to_numpy()

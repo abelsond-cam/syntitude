@@ -188,7 +188,9 @@ def load_pangenome_layer(session: Session, artifacts: CatalogueArtifacts, *, spe
     species_id = species_ids[species_key]
 
     model_key = model_key_for_audit_label(artifacts.model_label, artifacts.set_key, MODELS)
-    ingest_model_registry(session, models=MODELS)
+    from syntitude_backend.ingest.ingest_pangenome_run import nuna_git_sha
+
+    ingest_model_registry(session, models=MODELS, registry_git_sha=nuna_git_sha())
     session.flush()
     model = session.execute(
         select(NunaModel).where(NunaModel.model_key == model_key)

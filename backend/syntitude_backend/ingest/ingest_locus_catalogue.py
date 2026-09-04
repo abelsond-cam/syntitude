@@ -254,6 +254,12 @@ LOCUS_COLUMNS = (
     "collapse_tier",
     "collapse_bucket",
     "resolved_threshold",
+    "seqid_coverage",
+    "uniref50_impurity",
+    "uniref50_coverage",
+    "embed_within_over_nearest",
+    "medoid_genome_id",
+    "medoid_flat_index",
     "esm_within_medoid_distance",
     "esm_nearest_medoid_distance",
     "bacformer_within_medoid_distance",
@@ -280,8 +286,19 @@ LOCUS_COLUMNS = (
 )
 
 
-def _locus_rows(frames: CatalogueFrames, derived: dict, pangenome_id: int, species_id: int):
-    """One tuple per locus, in `LOCUS_COLUMNS` order."""
+def _locus_rows(
+    frames: CatalogueFrames,
+    derived: dict,
+    pangenome_id: int,
+    species_id: int,
+    genome_id_by_sample: dict,
+):
+    """One tuple per locus, in `LOCUS_COLUMNS` order.
+
+    ⚠ `medoid_sample_id` is resolved to a `genome_id` HERE and not stored as an accession: the
+    medoid is one real gene, and a column holding its genome as text would be a second, unjoinable
+    spelling of a key the schema already has.
+    """
     loci = frames.loci
     esm, bacformer = derived["separations"]["esm"], derived["separations"]["bacformer"]
     for index in range(len(loci)):
@@ -310,6 +327,12 @@ def _locus_rows(frames: CatalogueFrames, derived: dict, pangenome_id: int, speci
             _clean(row["collapse_tier"]),
             _clean(row["collapse_bucket"]),
             _clean(row["resolved_threshold"]),
+            _clean(row["seqid_coverage"]),
+            _clean(row["uniref50_impurity"]),
+            _clean(row["uniref50_coverage"]),
+            _clean(row["embed_within_over_nearest"]),
+            genome_id_by_sample.get(str(_clean(row["medoid_sample_id"]) or "")),
+            _int_or_none(row["medoid_flat_index"]),
             _clean(row["esm_within_medoid_distance"]),
             _clean(row["esm_nearest_medoid_distance"]),
             _clean(row["bacformer_within_medoid_distance"]),
@@ -408,7 +431,10 @@ def ingest_locus_catalogue(
         session,
         Locus.__table__,
         LOCUS_COLUMNS,
-        _locus_rows(frames, derived, pangenome_id, pathogen_species_id),
+        _locus_rows(
+            frames, derived, pangenome_id, pathogen_species_id,
+            _genome_ids_by_sample(session, frames.samples),
+        ),
     )
     session.flush()
 

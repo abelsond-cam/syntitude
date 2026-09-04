@@ -252,7 +252,9 @@ def audit_evaluation_rows(audit_summary: dict, source_path: Path) -> list[dict]:
         rows.append(
             {
                 "evaluation_kind": EvaluationKind.ACCESSORY_AUDIT,
-                "metric_name": key[:64],
+                # ⛔ NOT truncated: a slice here would let two long keys collide on the unique
+                # constraint, and the loser would be refused with a constraint name for a reason.
+                "metric_name": key,
                 "numeric_value": numeric,
                 "verdict": None,
                 "detail": detail,
@@ -337,6 +339,10 @@ def ingest_pangenome_run(
     existing.provenance_rows = [
         list(pair) for pair in model_provenance(run_id, parse_model_id(assignment), assign=assignment)
     ]
+    # ⛔ WHICH VERSION of the science package this row was read from. Left NULL it loses exactly
+    # the fact the column exists to carry, and a registry is code: `nuna5` meant a different chain
+    # before 2026-08-24, so a row that cannot say which nuna it was read from cannot be checked.
+    existing.git_sha = nuna_git_sha()
     existing.ingested_at = datetime.now(UTC)
     session.flush()
     pangenome_id = existing.pangenome_id
@@ -420,6 +426,35 @@ def ingest_pangenome_run(
         "mirror. G1-G4 never reach a page, so this blocks nothing but the publish decision"
     )
     return pangenome_id, report
+
+
+def nuna_git_sha() -> str | None:
+    """The **nuna** repository's commit — resolved from nuna's own directory, not the cwd.
+
+    ⛔⛔ **`export_payload._git_sha()` cannot be reused here, and reusing it was a live bug for the
+    length of one commit.** It runs `git rev-parse` with no `cwd`, which is correct where it lives
+    (the exporter runs inside the nuna checkout) and wrong from here: the ingest runs in the
+    *syntitude* tree, so it returned **syntitude's** HEAD and wrote it into a column whose docstring
+    says *"the version of the registry this row was read from"*. The value was a real short sha, the
+    right length and the right shape — and about the wrong repository.
+    ⚠ Anchored on `nuna.__file__` rather than on a configured path, so it follows the package that
+    was actually imported and cannot drift from it.
+    """
+    import subprocess
+    from pathlib import Path
+
+    import nuna
+
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=Path(nuna.__file__).resolve().parent,
+        ).stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        return None
 
 
 def guard_input_keys_have_not_drifted(input_keys) -> None:

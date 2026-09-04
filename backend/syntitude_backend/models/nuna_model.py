@@ -116,8 +116,15 @@ class NunaModelStep(Base):
     #: every node size — so it is a fact about a step, not a constant.
     node_sizes: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
-    #: The two strings the browser footer prints verbatim, from `run_manifest.stage_name` /
-    #: `stage_detail`. Stored rather than formatted, so the page and the database cannot disagree.
+    #: ⛔⛔ **ALWAYS NULL ON THIS TABLE, AND THAT IS STRUCTURAL — NOT A GAP IN THE INGEST.**
+    #: `run_manifest.stage_name` and `stage_detail` are formatters over a MANIFEST, and a registry
+    #: entry has no manifest: `MODELS["nuna5"]` describes a model that may never have been run at
+    #: all. The strings the footer prints come from `pangenome_step`, which does have a run behind
+    #: it and where they are populated.
+    #: ⚠ The docstring here previously said they were *"stored rather than formatted, so the page
+    #: and the database cannot disagree"* — true of the run's copy and impossible for the model's.
+    #: Kept as columns rather than dropped so a hand-written model definition can carry a stage
+    #: description one day; a reader must not take their NULL as a load that failed.
     stage_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     stage_detail: Mapped[str | None] = mapped_column(Text, nullable=True)
 
