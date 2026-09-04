@@ -109,12 +109,22 @@ class Locus(Base):
     pfam_concordance_class: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     # ── evidence ──────────────────────────────────────────────────────────────────────────────
+    # ⛔⛔ **THE THREE COLUMNS BELOW ARE COMPUTED OVER AT MOST 50 MEMBERS, NOT OVER THE LOCUS.**
+    # `accessory_audit.FAMILY_MEMBER_CAP = 50`, longest-first: the within-cluster all-vs-all is
+    # quadratic in members, so each cluster is capped to bound the cost. Measured on the published
+    # ecoli catalogue, **4,138 of the 12,104 loci that carry a tier sit at that cap** (34.2 %) —
+    # their real member counts run to 143 — so for a third of the catalogue `resolved_threshold`
+    # is *"the identity at which the 50 longest members first group"*, which is a different and
+    # weaker claim than *"at which the members first group"*.
+    # ⚠ `member_gene_count` above is NOT affected: it comes from the assignment via
+    # `node_membership_profile`, never from the waterfall. Do not fill it from the audit.
     syntenic_a5: Mapped[float | None] = measurement()
     #: `mmseq@0.4`, `pfam_not_alignable`, `esm_homology`, `synteny_only`, … ⚠ `synteny only` names
     #: the EVIDENCE, not a mistake: non-homologous cargo in a genuinely conserved neighbourhood is
     #: what an identity threshold cannot see, and the reason the method exists.
     collapse_tier: Mapped[str | None] = mapped_column(String(64), nullable=True)
     collapse_bucket: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    #: ⚠ Over ≤50 longest members — see the block above.
     resolved_threshold: Mapped[float | None] = measurement()
     seqid_coverage: Mapped[float | None] = measurement()
 

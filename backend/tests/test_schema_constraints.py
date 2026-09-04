@@ -164,3 +164,24 @@ def test_there_is_NO_unique_constraint_on_locus_and_genome(engine):
         assert not {"locus_id", "genome_id"} <= set(columns), (
             f"{name} forbids a genome occupying two arrangements at one locus: {columns}"
         )
+
+
+def test_rho_ceiling_can_hold_step_twos_literal_1e9(session, seeded):
+    """⛔ `nuna_pipeline.py:410` passes the string `"1e9"`, and CLAUDE.md's table says so too.
+
+    At `Numeric(12, 4)` this raised `numeric field overflow`, so ingesting the step 2 of EVERY
+    multi-step model would have failed. The value is stored, not merely accepted, because a silent
+    truncation to `99999999.9999` would still describe a ρ rail — just not this one.
+    """
+    from syntitude_backend.models.enumerations import RhoRule
+    from syntitude_backend.models.nuna_model import NunaModelStep
+
+    step = NunaModelStep(
+        nuna_model_id=seeded["model"].nuna_model_id,
+        step_ordinal=2, step_name="step2", gamma=0.98,
+        rho_rule=RhoRule.OFF, rho_ceiling=1e9, node_mode="mmseq", uses_exclusivity=False,
+    )
+    session.add(step)
+    session.flush()
+    session.expire(step)
+    assert float(step.rho_ceiling) == 1e9

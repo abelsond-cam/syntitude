@@ -92,7 +92,14 @@ class NunaModelStep(Base):
     #: `pairwise_max`, because that rule deliberately admits colliding pairs and the exclusivity
     #: weight reads only endpoint genome counts — meaningful only where edges are genome-disjoint.
     rho_rule: Mapped[RhoRule | None] = mapped_column(nullable=True)
-    rho_ceiling: Mapped[float | None] = mapped_column(Numeric(12, 4), nullable=True)
+    #: ⛔ **`Numeric(18, 4)`, because step 2's ceiling is the literal `1e9`** — `nuna_pipeline.py:410`
+    #: passes the string `"1e9"` to the CLI, and CLAUDE.md's own table spells it *"ρ OFF (ceiling
+    #: 1e9)"*. The original `Numeric(12, 4)` allows 8 digits left of the point and 1e9 needs 10, so
+    #: ingesting the step 2 of **every** multi-step model would have raised
+    #: `NumericValueOutOfRange` — verified against Postgres, not reasoned about.
+    #: ⚠ Numeric and not Float: γ is compared for equality across runs (0.98 is not 0.98000001),
+    #: and the two columns should not disagree about how a resolution is stored.
+    rho_ceiling: Mapped[float | None] = mapped_column(Numeric(18, 4), nullable=True)
     rho_exit: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     rho_continue: Mapped[str | None] = mapped_column(String(16), nullable=True)
 

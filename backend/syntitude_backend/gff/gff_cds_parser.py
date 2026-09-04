@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import unquote
 
 from syntitude_backend.gff.gff_text_reader import open_gff_text
 
@@ -74,12 +75,25 @@ class ParsedGenomeAnnotation:
 
 
 def _attributes(field: str) -> dict[str, str]:
-    """GFF3 column 9 → a dict. Malformed pairs are skipped, not guessed at."""
+    """GFF3 column 9 → a dict, **values URL-decoded**. Malformed pairs are skipped, not guessed at.
+
+    ⛔ **The decode is not optional and it is not cosmetic.** GFF3 percent-encodes the separators
+    (`;`, `=`, `,`) inside a value, and Bakta products are full of them: measured over 40 probe
+    GFFs, **12,210 CDS lines carry a `%XX` escape** — every
+    `UDP-N-acetylmuramoyl-L-alanyl-D-glutamate--2%2C6-diaminopimelate ligase` is one. Left encoded,
+    a product reads `2%2C6` on the page and, worse, fails to match the same product read through
+    `nuna`'s reader, which has always called `unquote` (`genome_sequence._attrs`).
+
+    ⚠ This diverged silently because the cross-check compares only the fields nuna's `parse_gff`
+    RETURNS — seqid, coordinates, strand, phase, partiality — and attributes are not among them. A
+    copy is only safe while something fails when it diverges; here nothing did, so the test now
+    covers the attributes too.
+    """
     out: dict[str, str] = {}
     for item in field.rstrip(";").split(";"):
         key, separator, value = item.partition("=")
         if separator:
-            out[key.strip()] = value.strip()
+            out[key.strip()] = unquote(value.strip())
     return out
 
 

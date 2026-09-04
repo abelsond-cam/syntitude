@@ -16,6 +16,7 @@ refused whole rather than written partially.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -44,7 +45,7 @@ GENE_COLUMNS = (
 
 FUNCTIONAL_COLUMNS = (
     "genome_id", "flat_index", "uniref50_accession", "kegg_orthology_id",
-    "cog_id", "cog_category", "ec_numbers", "gene_ontology_terms",
+    "cog_id", "cog_categories", "ec_numbers", "gene_ontology_terms",
 )
 
 CONTIG_COLUMNS = ("genome_id", "seqid", "contig_index", "contig_name", "length_bases")
@@ -53,6 +54,11 @@ NONCODING_COLUMNS = (
     "genome_id", "contig_index", "noncoding_feature_index", "start_position", "end_position",
     "strand", "feature_type", "feature_gene", "feature_product", "overlaps_coding_sequence",
 )
+
+#: ⛔ The Bakta locus-tag shape — `nuna.eval.assignments.strip_locus_tags`' regex, and the reason a
+#: tag must never reach `bakta_gene_symbol`: tags are unique per genome, so a family holding only
+#: them would report one distinct symbol and read as unanimous.
+LOCUS_TAG_SHAPE = re.compile(r"^[A-Z0-9]{4,}_\d+$")
 
 #: ⛔ `ec` and `go` are comma-joined SORTED-UNIQUE SETS, not scalars. Measured over 40 genomes:
 #: 12.3 % of non-null `ec` values carry more than one term, up to 4 terms and 39 characters.
@@ -101,6 +107,18 @@ def _split_set_value(value) -> list[str] | None:
     return text.split(",") if text else None
 
 
+def _split_cog_categories(value) -> list[str] | None:
+    """`CP` → `['C', 'P']`. ⛔ A concatenated SET of single letters, not one category.
+
+    Measured over 40 probe genomes: 14,812 of 129,865 non-null values (11.4 %) carry more than one,
+    up to 4. ⚠ NULL stays NULL — *not annotated* is not *annotated with nothing*.
+    """
+    if value is None or value != value:
+        return None
+    text = str(value).strip()
+    return list(text) if text else None
+
+
 def _scalar(value):
     """A pandas cell → a Python scalar or None, without importing pandas into this signature."""
     if value is None or value != value:
@@ -129,7 +147,10 @@ def ingest_one_genome(
         raise GenomeIngestError(f"{sample_id}: no meta parquet at {meta_path}")
 
     meta = pandas.read_parquet(
-        meta_path, columns=["flat_index", "contig_idx", "start", "end", "protein_sequence", "species"]
+        meta_path,
+        # `gene_name` is read for the symbol FALLBACK only — see `_read_products`. It is never the
+        # primary source, because it carries the locus tag where there is no symbol.
+        columns=["flat_index", "contig_idx", "start", "end", "protein_sequence", "species", "gene_name"],
     ).sort_values("flat_index")
     if meta.empty:
         raise GenomeIngestError(f"{sample_id}: the meta parquet is empty")
@@ -164,7 +185,7 @@ def ingest_one_genome(
         where=GenomeContig.__table__.c.genome_id == genome_id,
     )
 
-    products = _read_products(pandas, artifacts, sample_id)
+    products = _read_products(pandas, artifacts, sample_id, meta)
     report.genes_deleted, report.genes_written = replace_rows_for(
         session, Gene.__table__, GENE_COLUMNS,
         _gene_rows(genome_id, species_id, alignment, meta, products),
@@ -249,22 +270,40 @@ def _contig_rows(genome_id: int, alignment: GenomeAlignment):
         )
 
 
-def _read_products(pandas, artifacts: CatalogueArtifacts, sample_id: str):
-    """`flat_index → (gene, product)`.
+def _read_products(pandas, artifacts: CatalogueArtifacts, sample_id: str, meta):
+    """`flat_index → (symbol, product)`, from `product.gene` with a TAG-FILTERED `gene_name` fallback.
 
-    ⛔ **`product.gene`, never `meta.gene_name`.** `gene_name` falls back to the genome-private
-    Bakta locus tag where there is no symbol — 809 of 4,876 rows (16.6 %) on SAMEA103923484 — and a
-    per-genome tag in a cross-genome symbol column makes a family holding only those report one
-    distinct symbol and read as unanimous. Where both exist they agree on every row.
+    ⛔ **`product.gene` first, and never `meta.gene_name` unfiltered.** `gene_name` falls back to the
+    genome-private Bakta locus tag where there is no symbol — 809 of 4,876 rows (16.6 %) on
+    SAMEA103923484 — and a per-genome tag in a cross-genome symbol column makes a family holding
+    only those report one distinct symbol and read as unanimous.
+
+    ⭐ **But `product.gene` alone loses real symbols, and the fallback is what recovers them.**
+    `bakta_products.join_products` drops every `(contig_idx, start, end)` key that is not unique in
+    the genome (`drop_duplicates(keep=False)`), so an ambiguous coordinate yields NaN in the product
+    parquet while `meta.gene_name` still carries the symbol. Measured over 60 probe genomes: **25
+    real symbols** present in `gene_name` and absent from `product.gene` — `perC`, `yfdN`, `dicB`,
+    `traW`, `traC` — against 249,797 that both carry. Taking `product.gene` as an unqualified rule
+    silently discards them.
+
+    ⚠ The fallback is admitted ONLY where the value is not locus-tag-shaped, so it recovers symbols
+    without ever admitting a tag. Where both sources have a real symbol they agree on every row.
     """
     path = artifacts.per_genome(sample_id, "product")
-    if not path.is_file():
-        return {}
-    frame = pandas.read_parquet(path, columns=["flat_index", "gene", "product"])
-    return {
-        int(row.flat_index): (_scalar(row.gene), _scalar(row.product))
-        for row in frame.itertuples(index=False)
+    fallback = {
+        int(row.flat_index): value
+        for row in meta.itertuples(index=False)
+        if (value := _scalar(getattr(row, "gene_name", None))) and not LOCUS_TAG_SHAPE.fullmatch(str(value))
     }
+    if not path.is_file():
+        return {index: (symbol, None) for index, symbol in fallback.items()}
+    frame = pandas.read_parquet(path, columns=["flat_index", "gene", "product"])
+    out = {}
+    for row in frame.itertuples(index=False):
+        index = int(row.flat_index)
+        symbol = _scalar(row.gene)
+        out[index] = (symbol if symbol is not None else fallback.get(index), _scalar(row.product))
+    return out
 
 
 def _gene_rows(genome_id: int, species_id: int, alignment: GenomeAlignment, meta, products: dict):
@@ -318,7 +357,7 @@ def _functional_rows(genome_id: int, frame):
         yield (
             genome_id, int(row.flat_index),
             _scalar(row.uniref50), _scalar(row.kegg_ko),
-            _scalar(row.cog_id), _scalar(row.cog_cat),
+            _scalar(row.cog_id), _split_cog_categories(row.cog_cat),
             _split_set_value(row.ec), _split_set_value(row.go),
         )
 

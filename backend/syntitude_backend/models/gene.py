@@ -111,8 +111,18 @@ class GeneFunctionalAnnotation(Base):
 
     uniref50_accession: Mapped[str | None] = mapped_column(String(64), nullable=True)
     kegg_orthology_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    #: Single-valued: `bakta_dbxrefs` takes the first `^COG:(COG\d+)$` hit and stops.
     cog_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    cog_category: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    #: ⛔ **A SET of single-letter COG functional categories, not one category.** Bakta writes them
+    #: concatenated (`CP`, `DZ`, `EFG`), and measured over 40 probe genomes **14,812 of 129,865
+    #: non-null values (11.4 %) carry more than one letter**, up to 4. Stored as a scalar it fits —
+    #: which is why the error would have been silent — but `WHERE cog_category = 'C'` then misses
+    #: every gene whose categories are `CO`, `CP` or `CR`, and a per-category census under-counts by
+    #: 11.4 %. This is the same set-in-a-string trap `ec` and `go` are modelled around, and it is
+    #: modelled the same way here.
+    #: ⚠ `locus.modal_cog_category` stays a STRING deliberately: it is the modal *value* the page
+    #: prints via `strings.cog[cog_cat]`, and `CP` is what that value is.
+    cog_categories: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
     #: ⛔ **A SET, not a scalar — and `String(32)` was too narrow to hold it.** Bakta's `ec` column
     #: is built exactly like `go`: `",".join(sorted(ec)) or None` (`bakta_dbxrefs.py:103`). Measured
     #: over 40 probe genomes: **8,660 of 70,477 non-null values (12.3 %) carry more than one term,

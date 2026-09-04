@@ -228,3 +228,79 @@ def test_a_genome_with_no_meta_parquet_is_refused_by_name(session, artifacts, cl
             pathogen_species_ids=species_ids,
         )
     assert session.execute(select(func.count()).select_from(Genome)).scalar_one() == 0
+
+
+def test_the_symbol_fallback_recovers_what_the_product_parquet_dropped(session, artifacts, clean_slate):
+    """⭐ `product.gene` alone silently discards real symbols, and the fallback is what recovers them.
+
+    `join_products` drops every `(contig_idx, start, end)` key that is not unique in the genome, so
+    an ambiguous coordinate yields NaN in the product parquet while `meta.gene_name` still carries
+    the symbol. Measured over 60 probe genomes: 25 such symbols against 249,797 both carry.
+
+    ⚠ The fallback admits a value ONLY where it is not locus-tag-shaped, so it can never trade one
+    silent error for the other.
+    """
+    import re
+
+    # SAMEA104305638 is one of the genomes measured to carry the case (perC, yfdN).
+    target = "SAMEA104305638"
+    path = next(artifacts.annotation_root.glob(f"*/{target}/*.bakta.gff3.gz"), None)
+    if path is None:
+        pytest.skip(f"{target} is not in this store")
+
+    products = pandas.read_parquet(artifacts.per_genome(target, "product"), columns=["flat_index", "gene"])
+    meta = pandas.read_parquet(artifacts.per_genome(target, "meta"), columns=["flat_index", "gene_name"])
+    joined = meta.merge(products, on="flat_index", how="left")
+    tag_shape = re.compile(r"^[A-Z0-9]{4,}_\d+$")
+    recoverable = joined[
+        joined["gene"].isna()
+        & joined["gene_name"].notna()
+        & ~joined["gene_name"].fillna("").map(lambda value: bool(tag_shape.fullmatch(value)))
+    ]
+    assert len(recoverable) > 0, f"{target} no longer exhibits the case this test is about"
+
+    species_ids = ingest_pathogen_species(session)
+    session.commit()
+    ingest_one_genome(
+        session, artifacts, sample_id=target, bakrep_dataset_id=path.parent.parent.name,
+        pathogen_species_ids=species_ids,
+    )
+    session.commit()
+
+    for row in recoverable.itertuples(index=False):
+        stored = session.execute(
+            select(Gene.bakta_gene_symbol).where(Gene.flat_index == int(row.flat_index))
+        ).scalar_one()
+        assert stored == row.gene_name, f"flat_index {row.flat_index}: {stored!r} != {row.gene_name!r}"
+
+    # ...and no locus tag came in with them.
+    symbols = session.execute(
+        select(Gene.bakta_gene_symbol).where(Gene.bakta_gene_symbol.isnot(None))
+    ).scalars().all()
+    assert [s for s in symbols if tag_shape.fullmatch(s)] == []
+
+
+def test_cog_categories_are_split_into_the_set_they_always_were(session, artifacts, one_genome, clean_slate):
+    """⛔ `CP` is two categories. Stored as a scalar it FITS, which is why the error was silent."""
+    _load(session, artifacts, one_genome)
+    rows = session.execute(
+        select(GeneFunctionalAnnotation.cog_categories).where(
+            GeneFunctionalAnnotation.cog_categories.isnot(None)
+        )
+    ).scalars().all()
+
+    assert rows, "no gene carries a COG category"
+    assert all(isinstance(value, list) for value in rows)
+    assert all(len(letter) == 1 for value in rows for letter in value), "a value is not one letter"
+    multi = [value for value in rows if len(value) > 1]
+    assert multi, "no multi-category gene in this genome — the case the array exists for is untested"
+    # The query that was silently wrong before: a single-letter match must now find them.
+    from sqlalchemy import func as sql_func
+
+    found = session.execute(
+        select(sql_func.count()).select_from(GeneFunctionalAnnotation).where(
+            GeneFunctionalAnnotation.cog_categories.any("C")
+        )
+    ).scalar_one()
+    scalar_style = sum(1 for value in rows if value == ["C"])
+    assert found > scalar_style, "the set query finds no more than an exact-scalar match would"

@@ -8,6 +8,7 @@ They skip where `nuna` or the pulled probe data is unavailable (a bare serving i
 which, rather than passing quietly.
 """
 
+import gzip
 import os
 import sys
 from pathlib import Path
@@ -35,7 +36,10 @@ from syntitude_backend.gff.gene_sequence_reader import (  # noqa: E402
     read_gene_sequence,
     reverse_complement,
 )
-from syntitude_backend.gff.gff_cds_parser import parse_genome_annotation  # noqa: E402
+from syntitude_backend.gff.gff_cds_parser import (  # noqa: E402
+    _attributes,
+    parse_genome_annotation,
+)
 
 
 def _some_gffs(limit):
@@ -176,4 +180,66 @@ def test_a_pseudo_CDS_is_dropped_and_a_partial_attribute_is_honoured():
     assert features[0].is_five_prime_partial is False
     assert features[1].is_five_prime_partial is True, "`partial=10` was not read as 5'-partial"
     assert "10" in FIVE_PRIME_PARTIAL_VALUES and "true" in PSEUDO_VALUES
+    path.unlink()
+
+
+def test_the_attributes_are_url_decoded_exactly_as_nuna_decodes_them():
+    """⛔ The divergence the earlier cross-check could not see.
+
+    GFF3 percent-encodes the separators inside a value, and Bakta products are full of them —
+    measured over 40 probe GFFs, **12,210 CDS lines carry a `%XX` escape**. nuna's `_attrs` has
+    always called `unquote`; the vendored reader did not. Nothing failed, because the previous
+    comparison covered only the fields nuna's `parse_gff` RETURNS — seqid, coordinates, strand,
+    phase, partiality — and attributes are not among them. A copy is only safe while something
+    fails when it diverges, so the attributes are compared here.
+    """
+    from urllib.parse import unquote
+
+    from nuna.tl.locus_browser.genome_sequence import _attrs  # noqa: PLC2701 — the thing under test
+
+    encoded = 0
+    compared = 0
+    for path in _some_gffs(3):
+        with gzip.open(path, "rt") as handle:
+            for line in handle:
+                if line.startswith("#"):
+                    if line.startswith("##FASTA"):
+                        break
+                    continue
+                columns = line.rstrip("\n").split("\t")
+                if len(columns) < 9 or columns[2] != "CDS":
+                    continue
+                theirs = _attrs(columns[8])
+                ours = _attributes(columns[8])
+                assert ours == theirs, f"{path.name}: {ours} != {theirs}"
+                compared += 1
+                if "%" in columns[8]:
+                    encoded += 1
+
+    assert compared > 10_000, f"only {compared:,} attribute columns compared"
+    assert encoded > 0, "no percent-encoded attribute in the sample — the decode is untested here"
+    assert unquote("2%2C6-diaminopimelate") == "2,6-diaminopimelate"
+
+
+def test_a_percent_encoded_product_does_not_reach_a_caller_encoded():
+    """The concrete case: a real Bakta product with an escaped comma."""
+    import gzip
+    import tempfile
+
+    line = (
+        "c1\tbakta\tCDS\t1\t99\t.\t+\t0\tID=a;locus_tag=T_1;"
+        "product=UDP-N-acetylmuramoyl-L-alanyl-D-glutamate--2%2C6-diaminopimelate ligase\n"
+    )
+    with tempfile.NamedTemporaryFile(suffix=".gff3.gz", delete=False) as handle:
+        handle.write(gzip.compress(("##gff-version 3\n" + line + "##FASTA\n>c1\nACGT\n").encode()))
+        path = Path(handle.name)
+
+    from syntitude_backend.gff.gff_cds_parser import _attributes as _decode  # noqa: PLC2701
+
+    with gzip.open(path, "rt") as handle:
+        attributes = next(
+            _decode(row.split("\t")[8]) for row in handle if "\tCDS\t" in row
+        )
+    assert "%2C" not in attributes["product"]
+    assert attributes["product"].endswith("2,6-diaminopimelate ligase")
     path.unlink()
