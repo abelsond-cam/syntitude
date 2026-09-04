@@ -129,18 +129,44 @@ def test_an_audit_metric_name_is_never_truncated_into_a_collision(loaded_session
     assert len(longest) == 52
 
 
-def test_the_git_sha_recorded_is_NUNA_s_and_not_the_ingest_tree_s(loaded_session):
+def test_the_git_sha_recorded_NAMES_A_NUNA_COMMIT_and_not_an_ingest_tree_one(loaded_session):
     """⛔ A live bug for the length of one commit: `_git_sha()` runs in the cwd, so the ingest wrote
     SYNTITUDE's HEAD into a column that says *"the version of the registry this row was read from"*.
-    A real short sha, the right length and shape, and about the wrong repository."""
-    from syntitude_backend.ingest.ingest_pangenome_run import nuna_git_sha
+    A real short sha, the right length and shape, and about the wrong repository.
+
+    ⚠ **The assertion is that the sha RESOLVES in nuna, not that it equals nuna's HEAD.** The stored
+    value records which nuna the ingest read, so it is *supposed* to go stale the moment anyone
+    commits to nuna — and it did, within an hour of being written. A test pinned to HEAD would fail
+    on every unrelated commit, and a test that fails for a reason the reader does not care about is
+    a test that gets deleted rather than fixed. Resolving the sha in each tree distinguishes the two
+    repositories, which is the thing the bug got wrong, and is stable as both of them move.
+    """
+    import subprocess
+    from pathlib import Path
+
+    import nuna
+
     from syntitude_backend.models.pangenome import Pangenome
 
-    expected = nuna_git_sha()
-    if expected is None:
-        pytest.skip("nuna is not a git checkout here")
-    stored = set(loaded_session.execute(select(Pangenome.git_sha)).scalars())
-    assert stored == {expected}
+    stored = {value for value in loaded_session.execute(select(Pangenome.git_sha)).scalars() if value}
+    if not stored:
+        pytest.skip("no git sha was recorded — nuna may not be a git checkout here")
+
+    def resolves_in(tree: Path, sha: str) -> bool:
+        try:
+            return subprocess.run(
+                ["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=tree, capture_output=True
+            ).returncode == 0
+        except OSError:
+            return False
+
+    nuna_tree = Path(nuna.__file__).resolve().parent
+    ingest_tree = Path(__file__).resolve().parents[1]
+    for sha in stored:
+        assert resolves_in(nuna_tree, sha), f"{sha} is not a commit in the nuna checkout"
+        assert not resolves_in(ingest_tree, sha), (
+            f"{sha} resolves in the INGEST tree — which is the bug this test exists for"
+        )
 
 
 # ── the invariants the census questions, answered ──────────────────────────────────────────────
