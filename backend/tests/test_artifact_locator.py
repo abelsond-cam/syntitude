@@ -17,6 +17,7 @@ from syntitude_backend.ingest.artifact_locator import (
     CatalogueArtifacts,
     MissingArtifacts,
 )
+from syntitude_backend.ingest.published_catalogues import PUBLISHED_CATALOGUES, catalogue
 
 #: The local mirror of the cluster artifacts. Overridable, because the med school box and any
 #: second developer will not have it at a path chosen on one laptop.
@@ -117,3 +118,44 @@ def test_the_waterfall_is_required_even_though_the_audit_never_names_it(ecoli):
     assert not any("waterfall" in source for source in named), "the audit now names it — update the docstring"
     assert "homology_waterfall" in {role for role, _, _ in ecoli.required()}
     assert ecoli.homology_waterfall.exists()
+
+
+@pytest.mark.parametrize("entry", PUBLISHED_CATALOGUES, ids=lambda e: e.species_key)
+def test_both_published_catalogues_resolve_from_the_checked_in_triples(entry):
+    """⛔ The guard against reconstructing a run_id by a rule.
+
+    The two run ids differ by `strict98` against `kp98`, so substituting the species into the other's
+    id does not resolve — and a run_id that differed only in a default-emitted token WOULD resolve,
+    to a different run. This asserts the checked-in values against the store rather than trusting
+    that anyone will notice.
+    """
+    artifacts = CatalogueArtifacts(
+        data_root=DATA_ROOT, set_key=entry.set_key,
+        model_label=entry.model_label, run_id=entry.run_id,
+    )
+    assert artifacts.verify() == {"cluster_table": True, "published_payload": True}
+
+
+def test_the_two_run_ids_are_not_each_other_with_the_species_swapped():
+    """The concrete mistake this file exists to prevent, made and asserted to fail."""
+    ecoli, kp = catalogue("ecoli"), catalogue("kp")
+    naive = ecoli.run_id.replace("ecoli", "kp")
+    assert naive != kp.run_id, "the substitution rule now works — the docstring is wrong"
+    assert not (DATA_ROOT / "proc" / "analysis" / "step4_global_merge" / "assignments" / f"{naive}.tsv").exists()
+
+
+@pytest.mark.parametrize("entry", PUBLISHED_CATALOGUES, ids=lambda e: e.species_key)
+def test_the_recorded_counts_are_what_the_shipped_payload_says(entry):
+    """⚠ Counts of record must name the artifact they were read from. This is that check."""
+    import json
+
+    artifacts = CatalogueArtifacts(
+        data_root=DATA_ROOT, set_key=entry.set_key,
+        model_label=entry.model_label, run_id=entry.run_id,
+    )
+    meta = json.loads(artifacts.published_payload.read_text())["meta"]
+    assert meta["model_id"] == entry.run_id
+    assert meta["model_label"] == entry.model_label
+    assert (meta["n_genomes"], meta["n_genes"], meta["n_loci"]) == (
+        entry.genome_count, entry.gene_count, entry.locus_count
+    )

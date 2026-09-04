@@ -70,6 +70,36 @@ already has the science package. That is why `nuna` is not in `dependencies`.
 Without it Postgres invents names, Alembic autogenerate produces a different one on each machine,
 and a migration that drops a constraint by name works only for whoever wrote it.
 
+## Loading data
+
+Writes are ours alone and offline; nothing on a request path inserts. The loader needs the cluster
+artifacts mirrored locally and `nuna` importable — the serving install needs neither.
+
+```bash
+export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
+
+# the genome layer: contigs, genes, functional labels. Model-INDEPENDENT — a new pangenome must
+# never rewrite it. ~180 s for all 280 genomes.
+.venv/bin/python -m syntitude_backend.ingest \
+  --model-label ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
+  --run-id ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
+```
+
+⛔ **Do not reconstruct a `run_id`.** The two published ones differ by `strict98` against `kp98`,
+not by their species token, and a run id that differed only in a *default-emitted* token would
+resolve to a different run and load a catalogue that is wrong about which model produced it. The
+triples are checked in at `syntitude_backend/ingest/published_catalogues.py`, with a test that both
+resolve against the store.
+
+| variable | meaning |
+|---|---|
+| `SYNTITUDE_NUNA_DATA_ROOT` | the local artifact mirror (default `~/developer/nuna/data`) |
+| `SYNTITUDE_FULL_COHORT=1` | run the alignment gate over all 280 genomes (~85 s) instead of 30 |
+
+The loader reports counts and then **asks the database what it holds**, because a loader that
+reports its own writes back confirms itself. A refusal names the genome and the check that caught
+it, rolls that genome back, and the run continues.
+
 ## Tests
 
 ```bash
