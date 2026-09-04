@@ -149,7 +149,20 @@ class GeneLocusMembership(Base):
     __tablename__ = "gene_locus_membership"
     __table_args__ = (
         Index("ix_gene_locus_membership__locus_id", "locus_id"),
-        Index("ix_gene_locus_membership__pangenome_id__genome_id", "pangenome_id", "genome_id"),
+        # ⛔⛔ **AN UNINDEXED FOREIGN KEY ON THIS TABLE IS NOT A TUNING QUESTION.** Both of the two
+        # below were missing, and the first turned a routine re-ingest into an unbounded stall:
+        # deleting the pangenome's 70,519 arrangements made Postgres run one sequential scan of
+        # 486,794 membership rows PER ARRANGEMENT to satisfy `ON DELETE SET NULL`. Measured: the
+        # first load took 49 s into empty tables; the second sat in
+        # `DELETE FROM locus_arrangement` for over 8 minutes and had to be killed. At 80,000
+        # genomes this table is ~412 M rows and 49 M arrangements.
+        Index("ix_gene_locus_membership__locus_arrangement_id", "locus_arrangement_id"),
+        # ⚠ `genome_id` FIRST, deliberately. The FK to `genome` is `ON DELETE CASCADE`, and a
+        # composite index can only serve it from the LEADING column — `(pangenome_id, genome_id)`
+        # could not, so deleting one genome scanned the whole table. Nothing is lost by the swap:
+        # the primary key is `(pangenome_id, genome_id, flat_index)`, so `pangenome_id`-leading
+        # lookups already have an index and the old one was redundant with it.
+        Index("ix_gene_locus_membership__genome_id__pangenome_id", "genome_id", "pangenome_id"),
         # ⭐ The anchor query: which genes does THIS genome have at THIS locus, and in which
         # neighbourhood. Two index lookups instead of a linear scan over a per-genome int32 array.
         Index("ix_gene_locus_membership__locus_id__genome_id", "locus_id", "genome_id"),

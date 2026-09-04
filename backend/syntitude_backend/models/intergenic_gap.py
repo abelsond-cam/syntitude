@@ -37,7 +37,7 @@ them is not an observed gap.
 
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, Integer, SmallInteger, String, UniqueConstraint
+from sqlalchemy import BigInteger, ForeignKey, Index, Integer, SmallInteger, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from syntitude_backend.database import Base
@@ -58,9 +58,20 @@ class IntergenicGap(Base):
         # and a numeric CHECK on surrogate ids would assert a DIFFERENT ordering that happens to be
         # satisfiable — the schema would then look correct while holding the pairs the wrong way
         # round for a third of the table.
-        CheckConstraint(
-            "flanking_locus_id_a <> flanking_locus_id_b", name="flanking_pair_is_two_distinct_loci"
-        ),
+        #
+        # ⛔⛔ **AND NO `CHECK (a <> b)` EITHER — A LOCUS CAN FLANK ITSELF, AND IT IS NOT AN ERROR.**
+        # This table briefly carried one, on the reasonable-sounding ground that a gap sits *between
+        # two* loci. The real ecoli load refused 12 rows against it, and every one turned out to be
+        # a **tandem repeat of a multi-copy locus**: `hokE`, `ldrB`, `ldrD`, `zorO`, `tpr`, `icaT`
+        # and a transposase — type I toxin-antitoxin systems, which occur in E. coli as several
+        # near-identical copies that sit next to each other. Every one of the twelve has ρ > 1
+        # (`size/genomes` from 1.02 to 2.00), which is the signature. kp carries three (all `ldrB`
+        # -shaped), and the PUBLISHED payloads ship all fifteen: 12 of 22,838 and 3 of 20,544.
+        #
+        # So the region between one copy and the next is a real intergenic region with a real
+        # measured length, and a constraint forbidding it would have silently dropped the tandem
+        # arrays — which are the loci where the spacing actually carries information. Uniqueness of
+        # the pair is still enforced by the UniqueConstraint above; that is the invariant that holds.
         *nan_guards("length_variance_score"),
     )
 

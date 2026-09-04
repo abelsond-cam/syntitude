@@ -2,7 +2,18 @@
 
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, ForeignKey, Index, Integer, SmallInteger, String, Text, UniqueConstraint
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from syntitude_backend.database import Base
@@ -18,7 +29,33 @@ class LocusAnnotationEntry(Base):
 
     __tablename__ = "locus_annotation_entry"
     __table_args__ = (
-        UniqueConstraint("locus_id", "annotation_kind", "rank_within_locus"),
+        # ⛔⛔ **RANK IS UNIQUE PER (locus, kind, NAMESPACE) — NOT PER (locus, kind).**
+        # `top_go_slim` ranks within (locus, namespace), which `export_payload._ordered_ns` states
+        # outright: *"`top_go` ranks within (locus, namespace), so it sorts on namespace too or the
+        # run lengths break."* A locus therefore has THREE rank-0 GO rows, one per namespace, and a
+        # plain `UniqueConstraint("locus_id", "annotation_kind", "rank_within_locus")` refuses the
+        # second — which is how this was found: the real ecoli load stopped at COPY line 52,413.
+        #
+        # ⚠ The namespace cannot simply join the constraint, because it is NULL for the other six
+        # vocabularies and **Postgres treats NULLs as distinct in a unique index** — the constraint
+        # would then enforce nothing at all for those six, silently. `COALESCE(…, -1)` keeps one
+        # index enforcing uniqueness for all seven, so it is an expression index and not a
+        # UniqueConstraint. The CHECK below is what makes the coalesced value meaningful.
+        Index(
+            "uq_locus_annotation_entry__locus_kind_namespace_rank",
+            "locus_id",
+            "annotation_kind",
+            text("COALESCE(gene_ontology_namespace, -1)"),
+            "rank_within_locus",
+            unique=True,
+        ),
+        CheckConstraint(
+            "(annotation_kind = 'GENE_ONTOLOGY_SLIM') = (gene_ontology_namespace IS NOT NULL)",
+            # ⚠ Short deliberately. `ck_locus_annotation_entry__` is already 27 characters, and
+            # Postgres truncates an identifier to 63 bytes SILENTLY — a longer name would be stored
+            # truncated and a later `drop_constraint` by the name in this file would not find it.
+            name="namespace_matches_kind",
+        ),
         Index("ix_locus_annotation_entry__locus_id__annotation_kind", "locus_id", "annotation_kind"),
         Index("ix_locus_annotation_entry__annotation_kind__term_value", "annotation_kind", "term_value"),
     )

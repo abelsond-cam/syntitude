@@ -32,6 +32,10 @@ class Locus(Base):
         Index("ix_locus__pangenome_id__prevalence_band", "pangenome_id", "prevalence_band"),
         Index("ix_locus__pangenome_id__member_genome_count", "pangenome_id", "member_genome_count"),
         Index("ix_locus__pangenome_id__interest_score", "pangenome_id", "interest_score"),
+        # ⚠ The FK to `genome` needs this to delete a genome without scanning every locus. Rare, but
+        # at 889,160 loci a genome retraction should not be an outage — see the note on
+        # `gene_locus_membership`, where the same omission cost an 8-minute stall.
+        Index("ix_locus__medoid_genome_id", "medoid_genome_id"),
         *nan_guards(
             "syntenic_a5",
             "uniref50_impurity",
