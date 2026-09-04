@@ -16,7 +16,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from syntitude_backend.database import Base
@@ -90,6 +90,20 @@ class Pangenome(Base):
     #: `{section: reason}` for any input that was absent. The page prints these rather than showing
     #: an empty panel, so an absent section is never mistaken for a measured zero.
     omitted_sections: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+
+    #: ⭐ **The locus the page opens on, and the four chips beside it.** Stored, because neither is
+    #: derivable from `locus.interest_score`: `render_page.landing` FILTERS the ranking for the
+    #: first locus whose modal Bakta symbol is `fimA` (`LANDING_SYMBOL`) — *"a stranger arriving
+    #: cold gets a locus they may recognise rather than whichever one scored highest that week"* —
+    #: and falls back to the ranking's own first only where a species has none. On the published
+    #: catalogues that preference actually fires: ecoli opens on 2811 and kp on 1098, neither of
+    #: which is its `examples[0]`.
+    #: ⚠ They were a RENDER-TIME payload mutation, which is how every site page deployed
+    #: 2026-08-20..2026-08-25 came to open on locus 0 with no reference names — a caller serialised
+    #: the payload before `render` had mutated it, and nothing failed. As columns written by ingest
+    #: and checked by the verification gate, that failure is not expressible.
+    landing_locus_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    example_locus_ids: Mapped[list[int] | None] = mapped_column(ARRAY(BigInteger), nullable=True)
 
     git_sha: Mapped[str | None] = mapped_column(String(40), nullable=True)
     built_at: Mapped[str | None] = mapped_column(String(32), nullable=True)

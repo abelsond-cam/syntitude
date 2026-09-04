@@ -353,3 +353,46 @@ def test_an_absent_string_index_is_none_and_never_the_zeroth_string(ecoli):
     unnamed = [i for i in range(ecoli.n_loci) if ecoli.nodes["name"][i] < 0]
     assert unnamed, "every locus is named — the absent path is untested"
     assert ecoli.string("sym", ecoli.nodes["name"][unnamed[0]]) is None
+
+
+def test_the_only_tier_difference_from_the_frozen_page_is_the_recorded_one(ecoli):
+    """⛔ Parity is an ALLOWLIST of named loci, never a tolerance.
+
+    The local audit artifacts were regenerated after the pages were published, so they are not the
+    files the pages were built from. This asserts that the whole of that drift is the one recorded
+    exception — and, just as importantly, that it is not LARGER than recorded.
+    """
+    import csv
+    import os
+    from pathlib import Path
+
+    from tests.known_parity_exceptions import AUDIT_TIER_RETIREMENT
+
+    data_root = Path(os.environ.get("SYNTITUDE_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
+    label = "ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL"
+    waterfall = data_root / "proc" / "analysis" / "accessory_audit" / f"{label}_homology_waterfall.csv"
+    if not waterfall.is_file():
+        pytest.skip(f"the audit artifacts are not mirrored at {waterfall}")
+
+    with waterfall.open() as handle:
+        current = {row["node"]: row["bucket_esm"] for row in csv.DictReader(handle)}
+
+    tiers = ecoli.strings["tier"]
+    compared, differing = 0, {}
+    for i in range(ecoli.n_loci):
+        index = ecoli.nodes["tier"][i]
+        if index < 0:
+            continue  # -1 = no waterfall row at all, which is every singleton
+        label_text = ecoli.label(i)
+        if label_text not in current or not current[label_text]:
+            continue
+        compared += 1
+        if tiers[index] != current[label_text]:
+            differing[label_text] = (tiers[index], current[label_text])
+
+    assert compared == 12_104, f"only {compared:,} loci carried a tier on both sides"
+    assert set(differing) == AUDIT_TIER_RETIREMENT.node_labels, (
+        f"tier differences outside the recorded exception: {differing}"
+    )
+    for frozen, now in differing.values():
+        assert (frozen, now) == (AUDIT_TIER_RETIREMENT.frozen_value, AUDIT_TIER_RETIREMENT.current_value)

@@ -68,6 +68,16 @@ class LocusMapProjection(Base):
     null_bin_counts: Mapped[list[int] | None] = mapped_column(ARRAY(Integer), nullable=True)
     null_mean_cosine: Mapped[float | None] = mapped_column(Float, nullable=True)
 
+    #: ⭐ **The other half of "p12 of 12,104 loci".** `locus.separation_percentile_*` is a MIDRANK
+    #: over the loci where the separation is MEASURABLE — not over the catalogue — and the card
+    #: prints both halves of that sentence. Both are assertions, so the denominator needs a home,
+    #: and this table's grain is exactly (pangenome, representation), which is its grain too.
+    #: ⚠ The measurable set is defined by the GEOMETRY, not by the band: on the published ecoli
+    #: catalogue it is exactly the 5,427 loci of size 1 that are excluded, while `prevalence_band =
+    #: RARE` covers 5,458 — the extra 31 are paralogues inside one genome, which DO have a
+    #: measurable separation. Gating on the band would blank 31 real measurements.
+    separation_measurable_locus_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
 
 class LocusEmbeddingGeometry(Base):
     """One locus's position and its local six-point geometry, per representation."""

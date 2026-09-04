@@ -56,13 +56,30 @@ class Genome(Base):
     is_complete_assembly: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     is_hybrid_assembly: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
+    #: Contigs that carry at least one KEPT CDS — the set `contig_index` enumerates, and strictly
+    #: smaller than the assembly's contig count. Measured on SAMEA103923484: **270 of 348**.
     contig_count_with_coding_sequence: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    #: ⚠ **Every contig in the assembly**, including the 78 that carry no CDS — this is a property
+    #: of the genome, not of the annotation. So it is NOT the sum of the contigs `contig_index`
+    #: enumerates, and the two differ on every genome measured (5,025,405 vs 4,880,150 bases on
+    #: SAMEA103923484). Taken from the GFF's `##FASTA` block, which carries them all.
     total_base_count: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    #: The CDS the extractor KEPT — the meta parquet's row count, not the GFF's CDS line count.
+    #: The GFF has 6–18 more (mean 11.2 over 25 genomes): pseudo, missing-contig, empty-translation
+    #: and internal-stop features are dropped BEFORE `flat_index` is numbered.
     coding_gene_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    #: ⚠ Whether a `{BS}_strand.parquet` existed, or every gene was forced to `+`. Present for all
-    #: 280 probe genomes (verified); absent for the entire 13,573-genome Klebsiella cohort. A forced
-    #: `+` must never read as an observation, which is what this column is for.
+    #: ⛔ **Whether this genome's strands were READ FROM AN ANNOTATION, or defaulted to `+`.**
+    #: ⚠ NOT "does a `{BS}_strand.parquet` exist" — that was the original wording and it is wrong
+    #: now that strand is taken from GFF column 7, which is present on 100 % of CDS lines. Under
+    #: the old reading the entire 13,573-genome Klebsiella cohort would load as `False` (it has no
+    #: strand parquets) while its strand came from its GFFs and was fully observed. The flag exists
+    #: for the forced-`+` path — `reference_annotation.load_gene_coords(ignore_strand=True)`, and
+    #: `extract_strand.strand_for_genome`, which is permitted to default up to 20 genes or 1 % of a
+    #: genome — so it must record what the INGEST did, not which file happened to be on disk.
+    #: ⚠ It is honest only at GENOME granularity: the parquet's `strand` column has no nulls and
+    #: `n_defaulted` lives only in an in-memory `df.attrs`, so there is no per-gene observation flag
+    #: to be had from that source at all.
     strand_is_observed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __repr__(self) -> str:
