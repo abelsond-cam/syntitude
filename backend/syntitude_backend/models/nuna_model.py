@@ -60,7 +60,7 @@ class NunaModel(Base):
     step_count: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     registry_source_git_sha: Mapped[str | None] = mapped_column(String(40), nullable=True)
 
-    steps: Mapped[list["NunaModelStep"]] = relationship(
+    steps: Mapped[list[NunaModelStep]] = relationship(
         back_populates="nuna_model", order_by="NunaModelStep.step_ordinal", cascade="all, delete-orphan"
     )
 

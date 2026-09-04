@@ -7,11 +7,9 @@ from __future__ import annotations
 
 from sqlalchemy import (
     BigInteger,
-    Float,
     ForeignKey,
     Index,
     Integer,
-    SmallInteger,
     String,
     Text,
     UniqueConstraint,

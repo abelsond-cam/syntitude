@@ -29,14 +29,13 @@ pytestmark = pytest.mark.skipif(
     not GFF_ROOT.is_dir(), reason=f"probe GFFs not pulled to {GFF_ROOT}"
 )
 
-from syntitude_backend.gff.gff_cds_parser import parse_genome_annotation  # noqa: E402
 from syntitude_backend.gff.gene_sequence_reader import (  # noqa: E402
     CODON_TABLE,
     INITIATOR_CODONS,
     read_gene_sequence,
     reverse_complement,
-    translate_coding_sequence,
 )
+from syntitude_backend.gff.gff_cds_parser import parse_genome_annotation  # noqa: E402
 
 
 def _some_gffs(limit):

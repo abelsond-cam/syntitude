@@ -96,7 +96,7 @@ class Pangenome(Base):
     ingested_at: Mapped[object | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    steps: Mapped[list["PangenomeStep"]] = relationship(
+    steps: Mapped[list[PangenomeStep]] = relationship(
         back_populates="pangenome", order_by="PangenomeStep.step_ordinal", cascade="all, delete-orphan"
     )
 

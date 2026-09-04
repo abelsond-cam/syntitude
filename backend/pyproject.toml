@@ -35,13 +35,29 @@ line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "D"]
-ignore = ["D203", "D213"]
+# D203/D213: the two docstring-blank-line rules that contradict the two we do follow.
+# D105: `__repr__` docstrings are noise — the method's name is the whole contract.
+# D401: this codebase's docstring voice is deliberately descriptive ("The joint view — whole ±5
+#   vectors"), because the first line is read as a definition of the thing, not as an instruction
+#   to the reader. Forcing the imperative would make every model docstring worse.
+# D400: it cannot see through the house docstring voice. "**Per step, never per model.**" and
+#   "**Exactly one row per gene.**" both END with a period — inside the markdown emphasis — and
+#   ruff reads the trailing `**` as the last character. Three of the four hits were that; the
+#   fourth ended in an ellipsis, which is also terminal punctuation.
+ignore = ["D203", "D213", "D105", "D400", "D401"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"]
+# ⚠ Alembic writes these; they are a RECORD of a schema change, not source we maintain. Reformatting
+# one after the fact makes the migration that ran and the migration in the tree different files.
+# ⛔ ALL rules, not just formatting ones: `--fix` reordered this file's imports once, and a
+#   migration whose bytes differ from the one that actually ran is a migration nobody can diff
+#   against the database it produced.
+"syntitude_backend/migrations/versions/*" = ["ALL"]
+"syntitude_backend/migrations/env.py" = ["D"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
