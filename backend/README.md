@@ -177,3 +177,18 @@ PYTHONPATH=~/developer/syntitude/backend .venv/bin/python -m pytest \
 It skips — saying which is missing — if `nuna` is not importable or the probe GFFs have not been
 pulled to `~/developer/nuna/data/raw/gff`. **A skip here is not a pass**; if the cross-check cannot
 run, the vendored copies are unverified.
+
+## Linting — `ruff check` is enforced, `ruff format` is NOT
+
+```bash
+uvx ruff check backend/syntitude_backend backend/tests    # must pass; run before every commit
+```
+
+⚠ **Do not run `ruff format` over the tree.** Both are configured in `backend/pyproject.toml`, but only
+`check` has ever been applied: **54 of 88 files would be reformatted**, so a formatting pass produces a
+diff that is almost entirely unrelated to whatever you were doing and buries it. Format the lines you
+touch by hand, to the configured `line-length = 120`.
+
+⚠ **Fix lint findings by hand rather than with `--fix`.** This is the sibling repo's rule and it applies
+here for the same reason: `--fix` mutates the tree during a commit, and it once deleted three re-exports
+that were pinned by an identity test, turning ten tests red in a commit whose hooks all passed.
