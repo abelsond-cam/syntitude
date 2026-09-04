@@ -16,9 +16,6 @@ loci each fall-through level actually names.
 
 import pytest
 
-from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR
-from tests.payload_oracle import load_catalogue
-
 from syntitude_backend.ingest.derive_locus_display import (
     SOURCE_BAKTA_SYMBOL,
     SOURCE_LABEL,
@@ -38,6 +35,8 @@ from syntitude_backend.ingest.derive_locus_ranking import (
     ranking,
     separation_index,
 )
+from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR
+from tests.payload_oracle import load_catalogue
 
 pytest.importorskip("pandas", reason="the ingest extra")
 

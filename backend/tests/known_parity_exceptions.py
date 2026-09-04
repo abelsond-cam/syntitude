@@ -54,8 +54,25 @@ AUDIT_TIER_RETIREMENT = ParityException(
     ),
 )
 
+#: ⚠ **The same retirement, in kp — SIX loci, not two.** Jobs 34897030/34897031 re-ran both species
+#: in the same pair, so this was always going to be two entries; it was written as one because only
+#: *E. coli* had been measured. Found by running the parity suite over kp, which is the whole reason
+#: the suite is parameterised over both species rather than over the one that was convenient.
+#: Same cause, same direction, same single tier name: **15,664 of 15,670 identical, 6 differ.**
+AUDIT_TIER_RETIREMENT_KP = ParityException(
+    species_key="kp",
+    column="collapse_tier",
+    node_labels=frozenset({"8391", "8467", "9756", "9968", "10070", "10289"}),
+    frozen_value="no_homology",
+    current_value="synteny_only",
+    reason=AUDIT_TIER_RETIREMENT.reason.replace("Two loci", "Six loci"),
+)
+
 #: Everything, indexed for a suite to consult.
-KNOWN_PARITY_EXCEPTIONS: tuple[ParityException, ...] = (AUDIT_TIER_RETIREMENT,)
+KNOWN_PARITY_EXCEPTIONS: tuple[ParityException, ...] = (
+    AUDIT_TIER_RETIREMENT,
+    AUDIT_TIER_RETIREMENT_KP,
+)
 
 
 def exceptions_for(species_key: str, column: str) -> ParityException | None:

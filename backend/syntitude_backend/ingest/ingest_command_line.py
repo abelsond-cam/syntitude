@@ -25,10 +25,23 @@ from sqlalchemy.orm import Session
 import syntitude_backend.models  # noqa: F401  (registers every table on the metadata)
 from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
 from syntitude_backend.ingest.genome_gene_alignment import GeneAlignmentError
+from syntitude_backend.ingest.ingest_genome_collection_roster import (
+    genome_id_by_ordinal,
+    ingest_genome_collection,
+)
 from syntitude_backend.ingest.ingest_genome_gene_table import GenomeIngestError, ingest_one_genome
+from syntitude_backend.ingest.ingest_locus_catalogue import ingest_locus_catalogue
+from syntitude_backend.ingest.ingest_nuna_model_registry import (
+    ingest_model_registry,
+    model_key_for_audit_label,
+)
+from syntitude_backend.ingest.ingest_pangenome_run import ingest_pangenome_run
 from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
 from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
 from syntitude_backend.models.genome import Genome, GenomeContig
+from syntitude_backend.models.locus import Locus
+from syntitude_backend.models.nuna_model import NunaModel
+from syntitude_backend.models.pangenome import Pangenome
 
 
 @dataclass
@@ -160,6 +173,90 @@ def reconcile(session: Session, report: GenomeLayerReport) -> list[str]:
     ]
 
 
+def load_pangenome_layer(session: Session, artifacts: CatalogueArtifacts, *, species_key: str) -> list[str]:
+    """Model registry → roster → run → catalogue, in the one order the foreign keys allow.
+
+    ⚠ **The genome layer must already be loaded**, and this refuses rather than loading a partial
+    roster: every arrangement's membership is a position in the genome vocabulary, so a hole in it
+    would address the wrong genome and nothing downstream could detect that.
+    """
+    from nuna.tl.cluster.nuna_pipeline import MODELS
+
+    species_ids = ingest_pathogen_species(session)
+    session.flush()
+    species_id = species_ids[species_key]
+
+    model_key = model_key_for_audit_label(artifacts.model_label, artifacts.set_key, MODELS)
+    ingest_model_registry(session, models=MODELS)
+    session.flush()
+    model = session.execute(
+        select(NunaModel).where(NunaModel.model_key == model_key)
+    ).scalar_one()
+
+    collection_id, roster = ingest_genome_collection(
+        session, artifacts, pathogen_species_id=species_id
+    )
+    session.flush()
+
+    pangenome_id, run_report = ingest_pangenome_run(
+        session,
+        artifacts,
+        pathogen_species_id=species_id,
+        genome_collection_id=collection_id,
+        nuna_model_id=model.nuna_model_id,
+        registry_steps=list(model.steps),
+        genome_count=roster.genome_count,
+        gene_count=roster.genes_in_universe,
+        # ⚠ Zero until the loci exist; `ingest_locus_catalogue` sets the real count in the same
+        # transaction, so a committed row never claims a locus count it does not hold.
+        locus_count=0,
+    )
+    catalogue_report = ingest_locus_catalogue(
+        session,
+        artifacts,
+        pangenome_id=pangenome_id,
+        pathogen_species_id=species_id,
+        genome_id_by_ordinal=genome_id_by_ordinal(session, collection_id),
+    )
+    return [
+        f"model: {model_key} ({model.step_count} steps, {model.exclusivity_form.value})",
+        f"collection: {roster.collection_key} — {roster.genome_count} genomes, "
+        f"{roster.genes_in_universe:,} genes in the universe",
+        run_report.render(),
+        catalogue_report.render(),
+    ]
+
+
+def reconcile_pangenome(session: Session, artifacts: CatalogueArtifacts) -> list[str]:
+    """⛔ Ask the DATABASE what it holds, against what the checked-in triple says it should.
+
+    The published counts are a fact of record (`published_catalogues.py`), so this compares the load
+    against them rather than against itself.
+    """
+    from syntitude_backend.ingest.published_catalogues import PUBLISHED_CATALOGUES
+
+    entry = next((e for e in PUBLISHED_CATALOGUES if e.run_id == artifacts.run_id), None)
+    if entry is None:
+        return []
+    pangenome = session.execute(
+        select(Pangenome).where(Pangenome.run_id == artifacts.run_id)
+    ).scalar_one()
+    held_loci = session.execute(
+        select(func.count()).select_from(Locus).where(Locus.pangenome_id == pangenome.pangenome_id)
+    ).scalar_one()
+    differences = []
+    for name, held, expected in (
+        ("genome_count", pangenome.genome_count, entry.genome_count),
+        ("gene_count", pangenome.gene_count, entry.gene_count),
+        ("locus_count", held_loci, entry.locus_count),
+    ):
+        if held != expected:
+            differences.append(
+                f"{name}: the database holds {held:,} but the published catalogue is {expected:,}"
+            )
+    return differences
+
+
 def build_parser() -> argparse.ArgumentParser:
     """The CLI surface. `--limit` and `--only` are smoke-run conveniences, not modes to load in."""
     parser = argparse.ArgumentParser(prog="python -m syntitude_backend.ingest", description=__doc__)
@@ -169,8 +266,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model-label", required=True, help="the audit's --model-label")
     parser.add_argument("--run-id", required=True, help="the assignment stem")
     parser.add_argument("--database-url", default=os.environ.get("SYNTITUDE_DATABASE_URL"))
-    parser.add_argument("--stage", choices=("genomes",), default="genomes",
-                        help="which layer to load; the pangenome layer lands next")
+    parser.add_argument("--stage", choices=("genomes", "pangenome", "all"), default="all",
+                        help="`genomes` is model-INDEPENDENT and a new pangenome must never rewrite "
+                             "it; `pangenome` needs it already loaded")
+    parser.add_argument("--species-key", default=None,
+                        help="the browser key (`ecoli` | `kp`); defaults to the artifacts' own")
     parser.add_argument("--limit", type=int, help="stop after N genomes (a smoke run, not a mode)")
     parser.add_argument("--only", nargs="*", help="load only these sample ids")
     return parser
@@ -191,12 +291,22 @@ def main(argv: list[str] | None = None) -> int:
     print(f"artifacts: all {len(artifacts.required())} required present; optional {optional}")
 
     engine = create_engine(args.database_url, future=True)
+    report, differences = None, []
     with Session(engine) as session:
-        report = load_genome_layer(
-            session, artifacts, limit=args.limit, only=set(args.only) if args.only else None
-        )
-        print(report.render())
-        differences = reconcile(session, report)
+        if args.stage in ("genomes", "all"):
+            report = load_genome_layer(
+                session, artifacts, limit=args.limit, only=set(args.only) if args.only else None
+            )
+            session.commit()
+            print(report.render())
+            differences += reconcile(session, report)
+        if args.stage in ("pangenome", "all"):
+            for line in load_pangenome_layer(
+                session, artifacts, species_key=args.species_key or artifacts.species_key
+            ):
+                print(line)
+            session.commit()
+            differences += reconcile_pangenome(session, artifacts)
 
     # ⚠ Reconciliation is only meaningful on a FULL load: a --limit or --only run writes a subset
     # into a table that may already hold more, so a difference there is expected, not a fault.
@@ -209,7 +319,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     else:
         print("reconciled: every count the loader reported is what the tables hold")
-    return 1 if report.refusals else 0
+    return 1 if (report and report.refusals) else 0
 
 
 if __name__ == "__main__":

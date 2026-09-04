@@ -90,12 +90,27 @@ second implementation of any of those is exactly what this design exists to avoi
 ```bash
 export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
 
-# the genome layer: contigs, genes, functional labels. Model-INDEPENDENT — a new pangenome must
-# never rewrite it. ~180 s for all 280 genomes.
-.venv/bin/python -m syntitude_backend.ingest \
+# ONE genome layer for both species: contigs, genes, functional labels. Model-INDEPENDENT — a new
+# pangenome must never rewrite it. ~180 s for all 280 genomes.
+.venv/bin/python -m syntitude_backend.ingest --stage genomes \
   --model-label ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
   --run-id ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
+
+# then ONE pangenome layer per species: the model registry, the roster, the run and the catalogue.
+# ~60 s each, re-runnable — the blast radius is exactly one pangenome.
+.venv/bin/python -m syntitude_backend.ingest --stage pangenome --set-key ecoli --species-key ecoli \
+  --model-label ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
+  --run-id ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
+
+.venv/bin/python -m syntitude_backend.ingest --stage pangenome --set-key kp --species-key kp \
+  --model-label kp_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
+  --run-id kp_bacformer_clever_exploded_preclusterkp98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
 ```
+
+⭐ **The parity suites need a loaded database.** `tests/test_catalogue_parity.py` (T1, T3a, T5, T7)
+reads `SYNTITUDE_DATABASE_URL` and compares every locus against the published catalogue in
+`data/{species}.json`. Without that variable, or with the run not loaded, it **skips with the
+reason** rather than passing.
 
 ⛔ **Do not reconstruct a `run_id`.** The two published ones differ by `strict98` against `kp98`,
 not by their species token, and a run id that differed only in a *default-emitted* token would

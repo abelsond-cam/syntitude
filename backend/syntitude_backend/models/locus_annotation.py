@@ -65,7 +65,14 @@ class LocusAnnotationEntry(Base):
 
     annotation_kind: Mapped[AnnotationKind] = mapped_column(nullable=False)
     rank_within_locus: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    term_value: Mapped[str] = mapped_column(String(256), nullable=False)
+    #: ⛔ **`Text`, not `String(n)`.** A Pfam architecture is a comma-joined list of accessions whose
+    #: length is proportional to the domain count, and a repeat protein has no bound on that.
+    #: Measured on the published *E. coli* catalogue: 7 of 5,947 distinct architectures exceed 256
+    #: characters, the longest 375 — so `String(256)` silently truncated 7 annotation rows and 6
+    #: cross-tab rows, producing a value that is a valid-looking architecture and a different one.
+    #: ⚠ The `(annotation_kind, term_value)` btree still bounds an individual value at ~2,700 bytes.
+    #: That is a LOUD refusal at insert, which is the right trade against a silent truncation.
+    term_value: Mapped[str] = mapped_column(Text, nullable=False)
     #: The name, joined in at ingest from the vendored table. ⚠ Joined into the ROW that uses it,
     #: not shipped as a lookup table — which is what makes the render-time `attach_*` mutation (five
     #: days of pages with no accession names) structurally impossible.
@@ -107,9 +114,13 @@ class LocusUnirefFamilyCrosstab(Base):
     member_gene_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
     modal_bakta_product: Mapped[str | None] = mapped_column(Text, nullable=True)
-    modal_pfam_architecture: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    #: ⛔ `Text` for the same reason as `term_value` — see the note there.
+    modal_pfam_architecture: Mapped[str | None] = mapped_column(Text, nullable=True)
     #: How many of THIS FAMILY's genes carry any domain — so an unannotated family reads as
     #: unannotated rather than as one with a different architecture.
+    #: ⚠ **`0` is a MEASURED ZERO here, not an absence**: the family's genes were looked at and none
+    #: carried a domain. The payload writes `_ints(n_pfam.fillna(0))` for exactly that reason. NULL
+    #: is reserved for a run with no Pfam artifact at all, which `pangenome.omitted_sections` names.
     pfam_annotated_member_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     #: ⚠ Must be computed from the frame `real_gene_names` has ALREADY filtered. Bakta emits a

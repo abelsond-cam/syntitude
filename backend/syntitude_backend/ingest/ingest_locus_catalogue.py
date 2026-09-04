@@ -134,6 +134,12 @@ def _int_or_none(value):
     return None if value is None else int(value)
 
 
+def _int_or_zero(value):
+    """A count that is zero when nothing was found, because the looking DID happen."""
+    value = _clean(value)
+    return 0 if value is None else int(value)
+
+
 # ── loci ───────────────────────────────────────────────────────────────────────────────────────
 def _derive_locus_columns(frames: CatalogueFrames, pfam_names: dict, policy: dict) -> dict:
     """Every column that exists only because the page computes it, computed once.
@@ -256,7 +262,7 @@ LOCUS_COLUMNS = (
     "separation_percentile_bacformer",
     "cog_annotated_member_count",
     "cog_distinct_id_count",
-    "modal_cog_category",
+    "modal_cog_categories",
     "ec_annotated_member_count",
     "kegg_annotated_member_count",
     "go_annotated_member_count_molecular_function",
@@ -312,7 +318,7 @@ def _locus_rows(frames: CatalogueFrames, derived: dict, pangenome_id: int, speci
             bacformer.percentile[index],
             _int_or_none(row["cog_annotated_member_count"]),
             _int_or_none(row["cog_distinct_id_count"]),
-            _clean(row["modal_cog_category"]),
+            _cog_categories(row["modal_cog_category"]),
             _int_or_none(row["ec_annotated_member_count"]),
             _int_or_none(row["kegg_annotated_member_count"]),
             _int_or_none(row["go_annotated_member_count_molecular_function"]),
@@ -328,6 +334,21 @@ def _locus_rows(frames: CatalogueFrames, derived: dict, pangenome_id: int, speci
             derived["interest_score"][index],
             derived["search_text"][index],
         )
+
+
+def _cog_categories(value) -> list[str] | None:
+    """`"EHJQ"` → `["E", "H", "J", "Q"]` — the SET Bakta concatenated, taken apart again.
+
+    ⛔ Splitting is not cosmetic. The value fits a scalar column, so storing it whole fails nothing
+    and makes `WHERE modal_cog_category = 'C'` miss every multi-category locus — 95 of 118 distinct
+    values on the published *E. coli* catalogue. ⚠ An empty string yields `None`, not `[]`: no COG
+    category is *not annotated*, which is different from *annotated with nothing*.
+    """
+    value = _clean(value)
+    if value is None:
+        return None
+    letters = [character for character in str(value).strip() if character.isalpha()]
+    return letters or None
 
 
 def _verdict(value) -> GeneOntologyAgreementVerdict | None:
@@ -490,7 +511,7 @@ def _load_annotation_entries(session, frames, locus_id_by_label) -> int:
                 locus_id_by_label[str(node)],
                 AnnotationKind(kind_value),
                 int(rank),
-                str(term)[:256],
+                str(term),
                 names.get(kind_value, {}).get(str(term)),
                 int(count),
                 _int_or_none(namespace),
@@ -544,9 +565,11 @@ def _load_uniref_crosstab(session, frames, locus_id_by_label) -> int:
                 int(row.n),
                 _clean(getattr(row, "product", None)),
                 _clean(getattr(row, "arch", None)),
-                _int_or_none(getattr(row, "n_pfam", None)),
+                # ⚠ `fillna(0)`, matching the payload: the family's genes WERE looked at and none
+                # carried a domain, which is a measured zero and not an absence.
+                _int_or_zero(getattr(row, "n_pfam", None)),
                 _clean(getattr(row, "gene", None)),
-                _int_or_none(getattr(row, "n_sym", None)),
+                _int_or_zero(getattr(row, "n_sym", None)),
             )
 
     return copy_rows(session, LocusUnirefFamilyCrosstab.__table__, columns, rows())

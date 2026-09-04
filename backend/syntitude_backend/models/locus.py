@@ -153,7 +153,14 @@ class Locus(Base):
     #: singleton and an agreement ladder could only ever say `single` or `disjoint`. Two COG ids in
     #: one locus is an ordinary consequence of grouping above family level.
     cog_distinct_id_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    modal_cog_category: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    #: ⛔⛔ **A SET OF SINGLE LETTERS, NOT ONE CATEGORY — the same defect as the gene layer's.**
+    #: Bakta emits `cog_cat` as a CONCATENATED set (`EHJQ`), and this is the modal such set over the
+    #: locus's annotated members. Measured on the published catalogues: **95 of 118 distinct values
+    #: in *E. coli* and 93 of 117 in kp carry more than one letter**, to a maximum of four. Stored as
+    #: `String(16)` it FITS, so nothing fails — and `WHERE modal_cog_category = 'C'` silently misses
+    #: every multi-category locus, which is precisely how the gene-layer version of this went unseen.
+    #: ⚠ The page prints them joined; the array is what makes `@> ARRAY['C']` mean what it says.
+    modal_cog_categories: Mapped[list[str] | None] = mapped_column(ARRAY(String(1)), nullable=True)
     ec_annotated_member_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     kegg_annotated_member_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
