@@ -171,8 +171,18 @@ class GenomeNoncodingFeature(Base):
 
     ⛔ **Deliberately carries no `flat_index`.** Admitting a non-coding row into that numbering would
     renumber every gene and shift every ±5 neighbourhood. It meets the gene table by coordinate
-    containment only. Cohort census (job 34060534, 280 genomes): 81,819 features, median 276/genome;
-    ncRNA 43.0 %, tRNA 26.2 %, regulatory_region 18.6 %; 23.0 % overlap a CDS.
+    containment only.
+
+    **Cohort census, read from `data/proc/embeddings/meta/*_noncoding.parquet` (280 files,
+    2026-09-04): 81,683 features, median 275/genome.** ncRNA 43.1 %, tRNA 26.2 %,
+    regulatory_region 18.6 %, crispr-repeat 3.6 %, crispr-spacer 3.6 %, rRNA 1.9 %, oriC 1.6 %,
+    oriT 0.7 %, CRISPR 0.3 %, tmRNA 0.3 %; **23.0 % overlap a CDS**.
+
+    ⚠ Job 34060534's census reported **81,819** features and a median of 276 for the same 280
+    genomes. Every proportion above matches it to a tenth of a point, so the shape is the same set —
+    but the totals differ by 136, and the parquets are what the ingest actually loaded (verified:
+    the load wrote 81,683 and the table holds 81,683). Both figures are kept because only one names
+    the artifact it was read from, and that is the one of record.
     """
 
     __tablename__ = "genome_noncoding_feature"
