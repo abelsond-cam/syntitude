@@ -204,3 +204,25 @@ def published_ecoli_site_catalogue():
     if not path.exists():
         pytest.skip(f"the published site catalogue is not present at {path}")
     return json.loads(path.read_text())
+
+
+@pytest.fixture(scope="session")
+def exported_ecoli_payload():
+    """⭐ The EXPORT — what `build_payload` emitted, and the only correct oracle for a rebuild.
+
+    ⛔ Not `published_ecoli_site_catalogue` above. That is this same payload *after* `render_page`
+    mutated it: it carries three extra blocks (`cog_names`, `go_names`, `pfam_names`) and two extra
+    `meta` keys (`landing`, `examples`) which `build_payload` never produced. Diffing a rebuild
+    against it reports five differences that are all correct behaviour, and no real signal.
+    """
+    if not (NUNA_DATA_ROOT / "browser").is_dir():
+        pytest.skip(f"the browser export mirror is not present at {NUNA_DATA_ROOT / 'browser'}")
+    return json.loads(artifacts_for("ecoli").published_payload.read_text())
+
+
+@pytest.fixture(scope="session")
+def exported_kp_payload():
+    """The kp export — the second species, so a rule cannot be fitted to one catalogue."""
+    if not (NUNA_DATA_ROOT / "browser").is_dir():
+        pytest.skip(f"the browser export mirror is not present at {NUNA_DATA_ROOT / 'browser'}")
+    return json.loads(artifacts_for("kp").published_payload.read_text())

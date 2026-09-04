@@ -15,8 +15,8 @@ a load this suite had just performed rather than the one of record. If the publi
 pangenome is not loaded there, every test here SKIPS with the reason — it does not pass.
 
 ⚠ **The one permitted difference is the named allowlist**, `known_parity_exceptions`. Never a
-tolerance: the 2026-09-04 audit re-run retired `no_homology`, moving exactly 2 loci to
-`synteny_only`, and that is recorded by node label rather than absorbed by a fuzzy comparison.
+tolerance: the 2026-09-04 audit re-run retired `no_homology`, moving 2 *E. coli* loci and 6 kp loci
+to `synteny_only`, each recorded by node label rather than absorbed by a fuzzy comparison.
 """
 
 from __future__ import annotations
@@ -204,8 +204,9 @@ def test_T5_the_modal_cog_category_is_a_SET_and_rejoins_to_the_payload_string(pa
 def test_T5_the_only_tier_difference_is_the_named_allowlist_and_it_is_exactly_two_loci(parity):
     """⛔ A named exception, never a tolerance. The 2026-09-04 audit re-run retired `no_homology`.
 
-    ⚠ Scoped to the species the allowlist names. kp's audit was re-run in the same pair of jobs and
-    moved NOTHING, so its expected difference is the empty set — asserted, not skipped.
+    ⚠ Scoped to the species the allowlist names, and BOTH species moved: jobs 34897030/34897031
+    re-ran the pair together, so *E. coli* has 2 loci and kp has 6. The set is asserted exactly —
+    a locus moving outside it is a new difference wearing an old label.
     """
     catalogue, _, loci, _, entry = parity
     exception = exceptions_for(entry.species_key, "collapse_tier")

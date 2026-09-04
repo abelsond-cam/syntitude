@@ -6,10 +6,17 @@ recoverable from the id at all — two models differing only in a ρ rule have p
 provenance. `runs/{run_id}.json` is the only thing that can describe a run, and it is stored verbatim
 alongside the columns read out of it.
 
-⚠ **The chain does not walk locally, and that is recorded rather than papered over.** A manifest's
-`precluster_assign` is an ABSOLUTE CSD3 path, so `load_run_chain` reaches exactly one manifest on
-this machine. The parent is therefore a `pangenome_input_edge` with `parent_run_id` set and
-`parent_pangenome_id` NULL — a gap **admitted**, which is the shape that column exists for.
+⭐ **The chain walks locally through `mirrored_manifest_chain`, and that is what makes the
+provenance real.** A manifest names its parent by the ABSOLUTE path of the machine that wrote it, so
+a bare `load_run_chain` reaches exactly one manifest here and records a four-step model as a
+one-step one — silently, a short chain being what a genuine one-step model produces too. Measured:
+without the adapter the footer came out as 7 rows from 1 manifest, of which the only pipeline row
+read *"step 1 · dedup: not recorded in any manifest"*; with it, 9 rows from 3 manifests, **byte-
+identical to the published page's footer** on both species.
+
+⚠ A parent run that has no `pangenome` row of its own is still a `pangenome_input_edge` with
+`parent_run_id` set and `parent_pangenome_id` NULL — a gap **admitted**, which is the shape that
+column exists for.
 
 ⛔ **`rho_rule` is compared through `rho_rule_is_effectively_off`, never as a string.** Step 2 runs
 with `--rho-ceiling 1e9` and no `--rho-rule`, so its manifest records `density_potts`' default
@@ -30,6 +37,7 @@ from sqlalchemy.orm import Session
 
 from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
 from syntitude_backend.ingest.ingest_nuna_model_registry import rho_rule_is_effectively_off
+from syntitude_backend.ingest.mirrored_manifest_chain import manifests_resolved_against
 from syntitude_backend.models.enumerations import (
     EmbeddingRepresentation,
     EvaluationKind,
@@ -297,8 +305,16 @@ def ingest_pangenome_run(
     guard_input_keys_have_not_drifted(run_manifest.INPUT_KEYS)
     run_id = artifacts.run_id
     assignment = artifacts.assignment
-    manifest = run_manifest.read_manifest(assignment)
-    chain = run_manifest.load_run_chain(assignment)
+    # ⭐ The whole chain, resolved into THIS machine's mirror — see `mirrored_manifest_chain`. A
+    # manifest names its parent by the absolute path of the machine that wrote it, so without this
+    # the walk stops at one manifest and a four-step model is recorded as a one-step one, silently.
+    with manifests_resolved_against(artifacts.processed_root):
+        manifest = run_manifest.read_manifest(assignment)
+        chain = run_manifest.load_run_chain(assignment)
+        provenance = [
+            list(pair)
+            for pair in model_provenance(run_id, parse_model_id(assignment), assign=assignment)
+        ]
     if not chain:
         raise PangenomeIngestError(
             f"no run manifest is reachable from {assignment}. A run_id cannot describe a multi-step "
@@ -336,9 +352,7 @@ def ingest_pangenome_run(
             for entry in chain
         ],
     }
-    existing.provenance_rows = [
-        list(pair) for pair in model_provenance(run_id, parse_model_id(assignment), assign=assignment)
-    ]
+    existing.provenance_rows = provenance
     # ⛔ WHICH VERSION of the science package this row was read from. Left NULL it loses exactly
     # the fact the column exists to carry, and a registry is code: `nuna5` meant a different chain
     # before 2026-08-24, so a row that cannot say which nuna it was read from cannot be checked.

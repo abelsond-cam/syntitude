@@ -81,3 +81,37 @@ def exceptions_for(species_key: str, column: str) -> ParityException | None:
         if exception.species_key == species_key and exception.column == column:
             return exception
     return None
+
+
+#: ⭐⭐ **The same retirement, seen from the PAYLOAD.** Rebuilding the published catalogue from the
+#: database reproduces 114 columns and 3.84 M elements byte-for-byte on both species; what does not
+#: reproduce is four blocks, and all four have this one cause. Recorded as an explicit set so the
+#: reproduction suite asserts *these four and no others* rather than counting to four.
+#:
+#: * `nodes.tier`   — the 2 (ecoli) / 6 (kp) loci above, by label.
+#: * `strings.tier` — `no_homology` was the 14th interned string and is now never interned, so the
+#:   pool is one shorter. ⚠ Nothing else moves: it was interned LAST, so no other index shifts —
+#:   which is luck, not design, and is why the suite checks the pool rather than assuming.
+#: * `meta.audit`   — six headline keys, every one an arithmetic consequence of those loci moving.
+#:   `failures` does NOT move: `synteny_only` and `no_homology` are both in `POLICY["failure_tiers"]`,
+#:   so the set of graded failures is identical and only its composition changed.
+#: * `meta.omitted` — the audit re-ran with `--skip-seqid-to-medoid`, which the database records and
+#:   the older payload had no way to say.
+AUDIT_RERUN_PAYLOAD_BLOCKS: frozenset[str] = frozenset(
+    {"nodes.tier", "strings.tier", "meta.audit", "meta.omitted"}
+)
+
+#: The six audit-headline keys that move, and only these six.
+AUDIT_RERUN_HEADLINE_KEYS: frozenset[str] = frozenset(
+    {
+        "synteny_only_n_clusters",
+        "synteny_only_n_genes",
+        "synteny_only_gene_rate",
+        "no_homology_n_clusters",
+        "no_homology_n_genes",
+        "no_homology_gene_rate",
+    }
+)
+
+#: The tier name that no longer exists, and therefore no longer enters the pool.
+RETIRED_TIER = "no_homology"
