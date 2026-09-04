@@ -124,3 +124,56 @@ def test_every_probe_gff_parses_and_carries_sequence():
         annotation = parse_genome_annotation(path)
         assert annotation.carries_sequence, f"{path.name} has no ##FASTA"
         assert annotation.coding_features, f"{path.name} has no CDS lines"
+
+
+def test_the_vendored_parser_keeps_exactly_the_CDS_nuna_keeps():
+    """⛔ The set, not just the fields — because `flat_index` counts the CDS that survive the filter.
+
+    A vendored parser that admits one feature nuna drops (or drops one it keeps) shifts every index
+    after it, and the failure is a gene's sequence appearing under a different gene's name with
+    nothing on the page looking wrong. Two rules do the work and neither is exercised by this
+    cohort's data: `pseudo` is skipped (204 CDS over 25 genomes), and 5'-partial is `phase != 0` OR
+    a `partial=` attribute — of which there are none here at all.
+    """
+    checked = 0
+    for path in _some_gffs(5):
+        nuna_cds, _ = nuna_genome_sequence.parse_gff(path)
+        ours = parse_genome_annotation(path, want_sequence=False).coding_features
+
+        assert len(ours) == len(nuna_cds), f"{path.name}: {len(ours)} kept vs nuna's {len(nuna_cds)}"
+        for mine, (_, row) in zip(ours, nuna_cds.iterrows(), strict=True):
+            assert mine.seqid == row["seqid"]
+            assert mine.start_position == int(row["start"])
+            assert mine.end_position == int(row["end"])
+            assert mine.strand == row["strand"]
+            assert mine.phase == int(row["phase"])
+            assert mine.is_five_prime_partial == bool(row["partial5"])
+        checked += len(ours)
+
+    assert checked > 20_000, f"only {checked:,} CDS compared"
+
+
+def test_a_pseudo_CDS_is_dropped_and_a_partial_attribute_is_honoured():
+    """The two rules the real cohort cannot exercise, driven synthetically so they are not untested."""
+    import gzip
+    import tempfile
+
+    from syntitude_backend.gff.gff_cds_parser import FIVE_PRIME_PARTIAL_VALUES, PSEUDO_VALUES
+
+    gff = (
+        "##gff-version 3\n"
+        "c1\tbakta\tCDS\t1\t99\t.\t+\t0\tID=a;locus_tag=T_1;product=p\n"
+        "c1\tbakta\tCDS\t200\t299\t.\t+\t0\tID=b;locus_tag=T_2;pseudo=true;product=p\n"
+        "c1\tbakta\tCDS\t400\t499\t.\t-\t0\tID=c;locus_tag=T_3;partial=10;product=p\n"
+        "##FASTA\n>c1\nACGT\n"
+    )
+    with tempfile.NamedTemporaryFile(suffix=".gff3.gz", delete=False) as handle:
+        handle.write(gzip.compress(gff.encode()))
+        path = Path(handle.name)
+
+    features = parse_genome_annotation(path).coding_features
+    assert [f.locus_tag for f in features] == ["T_1", "T_3"], "the pseudo CDS was not dropped"
+    assert features[0].is_five_prime_partial is False
+    assert features[1].is_five_prime_partial is True, "`partial=10` was not read as 5'-partial"
+    assert "10" in FIVE_PRIME_PARTIAL_VALUES and "true" in PSEUDO_VALUES
+    path.unlink()

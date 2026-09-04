@@ -20,6 +20,23 @@ from syntitude_backend.gff.gff_text_reader import open_gff_text
 
 FASTA_DIRECTIVE = "##FASTA"
 
+#: ⛔ **The `partial` attribute values Bakta uses for a 5'-partial CDS**, matching
+#: `nuna.tl.locus_browser.genome_sequence._PARTIAL_5P`. `10` and `11` are the two-bit form whose
+#: FIRST bit is the 5' end; `1` and `true` are the plain form.
+#: ⚠ Not one of the 120,792 CDS across 25 probe GFFs carries a `partial=` attribute at all, so on
+#: THIS cohort `phase != 0` alone is indistinguishable from the full rule. That is precisely why the
+#: full rule is written here: the two would diverge silently on the first cohort where Bakta emits
+#: it, and the divergence changes TRANSLATION — the initiator is promoted to `M` only when the CDS
+#: is not 5'-partial.
+FIVE_PRIME_PARTIAL_VALUES = frozenset({"true", "1", "10", "11"})
+
+#: ⛔ **A `pseudo` CDS is skipped, exactly as the extractor skipped it.** The extractor that wrote
+#: `protein_sequence` dropped them, so a feature kept here would have no protein to check against —
+#: and, more importantly, `flat_index` is a running counter over the CDS the extractor KEPT. Admit
+#: one it dropped and every index after it names a different gene. Measured: 204 pseudo CDS over 25
+#: probe genomes.
+PSEUDO_VALUES = frozenset({"true", "1"})
+
 
 @dataclass(frozen=True)
 class CodingFeature:
@@ -38,6 +55,11 @@ class CodingFeature:
 class ParsedGenomeAnnotation:
     """A whole GFF: its CDS features in file order, and its contig sequences by seqid."""
 
+    #: ⚠ **The CDS the EXTRACTOR would keep, in file order** — `pseudo` already dropped, so this is
+    #: the same set `nuna.genome_sequence.parse_gff` returns. It is still NOT the gene table: the
+    #: extractor additionally drops a CDS whose contig is missing, whose translation is empty, or
+    #: which carries an internal stop, and those three need the sequence. `flat_index` is the index
+    #: after ALL of them, which is why the ingest reproduces the whole chain rather than zipping.
     coding_features: tuple[CodingFeature, ...]
     contig_sequences: dict[str, str]
 
@@ -76,6 +98,9 @@ def parse_genome_annotation(path: Path, *, want_sequence: bool = True) -> Parsed
             if len(columns) < 9 or columns[2] != "CDS":
                 continue
             attributes = _attributes(columns[8])
+            if attributes.get("pseudo", "").lower() in PSEUDO_VALUES:
+                continue
+            phase = int(columns[7]) if columns[7].isdigit() else 0
             features.append(
                 CodingFeature(
                     seqid=columns[0],
@@ -84,11 +109,13 @@ def parse_genome_annotation(path: Path, *, want_sequence: bool = True) -> Parsed
                     strand=columns[6],
                     # A '.' phase is 0 by GFF3 convention; Bakta writes an integer, but a
                     # reader that assumes so raises on a file it should have handled.
-                    phase=int(columns[7]) if columns[7].isdigit() else 0,
+                    phase=phase,
                     locus_tag=attributes.get("locus_tag"),
-                    # Bakta records partiality in `partial`/`start_type`; a non-zero phase is the
-                    # portable signal and the one translate_cds keys on.
-                    is_five_prime_partial=columns[7].isdigit() and int(columns[7]) != 0,
+                    # ⛔ BOTH signals, matching nuna's rule. A non-zero phase implies 5'-partial,
+                    # but the converse does not hold: Bakta can mark a CDS partial with phase 0.
+                    is_five_prime_partial=(
+                        phase != 0 or attributes.get("partial", "").lower() in FIVE_PRIME_PARTIAL_VALUES
+                    ),
                 )
             )
         else:
