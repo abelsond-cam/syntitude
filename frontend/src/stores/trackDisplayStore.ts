@@ -20,8 +20,10 @@ import {
   SIGNED_OFFSETS,
   displayMirrorApplied,
   displaySlots,
+  labelSlotFor,
   marginalDisplayMirror,
   observedSlotFor,
+  signedOffsetForLabelSlot,
   slotsInDisplayOrder,
   strandRelationAsShown,
 } from "@/lib/slotSpaces";
@@ -170,6 +172,46 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
     });
   });
 
+  /**
+   * The two offsets an open offset-popover needs: the one its heading names, and the one its counts
+   * were recorded at.
+   *
+   * ⛔ `openPopoverSlot` is an OBSERVED slot, because the marginal lives in observed space. The
+   * heading must name the column the reader **clicked**, which on a mirrored row is a different
+   * offset — otherwise the panel reads "A−1" beside a block labelled "A+1" and the two look like
+   * different data. `observedSlotFor` is an involution, so it maps back to the display column.
+   */
+  const openPopoverHeading = computed(() => {
+    const observed = openPopoverSlot.value;
+    if (observed === null) return null;
+    const display = observedSlotFor(
+      observed as unknown as DisplaySlot,
+      displayMirror.value,
+    ) as unknown as DisplaySlot;
+    return {
+      labelledOffset: signedOffsetForLabelSlot(labelSlotFor(display, walkDirection.value)),
+      recordedOffset: SIGNED_OFFSETS[observed] ?? 0,
+    };
+  });
+
+  /** The marginal for the position whose popover is open. */
+  const openPopoverMarginal = computed(() => {
+    const observed = openPopoverSlot.value;
+    if (observed === null) return null;
+    return drawable.value?.offsets[observed] ?? null;
+  });
+
+  /** The locus drawn in the block above the open popover, so its row can be marked. */
+  const openPopoverDrawnLocus = computed(() => {
+    const observed = openPopoverSlot.value;
+    if (observed === null) return null;
+    const display = observedSlotFor(
+      observed as unknown as DisplaySlot,
+      displayMirror.value,
+    ) as unknown as DisplaySlot;
+    return slotsForDisplay.value[display]?.locus ?? null;
+  });
+
   /** Whether the anchored genome carries the arrangement currently drawn. */
   const drawnArrangementIsAnchored = computed(() => {
     const arrangement = drawnArrangement.value;
@@ -256,6 +298,9 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
   return {
     selectedArrangementIndex,
     openPopoverSlot,
+    openPopoverHeading,
+    openPopoverMarginal,
+    openPopoverDrawnLocus,
     isFocalPopoverOpen,
     slotsForDisplay,
     prefetchNeighbour,
