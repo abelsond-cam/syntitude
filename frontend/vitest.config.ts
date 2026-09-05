@@ -9,6 +9,6 @@ export default defineConfig({
     // `lib/` is pure and needs no DOM; the component suites that land later declare `jsdom`
     // per-file with a docblock, so a pure test never pays for an environment it does not use.
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "tests/**/*.test.ts"],
   },
 });
