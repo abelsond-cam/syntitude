@@ -1,0 +1,5254 @@
+{
+ "recorded_from": "the API test client",
+ "loci": {
+  "ordinary": {
+   "label": "17526",
+   "response": {
+    "anchor": {
+     "arrangement_ranks": [],
+     "is_anchored": false
+    },
+    "annotations": {
+     "gene_symbol": [
+      {
+       "gene_count": 103,
+       "name": null,
+       "rank": 0,
+       "term": "def"
+      }
+     ],
+     "pfam_architecture": [
+      {
+       "gene_count": 103,
+       "name": null,
+       "rank": 0,
+       "term": "PF01327"
+      }
+     ],
+     "protein_product": [
+      {
+       "gene_count": 103,
+       "name": null,
+       "rank": 0,
+       "term": "peptide deformylase"
+      }
+     ]
+    },
+    "arrangements": {
+     "arrangements_not_listed": 0,
+     "listed": [
+      {
+       "gene_count": 100,
+       "genome_count": 100,
+       "is_recorded_reverse_complement": false,
+       "rank": 0,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "668",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "879",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1036",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "691",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "669",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "690",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "689",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1037",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "688",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "880",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 2,
+       "genome_count": 2,
+       "is_recorded_reverse_complement": false,
+       "rank": 1,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "9798",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "17527",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "17413",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "7651",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "7443",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "9799",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "9257",
+         "same_strand": false,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "9258",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "8446",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "8400",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 2,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "3657",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4754",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5612",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5672",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "16908",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "16909",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "6011",
+         "same_strand": false,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6258",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5789",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5837",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      }
+     ],
+     "members_in_arrangements_not_listed": 0,
+     "members_without_a_neighbourhood": 0,
+     "total": 3
+    },
+    "intergenic_gaps": [
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "16908",
+       "17526"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 527,
+      "median_signed_length_nt": 527,
+      "minimum_signed_length_nt": 527,
+      "modal_length_nt": 527,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 527,
+      "quartile3_signed_length_nt": 527
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "16909",
+       "17526"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 304,
+      "median_signed_length_nt": 304,
+      "minimum_signed_length_nt": 304,
+      "modal_length_nt": 304,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 304,
+      "quartile3_signed_length_nt": 304
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17526",
+       "669"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 129,
+      "median_signed_length_nt": 129,
+      "minimum_signed_length_nt": 129,
+      "modal_length_nt": 129,
+      "observed_genome_count": 100,
+      "quartile1_signed_length_nt": 129,
+      "quartile3_signed_length_nt": 129
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17526",
+       "690"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 14,
+      "median_signed_length_nt": 14,
+      "minimum_signed_length_nt": 14,
+      "modal_length_nt": 14,
+      "observed_genome_count": 100,
+      "quartile1_signed_length_nt": 14,
+      "quartile3_signed_length_nt": 14
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17526",
+       "7443"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 527,
+      "median_signed_length_nt": 527,
+      "minimum_signed_length_nt": 527,
+      "modal_length_nt": 527,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 527,
+      "quartile3_signed_length_nt": 527
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17526",
+       "9799"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 575,
+      "median_signed_length_nt": 575,
+      "minimum_signed_length_nt": 575,
+      "modal_length_nt": 575,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 575,
+      "quartile3_signed_length_nt": 575
+     }
+    ],
+    "locus": {
+     "bakta_gene_symbol": "def",
+     "best_product": "peptide deformylase",
+     "catalogue_ordinal": 17526,
+     "display_name": "def",
+     "display_name_source": "bakta_symbol",
+     "display_name_source_accession": null,
+     "evidence": {
+      "collapse_bucket": "mmseq@0.98",
+      "collapse_tier": "mmseq@0.98",
+      "resolved_threshold": 0.98,
+      "resolved_threshold_is_capped_at_50_members": true,
+      "syntenic_a5": 0.9431
+     },
+     "gene_count": 103,
+     "gene_length_interquartile_range_nt": 0,
+     "genome_count": 100,
+     "geometry": {
+      "bacformer": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.4037,
+         0.3968,
+         0.3677,
+         0.3617,
+         0.36
+        ],
+        [
+         0.4037,
+         1.0,
+         0.3004,
+         0.1903,
+         0.6006,
+         0.3018
+        ],
+        [
+         0.3968,
+         0.3004,
+         1.0,
+         0.2079,
+         0.4235,
+         0.2208
+        ],
+        [
+         0.3677,
+         0.1903,
+         0.2079,
+         1.0,
+         0.1682,
+         0.3156
+        ],
+        [
+         0.3617,
+         0.6006,
+         0.4235,
+         0.1682,
+         1.0,
+         0.322
+        ],
+        [
+         0.36,
+         0.3018,
+         0.2208,
+         0.3156,
+         0.322,
+         1.0
+        ]
+       ],
+       "map_position": [
+        15719,
+        27539
+       ],
+       "nearest_locus_ordinals": [
+        690,
+        669,
+        2253,
+        689,
+        491
+       ],
+       "nearest_medoid_distance": 0.5963,
+       "separation_percentile": 0.9282822440717178,
+       "within_medoid_distance": 0.02271
+      },
+      "esm": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.9424,
+         0.9385,
+         0.9382,
+         0.9316,
+         0.9316
+        ],
+        [
+         0.9424,
+         1.0,
+         0.9607,
+         0.9959,
+         0.9722,
+         0.954
+        ],
+        [
+         0.9385,
+         0.9607,
+         1.0,
+         0.9604,
+         0.9556,
+         0.9458
+        ],
+        [
+         0.9382,
+         0.9959,
+         0.9604,
+         1.0,
+         0.9677,
+         0.956
+        ],
+        [
+         0.9316,
+         0.9722,
+         0.9556,
+         0.9677,
+         1.0,
+         0.9453
+        ],
+        [
+         0.9316,
+         0.954,
+         0.9458,
+         0.956,
+         0.9453,
+         1.0
+        ]
+       ],
+       "map_position": [
+        3102,
+        -9899
+       ],
+       "nearest_locus_ordinals": [
+        3013,
+        2515,
+        2718,
+        1478,
+        2568
+       ],
+       "nearest_medoid_distance": 0.05759,
+       "separation_percentile": 0.8702387837726183,
+       "within_medoid_distance": 0.0
+      }
+     },
+     "interest_score": 3822930.0103,
+     "label": "17526",
+     "median_gene_length_nt": 510,
+     "named_gene_count": 103,
+     "pfam": {
+      "annotated_gene_count": 103,
+      "architecture_count": 1,
+      "concordance_class": "single"
+     },
+     "prevalence_band": "core",
+     "uniref50": {
+      "coverage": 1.0,
+      "family_count": 1,
+      "impurity": 0.0,
+      "labelled_gene_count": 103,
+      "major_family_count": 1
+     }
+    },
+    "neighbour_display_rows": [
+     {
+      "display_name": "yrdD",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1036",
+      "median_gene_length_nt": 543,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "trkA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1037",
+      "median_gene_length_nt": 1377,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "locus 16908",
+      "display_name_source": "label",
+      "genome_count": 1,
+      "label": "16908",
+      "median_gene_length_nt": 144,
+      "prevalence_band": "rare"
+     },
+     {
+      "display_name": "locus 16909",
+      "display_name_source": "label",
+      "genome_count": 1,
+      "label": "16909",
+      "median_gene_length_nt": 147,
+      "prevalence_band": "rare"
+     },
+     {
+      "display_name": "ccdB",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 73,
+      "label": "17413",
+      "median_gene_length_nt": 306,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "def",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "17526",
+      "median_gene_length_nt": 510,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "ccdA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 40,
+      "label": "17527",
+      "median_gene_length_nt": 219,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "intI1",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 64,
+      "label": "3657",
+      "median_gene_length_nt": 1014,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnpM",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 35,
+      "label": "4754",
+      "median_gene_length_nt": 201,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnpR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 20,
+      "label": "5612",
+      "median_gene_length_nt": 561,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnpA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 19,
+      "label": "5672",
+      "median_gene_length_nt": 2967,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "capU",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 17,
+      "label": "5789",
+      "median_gene_length_nt": 1089,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "cDA1",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 17,
+      "label": "5837",
+      "median_gene_length_nt": 822,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "lpxM",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 15,
+      "label": "6011",
+      "median_gene_length_nt": 945,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "virK",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 14,
+      "label": "6258",
+      "median_gene_length_nt": 951,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "aroE",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "668",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "dprA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "669",
+      "median_gene_length_nt": 1125,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "mscL",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "688",
+      "median_gene_length_nt": 411,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "rsmB",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "689",
+      "median_gene_length_nt": 1290,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "fmt",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "690",
+      "median_gene_length_nt": 948,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "smg",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "691",
+      "median_gene_length_nt": 474,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "locus 7443",
+      "display_name_source": "label",
+      "genome_count": 7,
+      "label": "7443",
+      "median_gene_length_nt": 402,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 6,
+      "label": "7651",
+      "median_gene_length_nt": 855,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 8400",
+      "display_name_source": "label",
+      "genome_count": 4,
+      "label": "8400",
+      "median_gene_length_nt": 291,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "ChrH",
+      "display_name_source": "pfam_architecture",
+      "genome_count": 4,
+      "label": "8446",
+      "median_gene_length_nt": 927,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "tsaC",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "879",
+      "median_gene_length_nt": 573,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "arfA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "880",
+      "median_gene_length_nt": 219,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "doxX",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 3,
+      "label": "9257",
+      "median_gene_length_nt": 528,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 9258",
+      "display_name_source": "label",
+      "genome_count": 3,
+      "label": "9258",
+      "median_gene_length_nt": 759,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "copG",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 2,
+      "label": "9798",
+      "median_gene_length_nt": 870,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 9799",
+      "display_name_source": "label",
+      "genome_count": 2,
+      "label": "9799",
+      "median_gene_length_nt": 288,
+      "prevalence_band": "cloud"
+     }
+    ],
+    "offsets": [
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "668",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "9798",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "3657",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": -5
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "879",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "17527",
+        "rank": 1,
+        "same_strand_gene_count": 2
+       },
+       {
+        "gene_count": 1,
+        "locus": "4754",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": -4
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "1036",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "17413",
+        "rank": 1,
+        "same_strand_gene_count": 2
+       },
+       {
+        "gene_count": 1,
+        "locus": "5612",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": -3
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "691",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "7651",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5672",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": -2
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "669",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "7443",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "16908",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": -1
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "690",
+        "rank": 0,
+        "same_strand_gene_count": 100
+       },
+       {
+        "gene_count": 2,
+        "locus": "9799",
+        "rank": 1,
+        "same_strand_gene_count": 2
+       },
+       {
+        "gene_count": 1,
+        "locus": "16909",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 1
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "689",
+        "rank": 0,
+        "same_strand_gene_count": 100
+       },
+       {
+        "gene_count": 2,
+        "locus": "9257",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "6011",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 2
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "1037",
+        "rank": 0,
+        "same_strand_gene_count": 100
+       },
+       {
+        "gene_count": 2,
+        "locus": "9258",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "6258",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 3
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "688",
+        "rank": 0,
+        "same_strand_gene_count": 100
+       },
+       {
+        "gene_count": 2,
+        "locus": "8446",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5789",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 4
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 103,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "880",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "8400",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5837",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 5
+     }
+    ],
+    "resolved_neighbour_count": 31,
+    "uniref50_families": [
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 103,
+      "modal_architecture": "PF01327",
+      "modal_product": "peptide deformylase",
+      "modal_symbol": "def",
+      "pfam_annotated_gene_count": 103,
+      "rank": 0,
+      "uniref50_accession": "UniRef50_Q9KVU3"
+     }
+    ]
+   }
+  },
+  "over_cap": {
+   "label": "17315",
+   "response": {
+    "anchor": {
+     "arrangement_ranks": [],
+     "is_anchored": false
+    },
+    "annotations": {
+     "gene_symbol": [
+      {
+       "gene_count": 141,
+       "name": null,
+       "rank": 0,
+       "term": "radC"
+      }
+     ],
+     "pfam_architecture": [
+      {
+       "gene_count": 143,
+       "name": null,
+       "rank": 0,
+       "term": "PF04002"
+      }
+     ],
+     "protein_product": [
+      {
+       "gene_count": 111,
+       "name": null,
+       "rank": 0,
+       "term": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif"
+      },
+      {
+       "gene_count": 30,
+       "name": null,
+       "rank": 1,
+       "term": "DNA repair protein RadC"
+      },
+      {
+       "gene_count": 2,
+       "name": null,
+       "rank": 2,
+       "term": "MPN domain-containing protein"
+      }
+     ]
+    },
+    "arrangements": {
+     "arrangements_not_listed": 76,
+     "listed": [
+      {
+       "gene_count": 16,
+       "genome_count": 16,
+       "is_recorded_reverse_complement": false,
+       "rank": 0,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "5129",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "3891",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5017",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "17146",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4238",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "4591",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "5078",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "17510",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5077",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5001",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 11,
+       "genome_count": 11,
+       "is_recorded_reverse_complement": false,
+       "rank": 1,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "5548",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "3872",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "3882",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5677",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "17221",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17390",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17222",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "5220",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "3620",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "2709",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 6,
+       "genome_count": 6,
+       "is_recorded_reverse_complement": false,
+       "rank": 2,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "17320",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4141",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "17172",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5181",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "5060",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17390",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "4347",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "3650",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "4457",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4198",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 4,
+       "genome_count": 4,
+       "is_recorded_reverse_complement": false,
+       "rank": 3,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "5060",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17390",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "4347",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "3650",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "4457",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4198",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 4,
+       "genome_count": 4,
+       "is_recorded_reverse_complement": false,
+       "rank": 4,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "4141",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "17172",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "7408",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6393",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6452",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17390",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "4347",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "3650",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6960",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4230",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 3,
+       "genome_count": 3,
+       "is_recorded_reverse_complement": false,
+       "rank": 5,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "4064",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4081",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4093",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5087",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6265",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "6429",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "5541",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "3650",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6004",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4570",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 3,
+       "genome_count": 3,
+       "is_recorded_reverse_complement": false,
+       "rank": 6,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "4064",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4081",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4093",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "7693",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "7688",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17390",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "6000",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6639",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "8252",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "8734",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 3,
+       "genome_count": 3,
+       "is_recorded_reverse_complement": false,
+       "rank": 7,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "7739",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "3891",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "8304",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "17146",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4238",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17390",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "9568",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "7135",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "7819",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "6013",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      }
+     ],
+     "members_in_arrangements_not_listed": 86,
+     "members_without_a_neighbourhood": 7,
+     "total": 84
+    },
+    "intergenic_gaps": [
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17315",
+       "17390"
+      ],
+      "length_variance_score": 0.013883217639853,
+      "maximum_signed_length_nt": 68,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 53,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17221",
+       "17315"
+      ],
+      "length_variance_score": 0.002173913043478261,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 14,
+      "modal_length_nt": 15,
+      "observed_genome_count": 22,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       "4238"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 34,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       "4591"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 22,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       "5060"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 23,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17315"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 14,
+      "median_signed_length_nt": 14,
+      "minimum_signed_length_nt": 14,
+      "modal_length_nt": 14,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 14,
+      "quartile3_signed_length_nt": 14
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17315",
+       "6555"
+      ],
+      "length_variance_score": 0.1935483870967742,
+      "maximum_signed_length_nt": 86,
+      "median_signed_length_nt": 74,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 8,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 86
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       "6452"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 11,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17315",
+       "17428"
+      ],
+      "length_variance_score": 0.03125,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 11,
+      "modal_length_nt": 15,
+      "observed_genome_count": 6,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17315"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17315"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17315",
+       "6429"
+      ],
+      "length_variance_score": 0.06451612903225806,
+      "maximum_signed_length_nt": 86,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 9,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 68
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17315"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.008333333333333333,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 14,
+      "modal_length_nt": 15,
+      "observed_genome_count": 6,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 4,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17315"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.04,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 13,
+      "modal_length_nt": 15,
+      "observed_genome_count": 5,
+      "quartile1_signed_length_nt": 13,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "10237",
+       "17315"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 15,
+      "median_signed_length_nt": 15,
+      "minimum_signed_length_nt": 15,
+      "modal_length_nt": 15,
+      "observed_genome_count": 4,
+      "quartile1_signed_length_nt": 15,
+      "quartile3_signed_length_nt": 15
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 68,
+      "median_signed_length_nt": 68,
+      "minimum_signed_length_nt": 68,
+      "modal_length_nt": 68,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 68,
+      "quartile3_signed_length_nt": 68
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 14,
+      "median_signed_length_nt": 14,
+      "minimum_signed_length_nt": 14,
+      "modal_length_nt": 14,
+      "observed_genome_count": 4,
+      "quartile1_signed_length_nt": 14,
+      "quartile3_signed_length_nt": 14
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17315",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 62,
+      "median_signed_length_nt": 62,
+      "minimum_signed_length_nt": 62,
+      "modal_length_nt": 62,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 62,
+      "quartile3_signed_length_nt": 62
+     }
+    ],
+    "locus": {
+     "bakta_gene_symbol": "radC",
+     "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
+     "catalogue_ordinal": 17315,
+     "display_name": "radC",
+     "display_name_source": "bakta_symbol",
+     "display_name_source_accession": null,
+     "evidence": {
+      "collapse_bucket": "mmseq@0.98",
+      "collapse_tier": "mmseq@0.98",
+      "resolved_threshold": 0.98,
+      "resolved_threshold_is_capped_at_50_members": true,
+      "syntenic_a5": 0.1477
+     },
+     "gene_count": 143,
+     "gene_length_interquartile_range_nt": 0,
+     "genome_count": 81,
+     "geometry": {
+      "bacformer": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.9496,
+         0.9316,
+         0.9268,
+         0.9153,
+         0.8952
+        ],
+        [
+         0.9496,
+         1.0,
+         0.9196,
+         0.9164,
+         0.9439,
+         0.8786
+        ],
+        [
+         0.9316,
+         0.9196,
+         1.0,
+         0.9049,
+         0.8701,
+         0.8664
+        ],
+        [
+         0.9268,
+         0.9164,
+         0.9049,
+         1.0,
+         0.8876,
+         0.8981
+        ],
+        [
+         0.9153,
+         0.9439,
+         0.8701,
+         0.8876,
+         1.0,
+         0.8371
+        ],
+        [
+         0.8952,
+         0.8786,
+         0.8664,
+         0.8981,
+         0.8371,
+         1.0
+        ]
+       ],
+       "map_position": [
+        3920,
+        20729
+       ],
+       "nearest_locus_ordinals": [
+        5975,
+        5385,
+        12120,
+        13450,
+        14251
+       ],
+       "nearest_medoid_distance": 0.0504,
+       "separation_percentile": 0.025282987689002726,
+       "within_medoid_distance": 0.04963
+      },
+      "esm": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.999,
+         0.9986,
+         0.9984,
+         0.9964,
+         0.9952
+        ],
+        [
+         0.999,
+         1.0,
+         0.9981,
+         0.9988,
+         0.9978,
+         0.9958
+        ],
+        [
+         0.9986,
+         0.9981,
+         1.0,
+         0.9985,
+         0.9962,
+         0.9956
+        ],
+        [
+         0.9984,
+         0.9988,
+         0.9985,
+         1.0,
+         0.9959,
+         0.995
+        ],
+        [
+         0.9964,
+         0.9978,
+         0.9962,
+         0.9959,
+         1.0,
+         0.9968
+        ],
+        [
+         0.9952,
+         0.9958,
+         0.9956,
+         0.995,
+         0.9968,
+         1.0
+        ]
+       ],
+       "map_position": [
+        27198,
+        -3781
+       ],
+       "nearest_locus_ordinals": [
+        5385,
+        5975,
+        12120,
+        14225,
+        13450
+       ],
+       "nearest_medoid_distance": 0.0009605,
+       "separation_percentile": 0.0128067421300504,
+       "within_medoid_distance": 0.000779
+      }
+     },
+     "interest_score": 1584310.0143,
+     "label": "17315",
+     "median_gene_length_nt": 477,
+     "named_gene_count": 141,
+     "pfam": {
+      "annotated_gene_count": 143,
+      "architecture_count": 1,
+      "concordance_class": "single"
+     },
+     "prevalence_band": "shell",
+     "uniref50": {
+      "coverage": 1.0,
+      "family_count": 2,
+      "impurity": 0.049,
+      "labelled_gene_count": 143,
+      "major_family_count": 1
+     }
+    },
+    "neighbour_display_rows": [
+     {
+      "display_name": "locus 10237",
+      "display_name_source": "label",
+      "genome_count": 2,
+      "label": "10237",
+      "median_gene_length_nt": 222,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 17146",
+      "display_name_source": "label",
+      "genome_count": 38,
+      "label": "17146",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 17172",
+      "display_name_source": "label",
+      "genome_count": 61,
+      "label": "17172",
+      "median_gene_length_nt": 159,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 17221",
+      "display_name_source": "label",
+      "genome_count": 24,
+      "label": "17221",
+      "median_gene_length_nt": 480,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "cbtA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 28,
+      "label": "17222",
+      "median_gene_length_nt": 369,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "radC",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 81,
+      "label": "17315",
+      "median_gene_length_nt": 477,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "yeeP",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 54,
+      "label": "17320",
+      "median_gene_length_nt": 873,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "yeeT",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 76,
+      "label": "17390",
+      "median_gene_length_nt": 222,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 17428",
+      "display_name_source": "label",
+      "genome_count": 9,
+      "label": "17428",
+      "median_gene_length_nt": 486,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "yeeU",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 33,
+      "label": "17510",
+      "median_gene_length_nt": 369,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "yeeX",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "2709",
+      "median_gene_length_nt": 330,
+      "prevalence_band": "core"
+     },
+     {
+      "display_name": "yeeW",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 67,
+      "label": "3620",
+      "median_gene_length_nt": 195,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "yeeU",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 65,
+      "label": "3650",
+      "median_gene_length_nt": 369,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 3872",
+      "display_name_source": "label",
+      "genome_count": 57,
+      "label": "3872",
+      "median_gene_length_nt": 270,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 3882",
+      "display_name_source": "label",
+      "genome_count": 57,
+      "label": "3882",
+      "median_gene_length_nt": 411,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "IrmA",
+      "display_name_source": "pfam_architecture",
+      "genome_count": 57,
+      "label": "3891",
+      "median_gene_length_nt": 456,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4064",
+      "display_name_source": "label",
+      "genome_count": 48,
+      "label": "4064",
+      "median_gene_length_nt": 681,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4081",
+      "display_name_source": "label",
+      "genome_count": 48,
+      "label": "4081",
+      "median_gene_length_nt": 678,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4093",
+      "display_name_source": "label",
+      "genome_count": 48,
+      "label": "4093",
+      "median_gene_length_nt": 234,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "agn43",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 46,
+      "label": "4141",
+      "median_gene_length_nt": 2847,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4198",
+      "display_name_source": "label",
+      "genome_count": 44,
+      "label": "4198",
+      "median_gene_length_nt": 489,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "mtnK",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 43,
+      "label": "4230",
+      "median_gene_length_nt": 1260,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4238",
+      "display_name_source": "label",
+      "genome_count": 43,
+      "label": "4238",
+      "median_gene_length_nt": 486,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4347",
+      "display_name_source": "label",
+      "genome_count": 40,
+      "label": "4347",
+      "median_gene_length_nt": 114,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "cbtA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 38,
+      "label": "4457",
+      "median_gene_length_nt": 378,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4570",
+      "display_name_source": "label",
+      "genome_count": 36,
+      "label": "4570",
+      "median_gene_length_nt": 843,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4573",
+      "display_name_source": "label",
+      "genome_count": 36,
+      "label": "4573",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4591",
+      "display_name_source": "label",
+      "genome_count": 36,
+      "label": "4591",
+      "median_gene_length_nt": 222,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5001",
+      "display_name_source": "label",
+      "genome_count": 32,
+      "label": "5001",
+      "median_gene_length_nt": 489,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "araC",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 32,
+      "label": "5017",
+      "median_gene_length_nt": 234,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5060",
+      "display_name_source": "label",
+      "genome_count": 31,
+      "label": "5060",
+      "median_gene_length_nt": 474,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "cbtA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 31,
+      "label": "5077",
+      "median_gene_length_nt": 378,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5078",
+      "display_name_source": "label",
+      "genome_count": 31,
+      "label": "5078",
+      "median_gene_length_nt": 645,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5087",
+      "display_name_source": "label",
+      "genome_count": 30,
+      "label": "5087",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "yeeR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 29,
+      "label": "5129",
+      "median_gene_length_nt": 1074,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5181",
+      "display_name_source": "label",
+      "genome_count": 27,
+      "label": "5181",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "cbtA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 26,
+      "label": "5220",
+      "median_gene_length_nt": 264,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "yeeR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 24,
+      "label": "5307",
+      "median_gene_length_nt": 2517,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5541",
+      "display_name_source": "label",
+      "genome_count": 21,
+      "label": "5541",
+      "median_gene_length_nt": 114,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "rssA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 21,
+      "label": "5548",
+      "median_gene_length_nt": 1071,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5677",
+      "display_name_source": "label",
+      "genome_count": 18,
+      "label": "5677",
+      "median_gene_length_nt": 822,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5704",
+      "display_name_source": "label",
+      "genome_count": 18,
+      "label": "5704",
+      "median_gene_length_nt": 378,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 6000",
+      "display_name_source": "label",
+      "genome_count": 15,
+      "label": "6000",
+      "median_gene_length_nt": 369,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "cbtA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 15,
+      "label": "6004",
+      "median_gene_length_nt": 378,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 6013",
+      "display_name_source": "label",
+      "genome_count": 15,
+      "label": "6013",
+      "median_gene_length_nt": 489,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 6251",
+      "display_name_source": "label",
+      "genome_count": 14,
+      "label": "6251",
+      "median_gene_length_nt": 204,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6265",
+      "display_name_source": "label",
+      "genome_count": 13,
+      "label": "6265",
+      "median_gene_length_nt": 486,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6393",
+      "display_name_source": "label",
+      "genome_count": 13,
+      "label": "6393",
+      "median_gene_length_nt": 183,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6429",
+      "display_name_source": "label",
+      "genome_count": 12,
+      "label": "6429",
+      "median_gene_length_nt": 222,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6452",
+      "display_name_source": "label",
+      "genome_count": 12,
+      "label": "6452",
+      "median_gene_length_nt": 234,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6555",
+      "display_name_source": "label",
+      "genome_count": 12,
+      "label": "6555",
+      "median_gene_length_nt": 222,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6639",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6639",
+      "median_gene_length_nt": 378,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6960",
+      "display_name_source": "label",
+      "genome_count": 10,
+      "label": "6960",
+      "median_gene_length_nt": 441,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "cbeA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 9,
+      "label": "7135",
+      "median_gene_length_nt": 381,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7408",
+      "display_name_source": "label",
+      "genome_count": 8,
+      "label": "7408",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7688",
+      "display_name_source": "label",
+      "genome_count": 6,
+      "label": "7688",
+      "median_gene_length_nt": 486,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7693",
+      "display_name_source": "label",
+      "genome_count": 6,
+      "label": "7693",
+      "median_gene_length_nt": 819,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7739",
+      "display_name_source": "label",
+      "genome_count": 6,
+      "label": "7739",
+      "median_gene_length_nt": 684,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "cbtA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 6,
+      "label": "7819",
+      "median_gene_length_nt": 375,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 8252",
+      "display_name_source": "label",
+      "genome_count": 5,
+      "label": "8252",
+      "median_gene_length_nt": 489,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 8304",
+      "display_name_source": "label",
+      "genome_count": 5,
+      "label": "8304",
+      "median_gene_length_nt": 234,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 8734",
+      "display_name_source": "label",
+      "genome_count": 4,
+      "label": "8734",
+      "median_gene_length_nt": 711,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 9568",
+      "display_name_source": "label",
+      "genome_count": 3,
+      "label": "9568",
+      "median_gene_length_nt": 543,
+      "prevalence_band": "cloud"
+     }
+    ],
+    "offsets": [
+     {
+      "members_without_an_observation": 46,
+      "observed_member_count": 97,
+      "observed_not_listed": 36,
+      "occupants": [
+       {
+        "gene_count": 16,
+        "locus": "5129",
+        "rank": 0,
+        "same_strand_gene_count": 16
+       },
+       {
+        "gene_count": 15,
+        "locus": "4064",
+        "rank": 1,
+        "same_strand_gene_count": 15
+       },
+       {
+        "gene_count": 13,
+        "locus": "5548",
+        "rank": 2,
+        "same_strand_gene_count": 13
+       },
+       {
+        "gene_count": 9,
+        "locus": "5307",
+        "rank": 3,
+        "same_strand_gene_count": 9
+       },
+       {
+        "gene_count": 8,
+        "locus": "17320",
+        "rank": 4,
+        "same_strand_gene_count": 8
+       }
+      ],
+      "signed_offset": -5
+     },
+     {
+      "members_without_an_observation": 39,
+      "observed_member_count": 104,
+      "observed_not_listed": 20,
+      "occupants": [
+       {
+        "gene_count": 30,
+        "locus": "3891",
+        "rank": 0,
+        "same_strand_gene_count": 30
+       },
+       {
+        "gene_count": 18,
+        "locus": "3872",
+        "rank": 1,
+        "same_strand_gene_count": 18
+       },
+       {
+        "gene_count": 16,
+        "locus": "4081",
+        "rank": 2,
+        "same_strand_gene_count": 16
+       },
+       {
+        "gene_count": 11,
+        "locus": "4141",
+        "rank": 3,
+        "same_strand_gene_count": 11
+       },
+       {
+        "gene_count": 9,
+        "locus": "17172",
+        "rank": 4,
+        "same_strand_gene_count": 9
+       }
+      ],
+      "signed_offset": -4
+     },
+     {
+      "members_without_an_observation": 37,
+      "observed_member_count": 106,
+      "observed_not_listed": 34,
+      "occupants": [
+       {
+        "gene_count": 18,
+        "locus": "3882",
+        "rank": 0,
+        "same_strand_gene_count": 18
+       },
+       {
+        "gene_count": 18,
+        "locus": "5017",
+        "rank": 1,
+        "same_strand_gene_count": 18
+       },
+       {
+        "gene_count": 16,
+        "locus": "4093",
+        "rank": 2,
+        "same_strand_gene_count": 16
+       },
+       {
+        "gene_count": 14,
+        "locus": "17172",
+        "rank": 3,
+        "same_strand_gene_count": 14
+       },
+       {
+        "gene_count": 6,
+        "locus": "4347",
+        "rank": 4,
+        "same_strand_gene_count": 6
+       }
+      ],
+      "signed_offset": -3
+     },
+     {
+      "members_without_an_observation": 26,
+      "observed_member_count": 117,
+      "observed_not_listed": 43,
+      "occupants": [
+       {
+        "gene_count": 28,
+        "locus": "17146",
+        "rank": 0,
+        "same_strand_gene_count": 28
+       },
+       {
+        "gene_count": 17,
+        "locus": "5677",
+        "rank": 1,
+        "same_strand_gene_count": 17
+       },
+       {
+        "gene_count": 12,
+        "locus": "5087",
+        "rank": 2,
+        "same_strand_gene_count": 12
+       },
+       {
+        "gene_count": 11,
+        "locus": "5181",
+        "rank": 3,
+        "same_strand_gene_count": 11
+       },
+       {
+        "gene_count": 6,
+        "locus": "4573",
+        "rank": 4,
+        "same_strand_gene_count": 6
+       }
+      ],
+      "signed_offset": -2
+     },
+     {
+      "members_without_an_observation": 11,
+      "observed_member_count": 132,
+      "observed_not_listed": 33,
+      "occupants": [
+       {
+        "gene_count": 34,
+        "locus": "4238",
+        "rank": 0,
+        "same_strand_gene_count": 34
+       },
+       {
+        "gene_count": 23,
+        "locus": "5060",
+        "rank": 1,
+        "same_strand_gene_count": 23
+       },
+       {
+        "gene_count": 23,
+        "locus": "17221",
+        "rank": 2,
+        "same_strand_gene_count": 23
+       },
+       {
+        "gene_count": 11,
+        "locus": "6452",
+        "rank": 3,
+        "same_strand_gene_count": 11
+       },
+       {
+        "gene_count": 8,
+        "locus": "17428",
+        "rank": 4,
+        "same_strand_gene_count": 8
+       }
+      ],
+      "signed_offset": -1
+     },
+     {
+      "members_without_an_observation": 14,
+      "observed_member_count": 129,
+      "observed_not_listed": 9,
+      "occupants": [
+       {
+        "gene_count": 79,
+        "locus": "17390",
+        "rank": 0,
+        "same_strand_gene_count": 79
+       },
+       {
+        "gene_count": 22,
+        "locus": "4591",
+        "rank": 1,
+        "same_strand_gene_count": 22
+       },
+       {
+        "gene_count": 9,
+        "locus": "6429",
+        "rank": 2,
+        "same_strand_gene_count": 9
+       },
+       {
+        "gene_count": 8,
+        "locus": "6555",
+        "rank": 3,
+        "same_strand_gene_count": 8
+       },
+       {
+        "gene_count": 2,
+        "locus": "10237",
+        "rank": 4,
+        "same_strand_gene_count": 2
+       }
+      ],
+      "signed_offset": 1
+     },
+     {
+      "members_without_an_observation": 16,
+      "observed_member_count": 127,
+      "observed_not_listed": 40,
+      "occupants": [
+       {
+        "gene_count": 23,
+        "locus": "4347",
+        "rank": 0,
+        "same_strand_gene_count": 23
+       },
+       {
+        "gene_count": 22,
+        "locus": "17222",
+        "rank": 1,
+        "same_strand_gene_count": 22
+       },
+       {
+        "gene_count": 19,
+        "locus": "5078",
+        "rank": 2,
+        "same_strand_gene_count": 19
+       },
+       {
+        "gene_count": 14,
+        "locus": "5541",
+        "rank": 3,
+        "same_strand_gene_count": 14
+       },
+       {
+        "gene_count": 9,
+        "locus": "6000",
+        "rank": 4,
+        "same_strand_gene_count": 9
+       }
+      ],
+      "signed_offset": 2
+     },
+     {
+      "members_without_an_observation": 17,
+      "observed_member_count": 126,
+      "observed_not_listed": 36,
+      "occupants": [
+       {
+        "gene_count": 33,
+        "locus": "3650",
+        "rank": 0,
+        "same_strand_gene_count": 33
+       },
+       {
+        "gene_count": 22,
+        "locus": "17510",
+        "rank": 1,
+        "same_strand_gene_count": 22
+       },
+       {
+        "gene_count": 19,
+        "locus": "5220",
+        "rank": 2,
+        "same_strand_gene_count": 19
+       },
+       {
+        "gene_count": 8,
+        "locus": "6639",
+        "rank": 3,
+        "same_strand_gene_count": 8
+       },
+       {
+        "gene_count": 8,
+        "locus": "7135",
+        "rank": 4,
+        "same_strand_gene_count": 8
+       }
+      ],
+      "signed_offset": 3
+     },
+     {
+      "members_without_an_observation": 19,
+      "observed_member_count": 124,
+      "observed_not_listed": 45,
+      "occupants": [
+       {
+        "gene_count": 22,
+        "locus": "3620",
+        "rank": 0,
+        "same_strand_gene_count": 22
+       },
+       {
+        "gene_count": 21,
+        "locus": "4457",
+        "rank": 1,
+        "same_strand_gene_count": 21
+       },
+       {
+        "gene_count": 20,
+        "locus": "5077",
+        "rank": 2,
+        "same_strand_gene_count": 20
+       },
+       {
+        "gene_count": 9,
+        "locus": "5704",
+        "rank": 3,
+        "same_strand_gene_count": 9
+       },
+       {
+        "gene_count": 7,
+        "locus": "6960",
+        "rank": 4,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 4
+     },
+     {
+      "members_without_an_observation": 19,
+      "observed_member_count": 124,
+      "observed_not_listed": 50,
+      "occupants": [
+       {
+        "gene_count": 22,
+        "locus": "2709",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 20,
+        "locus": "5001",
+        "rank": 1,
+        "same_strand_gene_count": 20
+       },
+       {
+        "gene_count": 18,
+        "locus": "4198",
+        "rank": 2,
+        "same_strand_gene_count": 18
+       },
+       {
+        "gene_count": 7,
+        "locus": "4230",
+        "rank": 3,
+        "same_strand_gene_count": 7
+       },
+       {
+        "gene_count": 7,
+        "locus": "6251",
+        "rank": 4,
+        "same_strand_gene_count": 7
+       }
+      ],
+      "signed_offset": 5
+     }
+    ],
+    "resolved_neighbour_count": 49,
+    "uniref50_families": [
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 136,
+      "modal_architecture": "PF04002",
+      "modal_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
+      "modal_symbol": "radC",
+      "pfam_annotated_gene_count": 136,
+      "rank": 0,
+      "uniref50_accession": "UniRef50_P76362"
+     },
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 7,
+      "modal_architecture": "PF04002",
+      "modal_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
+      "modal_symbol": "radC",
+      "pfam_annotated_gene_count": 7,
+      "rank": 1,
+      "uniref50_accession": "UniRef50_Q664A4"
+     }
+    ]
+   }
+  },
+  "no_window": {
+   "label": "17243",
+   "response": {
+    "anchor": {
+     "arrangement_ranks": [],
+     "is_anchored": false
+    },
+    "annotations": {
+     "gene_symbol": [
+      {
+       "gene_count": 76,
+       "name": null,
+       "rank": 0,
+       "term": "tnp"
+      }
+     ],
+     "pfam_architecture": [
+      {
+       "gene_count": 75,
+       "name": null,
+       "rank": 0,
+       "term": "PF03050,PF13610,PF00665"
+      },
+      {
+       "gene_count": 1,
+       "name": null,
+       "rank": 1,
+       "term": "PF13610,PF00665"
+      }
+     ],
+     "protein_product": [
+      {
+       "gene_count": 62,
+       "name": null,
+       "rank": 0,
+       "term": "IS6 family IS15DIV transposase"
+      },
+      {
+       "gene_count": 13,
+       "name": null,
+       "rank": 1,
+       "term": "IS6 family IS15 transposase"
+      },
+      {
+       "gene_count": 1,
+       "name": null,
+       "rank": 2,
+       "term": "IS6 family IS15DII transposase"
+      }
+     ]
+    },
+    "arrangements": {
+     "arrangements_not_listed": 4,
+     "listed": [
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 0,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "5458",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "6493",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "6384",
+         "same_strand": false,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 1,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "7074",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7601",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7602",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "7603",
+         "same_strand": true,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "7140",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "6276",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 2,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5662",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "12349",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7816",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7817",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6188",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5761",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5760",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 3,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "6878",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6685",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6684",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "9091",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "9090",
+         "same_strand": false,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "10268",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "15591",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "15592",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 4,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "7333",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5423",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4047",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "4662",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "5177",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4512",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "4554",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "3541",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 5,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "3809",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4955",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5317",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "17280",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "12214",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "5162",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17152",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "3541",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "3542",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "3539",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 6,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "4325",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "11133",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "9940",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "17151",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "17482",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7964",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17422",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "17151",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "17152",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "11582",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 7,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "5086",
+         "same_strand": true,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4452",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4987",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "5042",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "5137",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "4986",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17280",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4955",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "3809",
+         "same_strand": true,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "3867",
+         "same_strand": true,
+         "signed_offset": 5
+        }
+       ]
+      }
+     ],
+     "members_in_arrangements_not_listed": 4,
+     "members_without_a_neighbourhood": 64,
+     "total": 12
+    },
+    "intergenic_gaps": [
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "4986"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 33,
+      "median_signed_length_nt": 33,
+      "minimum_signed_length_nt": 33,
+      "modal_length_nt": 33,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 33,
+      "quartile3_signed_length_nt": 33
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "5137"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 36,
+      "median_signed_length_nt": 36,
+      "minimum_signed_length_nt": 36,
+      "modal_length_nt": 36,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 36,
+      "quartile3_signed_length_nt": 36
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17243"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 131,
+      "median_signed_length_nt": 131,
+      "minimum_signed_length_nt": 131,
+      "modal_length_nt": 131,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 131,
+      "quartile3_signed_length_nt": 131
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 47,
+      "median_signed_length_nt": 47,
+      "minimum_signed_length_nt": 47,
+      "modal_length_nt": 47,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 47,
+      "quartile3_signed_length_nt": 47
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "5571"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 250,
+      "median_signed_length_nt": 250,
+      "minimum_signed_length_nt": 250,
+      "modal_length_nt": 250,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 250,
+      "quartile3_signed_length_nt": 250
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17243"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 236,
+      "median_signed_length_nt": 236,
+      "minimum_signed_length_nt": 236,
+      "modal_length_nt": 236,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 236,
+      "quartile3_signed_length_nt": 236
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17243"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 47,
+      "median_signed_length_nt": 47,
+      "minimum_signed_length_nt": 47,
+      "modal_length_nt": 47,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 47,
+      "quartile3_signed_length_nt": 47
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17243"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 564,
+      "median_signed_length_nt": 564,
+      "minimum_signed_length_nt": 564,
+      "modal_length_nt": 564,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 564,
+      "quartile3_signed_length_nt": 564
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 340,
+      "median_signed_length_nt": 340,
+      "minimum_signed_length_nt": 340,
+      "modal_length_nt": 340,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 340,
+      "quartile3_signed_length_nt": 340
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 11,
+      "median_signed_length_nt": 11,
+      "minimum_signed_length_nt": 11,
+      "modal_length_nt": 11,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 11,
+      "quartile3_signed_length_nt": 11
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "4662"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": -55,
+      "median_signed_length_nt": -55,
+      "minimum_signed_length_nt": -55,
+      "modal_length_nt": -55,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": -55,
+      "quartile3_signed_length_nt": -55
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "4047"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 382,
+      "median_signed_length_nt": 382,
+      "minimum_signed_length_nt": 382,
+      "modal_length_nt": 382,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 382,
+      "quartile3_signed_length_nt": 382
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 150,
+      "median_signed_length_nt": 150,
+      "minimum_signed_length_nt": 150,
+      "modal_length_nt": 150,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 150,
+      "quartile3_signed_length_nt": 150
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 39,
+      "median_signed_length_nt": 39,
+      "minimum_signed_length_nt": 39,
+      "modal_length_nt": 39,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 39,
+      "quartile3_signed_length_nt": 39
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "7074"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 46,
+      "median_signed_length_nt": 46,
+      "minimum_signed_length_nt": 46,
+      "modal_length_nt": 46,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 46,
+      "quartile3_signed_length_nt": 46
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 33,
+      "median_signed_length_nt": 33,
+      "minimum_signed_length_nt": 33,
+      "modal_length_nt": 33,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 33,
+      "quartile3_signed_length_nt": 33
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 476,
+      "median_signed_length_nt": 476,
+      "minimum_signed_length_nt": 476,
+      "modal_length_nt": 476,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 476,
+      "quartile3_signed_length_nt": 476
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17243"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 47,
+      "median_signed_length_nt": 47,
+      "minimum_signed_length_nt": 47,
+      "modal_length_nt": 47,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 47,
+      "quartile3_signed_length_nt": 47
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       null,
+       "17243"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 46,
+      "median_signed_length_nt": 46,
+      "minimum_signed_length_nt": 46,
+      "modal_length_nt": 46,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 46,
+      "quartile3_signed_length_nt": 46
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "5162"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 77,
+      "median_signed_length_nt": 77,
+      "minimum_signed_length_nt": 77,
+      "modal_length_nt": 77,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 77,
+      "quartile3_signed_length_nt": 77
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "6684"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 288,
+      "median_signed_length_nt": 288,
+      "minimum_signed_length_nt": 288,
+      "modal_length_nt": 288,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 288,
+      "quartile3_signed_length_nt": 288
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       null
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 148,
+      "median_signed_length_nt": 148,
+      "minimum_signed_length_nt": 148,
+      "modal_length_nt": 148,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 148,
+      "quartile3_signed_length_nt": 148
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "6493"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 33,
+      "median_signed_length_nt": 33,
+      "minimum_signed_length_nt": 33,
+      "modal_length_nt": 33,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 33,
+      "quartile3_signed_length_nt": 33
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17243",
+       "5458"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 197,
+      "median_signed_length_nt": 197,
+      "minimum_signed_length_nt": 197,
+      "modal_length_nt": 197,
+      "observed_genome_count": 1,
+      "quartile1_signed_length_nt": 197,
+      "quartile3_signed_length_nt": 197
+     }
+    ],
+    "locus": {
+     "bakta_gene_symbol": "tnp",
+     "best_product": "IS6 family IS15DIV transposase",
+     "catalogue_ordinal": 17243,
+     "display_name": "tnp",
+     "display_name_source": "bakta_symbol",
+     "display_name_source_accession": null,
+     "evidence": {
+      "collapse_bucket": "mmseq@0.98",
+      "collapse_tier": "mmseq@0.98",
+      "resolved_threshold": 0.98,
+      "resolved_threshold_is_capped_at_50_members": true,
+      "syntenic_a5": 0.1047
+     },
+     "gene_count": 76,
+     "gene_length_interquartile_range_nt": 0,
+     "genome_count": 74,
+     "geometry": {
+      "bacformer": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.8784,
+         0.8431,
+         0.761,
+         0.7261,
+         0.6753
+        ],
+        [
+         0.8784,
+         1.0,
+         0.8304,
+         0.7582,
+         0.6861,
+         0.7012
+        ],
+        [
+         0.8431,
+         0.8304,
+         1.0,
+         0.7099,
+         0.6226,
+         0.7581
+        ],
+        [
+         0.761,
+         0.7582,
+         0.7099,
+         1.0,
+         0.8629,
+         0.5605
+        ],
+        [
+         0.7261,
+         0.6861,
+         0.6226,
+         0.8629,
+         1.0,
+         0.5394
+        ],
+        [
+         0.6753,
+         0.7012,
+         0.7581,
+         0.5605,
+         0.5394,
+         1.0
+        ]
+       ],
+       "map_position": [
+        301,
+        16699
+       ],
+       "nearest_locus_ordinals": [
+        8513,
+        4050,
+        16217,
+        6777,
+        16011
+       ],
+       "nearest_medoid_distance": 0.1216,
+       "separation_percentile": 0.050483351235230935,
+       "within_medoid_distance": 0.08492
+      },
+      "esm": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.971,
+         0.9579,
+         0.9282,
+         0.9209,
+         0.888
+        ],
+        [
+         0.971,
+         1.0,
+         0.9565,
+         0.9232,
+         0.9193,
+         0.8787
+        ],
+        [
+         0.9579,
+         0.9565,
+         1.0,
+         0.9313,
+         0.9111,
+         0.8518
+        ],
+        [
+         0.9282,
+         0.9232,
+         0.9313,
+         1.0,
+         0.8256,
+         0.8649
+        ],
+        [
+         0.9209,
+         0.9193,
+         0.9111,
+         0.8256,
+         1.0,
+         0.7817
+        ],
+        [
+         0.888,
+         0.8787,
+         0.8518,
+         0.8649,
+         0.7817,
+         1.0
+        ]
+       ],
+       "map_position": [
+        4247,
+        -735
+       ],
+       "nearest_locus_ordinals": [
+        8513,
+        4050,
+        16011,
+        16217,
+        4119
+       ],
+       "nearest_medoid_distance": 0.02899,
+       "separation_percentile": 0.5271007188300422,
+       "within_medoid_distance": 0.0
+      }
+     },
+     "interest_score": 3551673.165494737,
+     "label": "17243",
+     "median_gene_length_nt": 705,
+     "named_gene_count": 76,
+     "pfam": {
+      "annotated_gene_count": 76,
+      "architecture_count": 2,
+      "concordance_class": "same_domains"
+     },
+     "prevalence_band": "shell",
+     "uniref50": {
+      "coverage": 1.0,
+      "family_count": 3,
+      "impurity": 0.1974,
+      "labelled_gene_count": 76,
+      "major_family_count": 2
+     }
+    },
+    "neighbour_display_rows": [
+     {
+      "display_name": "repA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 2,
+      "label": "10268",
+      "median_gene_length_nt": 858,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 11133",
+      "display_name_source": "label",
+      "genome_count": 2,
+      "label": "11133",
+      "median_gene_length_nt": 1374,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "RelB",
+      "display_name_source": "pfam_architecture",
+      "genome_count": 2,
+      "label": "11582",
+      "median_gene_length_nt": 498,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 12214",
+      "display_name_source": "label",
+      "genome_count": 1,
+      "label": "12214",
+      "median_gene_length_nt": 948,
+      "prevalence_band": "rare"
+     },
+     {
+      "display_name": "locus 12349",
+      "display_name_source": "label",
+      "genome_count": 1,
+      "label": "12349",
+      "median_gene_length_nt": 1140,
+      "prevalence_band": "rare"
+     },
+     {
+      "display_name": "tap",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 1,
+      "label": "15591",
+      "median_gene_length_nt": 78,
+      "prevalence_band": "rare"
+     },
+     {
+      "display_name": "copB",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 1,
+      "label": "15592",
+      "median_gene_length_nt": 252,
+      "prevalence_band": "rare"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 64,
+      "label": "17151",
+      "median_gene_length_nt": 378,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "insB",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 16,
+      "label": "17152",
+      "median_gene_length_nt": 216,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 74,
+      "label": "17243",
+      "median_gene_length_nt": 705,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 83,
+      "label": "17280",
+      "median_gene_length_nt": 366,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 32,
+      "label": "17422",
+      "median_gene_length_nt": 1005,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 63,
+      "label": "17482",
+      "median_gene_length_nt": 276,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "ydiL",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 74,
+      "label": "3539",
+      "median_gene_length_nt": 654,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "pemK",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 74,
+      "label": "3541",
+      "median_gene_length_nt": 333,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "pemI",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 74,
+      "label": "3542",
+      "median_gene_length_nt": 258,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "intM",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 61,
+      "label": "3809",
+      "median_gene_length_nt": 741,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 3867",
+      "display_name_source": "label",
+      "genome_count": 57,
+      "label": "3867",
+      "median_gene_length_nt": 120,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "aac(6')-Ib",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 49,
+      "label": "4047",
+      "median_gene_length_nt": 600,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "ShiA",
+      "display_name_source": "product",
+      "genome_count": 41,
+      "label": "4325",
+      "median_gene_length_nt": 1044,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "traG",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 38,
+      "label": "4452",
+      "median_gene_length_nt": 2820,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "spoIVCA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 37,
+      "label": "4512",
+      "median_gene_length_nt": 606,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4554",
+      "display_name_source": "label",
+      "genome_count": 37,
+      "label": "4554",
+      "median_gene_length_nt": 2898,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "eamA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 36,
+      "label": "4662",
+      "median_gene_length_nt": 885,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnpR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 34,
+      "label": "4762",
+      "median_gene_length_nt": 558,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4955",
+      "display_name_source": "label",
+      "genome_count": 33,
+      "label": "4955",
+      "median_gene_length_nt": 1170,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "ProQ",
+      "display_name_source": "pfam_architecture",
+      "genome_count": 32,
+      "label": "4983",
+      "median_gene_length_nt": 603,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 4986",
+      "display_name_source": "label",
+      "genome_count": 32,
+      "label": "4986",
+      "median_gene_length_nt": 1971,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "traS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 32,
+      "label": "4987",
+      "median_gene_length_nt": 492,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "traT",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 31,
+      "label": "5042",
+      "median_gene_length_nt": 777,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "traH",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 30,
+      "label": "5086",
+      "median_gene_length_nt": 1374,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5137",
+      "display_name_source": "label",
+      "genome_count": 28,
+      "label": "5137",
+      "median_gene_length_nt": 739,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnpA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 28,
+      "label": "5162",
+      "median_gene_length_nt": 534,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5177",
+      "display_name_source": "label",
+      "genome_count": 27,
+      "label": "5177",
+      "median_gene_length_nt": 822,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "spoIVCA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 25,
+      "label": "5244",
+      "median_gene_length_nt": 663,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5317",
+      "display_name_source": "label",
+      "genome_count": 24,
+      "label": "5317",
+      "median_gene_length_nt": 114,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "aadA1",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 22,
+      "label": "5423",
+      "median_gene_length_nt": 780,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5458",
+      "display_name_source": "label",
+      "genome_count": 22,
+      "label": "5458",
+      "median_gene_length_nt": 1032,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "spoIVCA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 20,
+      "label": "5571",
+      "median_gene_length_nt": 570,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "merR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 19,
+      "label": "5662",
+      "median_gene_length_nt": 435,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5760",
+      "display_name_source": "label",
+      "genome_count": 17,
+      "label": "5760",
+      "median_gene_length_nt": 228,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "locus 5761",
+      "display_name_source": "label",
+      "genome_count": 17,
+      "label": "5761",
+      "median_gene_length_nt": 1137,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnpR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 16,
+      "label": "5952",
+      "median_gene_length_nt": 1716,
+      "prevalence_band": "shell"
+     },
+     {
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 14,
+      "label": "6188",
+      "median_gene_length_nt": 1137,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6276",
+      "display_name_source": "label",
+      "genome_count": 13,
+      "label": "6276",
+      "median_gene_length_nt": 822,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6384",
+      "display_name_source": "label",
+      "genome_count": 13,
+      "label": "6384",
+      "median_gene_length_nt": 240,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6493",
+      "display_name_source": "label",
+      "genome_count": 12,
+      "label": "6493",
+      "median_gene_length_nt": 357,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "mJ0435",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 11,
+      "label": "6684",
+      "median_gene_length_nt": 291,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "hEPN",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 11,
+      "label": "6685",
+      "median_gene_length_nt": 402,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 6878",
+      "display_name_source": "label",
+      "genome_count": 10,
+      "label": "6878",
+      "median_gene_length_nt": 357,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7024",
+      "display_name_source": "label",
+      "genome_count": 9,
+      "label": "7024",
+      "median_gene_length_nt": 480,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "arsR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 9,
+      "label": "7074",
+      "median_gene_length_nt": 198,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7140",
+      "display_name_source": "label",
+      "genome_count": 9,
+      "label": "7140",
+      "median_gene_length_nt": 1494,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "blaOXA-9",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 8,
+      "label": "7333",
+      "median_gene_length_nt": 825,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7434",
+      "display_name_source": "label",
+      "genome_count": 7,
+      "label": "7434",
+      "median_gene_length_nt": 450,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7436",
+      "display_name_source": "label",
+      "genome_count": 7,
+      "label": "7436",
+      "median_gene_length_nt": 1503,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7601",
+      "display_name_source": "label",
+      "genome_count": 7,
+      "label": "7601",
+      "median_gene_length_nt": 492,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "spoIVCA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 7,
+      "label": "7602",
+      "median_gene_length_nt": 738,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7603",
+      "display_name_source": "label",
+      "genome_count": 7,
+      "label": "7603",
+      "median_gene_length_nt": 225,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7613",
+      "display_name_source": "label",
+      "genome_count": 7,
+      "label": "7613",
+      "median_gene_length_nt": 258,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "tnpA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 6,
+      "label": "7674",
+      "median_gene_length_nt": 909,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 7816",
+      "display_name_source": "label",
+      "genome_count": 6,
+      "label": "7816",
+      "median_gene_length_nt": 441,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "TniB",
+      "display_name_source": "pfam_architecture",
+      "genome_count": 6,
+      "label": "7817",
+      "median_gene_length_nt": 420,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "tnpA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 5,
+      "label": "7964",
+      "median_gene_length_nt": 1707,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 9090",
+      "display_name_source": "label",
+      "genome_count": 3,
+      "label": "9090",
+      "median_gene_length_nt": 282,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 9091",
+      "display_name_source": "label",
+      "genome_count": 3,
+      "label": "9091",
+      "median_gene_length_nt": 612,
+      "prevalence_band": "cloud"
+     },
+     {
+      "display_name": "locus 9940",
+      "display_name_source": "label",
+      "genome_count": 2,
+      "label": "9940",
+      "median_gene_length_nt": 747,
+      "prevalence_band": "cloud"
+     }
+    ],
+    "offsets": [
+     {
+      "members_without_an_observation": 69,
+      "observed_member_count": 7,
+      "observed_not_listed": 2,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "3809",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "4325",
+        "rank": 1,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5086",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5952",
+        "rank": 3,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "7436",
+        "rank": 4,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": -5
+     },
+     {
+      "members_without_an_observation": 69,
+      "observed_member_count": 7,
+      "observed_not_listed": 2,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "4452",
+        "rank": 0,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "4955",
+        "rank": 1,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "7434",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "7674",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "11133",
+        "rank": 4,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": -4
+     },
+     {
+      "members_without_an_observation": 67,
+      "observed_member_count": 9,
+      "observed_not_listed": 4,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "4762",
+        "rank": 0,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "4987",
+        "rank": 1,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5317",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "6878",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "7024",
+        "rank": 4,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": -3
+     },
+     {
+      "members_without_an_observation": 66,
+      "observed_member_count": 10,
+      "observed_not_listed": 5,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "4047",
+        "rank": 0,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5042",
+        "rank": 1,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5244",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5423",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5662",
+        "rank": 4,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": -2
+     },
+     {
+      "members_without_an_observation": 64,
+      "observed_member_count": 12,
+      "observed_not_listed": 7,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "4047",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5137",
+        "rank": 1,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5458",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "6684",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "7074",
+        "rank": 4,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": -1
+     },
+     {
+      "members_without_an_observation": 64,
+      "observed_member_count": 12,
+      "observed_not_listed": 7,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "4662",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "4986",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5162",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5571",
+        "rank": 3,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "6493",
+        "rank": 4,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 1
+     },
+     {
+      "members_without_an_observation": 64,
+      "observed_member_count": 12,
+      "observed_not_listed": 7,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "5177",
+        "rank": 0,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "6384",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "7602",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "7613",
+        "rank": 3,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "7817",
+        "rank": 4,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": 2
+     },
+     {
+      "members_without_an_observation": 66,
+      "observed_member_count": 10,
+      "observed_not_listed": 5,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "3541",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "4512",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "4955",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "6188",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "7603",
+        "rank": 4,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": 3
+     },
+     {
+      "members_without_an_observation": 66,
+      "observed_member_count": 10,
+      "observed_not_listed": 5,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "3542",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "3809",
+        "rank": 1,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "4554",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "5761",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "7140",
+        "rank": 4,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": 4
+     },
+     {
+      "members_without_an_observation": 66,
+      "observed_member_count": 10,
+      "observed_not_listed": 5,
+      "occupants": [
+       {
+        "gene_count": 1,
+        "locus": "3539",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "3541",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "3867",
+        "rank": 2,
+        "same_strand_gene_count": 1
+       },
+       {
+        "gene_count": 1,
+        "locus": "4983",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "5760",
+        "rank": 4,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 5
+     }
+    ],
+    "resolved_neighbour_count": 47,
+    "uniref50_families": [
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 61,
+      "modal_architecture": "PF03050,PF13610,PF00665",
+      "modal_product": "IS6 family IS15DIV transposase",
+      "modal_symbol": "tnp",
+      "pfam_annotated_gene_count": 61,
+      "rank": 0,
+      "uniref50_accession": "UniRef50_C8BP00"
+     },
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 13,
+      "modal_architecture": "PF03050,PF13610,PF00665",
+      "modal_product": "IS6 family IS15 transposase",
+      "modal_symbol": "tnp",
+      "pfam_annotated_gene_count": 13,
+      "rank": 1,
+      "uniref50_accession": "UniRef50_Q6SJ60"
+     },
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 2,
+      "modal_architecture": "PF03050,PF13610,PF00665",
+      "modal_product": "IS6 family IS15DII transposase",
+      "modal_symbol": "tnp",
+      "pfam_annotated_gene_count": 2,
+      "rank": 2,
+      "uniref50_accession": "UniRef50_C7EZD9"
+     }
+    ]
+   }
+  }
+ }
+}

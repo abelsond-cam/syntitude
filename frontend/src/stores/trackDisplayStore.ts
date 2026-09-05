@@ -17,7 +17,9 @@ import {
   type DisplaySlot,
   type NeighbourSlot,
   type ObservedSlot,
+  SIGNED_OFFSETS,
   displayMirrorApplied,
+  displaySlots,
   marginalDisplayMirror,
   observedSlotFor,
   slotsInDisplayOrder,
@@ -25,10 +27,14 @@ import {
 } from "@/lib/slotSpaces";
 import { type WalkDirection, walkDirectionAfterStep } from "@/lib/walkDirection";
 
+import { useAnchorGenomeStore } from "./anchorGenomeStore";
+import { useLocusDetailCacheStore } from "./locusDetailCacheStore";
 import { useLocusNavigationStore } from "./locusNavigationStore";
 
 export const useTrackDisplayStore = defineStore("trackDisplay", () => {
   const navigation = useLocusNavigationStore();
+  const cache = useLocusDetailCacheStore();
+  const { sampleId: anchorSampleId } = storeToRefs(useAnchorGenomeStore());
   const { drawable, walkDirection } = storeToRefs(navigation);
 
   /**
@@ -45,6 +51,15 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
    * reader is trying to read.
    */
   const openPopoverSlot = ref<ObservedSlot | null>(null);
+
+  /**
+   * Whether the FOCAL bar's popover is open. Separate state from {@link openPopoverSlot}, because
+   * they hold different things: the offset popover names a position in the ±5 window, and the focal
+   * one lists the locus's own arrangements. Encoding "focal" as a slot value would need an eleventh
+   * member of a ten-element space, which is exactly the kind of overloading this codebase keeps
+   * paying for.
+   */
+  const isFocalPopoverOpen = ref(false);
 
   /**
    * ⭐ A newly DRAWN locus takes its own default arrangement, and closes the popover. Anchored that
@@ -67,6 +82,7 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
       if (label === previousLabel) return;
       selectedArrangementIndex.value = defaultArrangementIndex(drawable.value);
       openPopoverSlot.value = null;
+      isFocalPopoverOpen.value = false;
     },
   );
 
@@ -115,6 +131,45 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
       : slotsInDisplayOrder(arrangement.slots, displayMirror.value);
   });
 
+  /**
+   * ⭐ The ten slots the track actually draws, **in display order, whichever view is available.**
+   *
+   * With an arrangement drawn these are its own slots, mirrored. Without one — a locus whose members
+   * have no recorded neighbourhood at all — the track falls back to the MARGINAL mode at each
+   * position, which is raw and needs mirroring here.
+   *
+   * ⛔ The fallback is a synthesis and is marked as one: `signed_offset` is the recorded offset of
+   * the position it came from, and a position with nothing observed stays absent rather than being
+   * filled with the previous locus. A component must never have to ask which view it is looking at
+   * to know what a slot means.
+   */
+  const slotsForDisplay = computed<readonly NeighbourSlot[]>(() => {
+    const fromArrangement = slotsShown.value;
+    if (fromArrangement !== null) return fromArrangement;
+    const detail = drawable.value;
+    return displaySlots().map((display) => {
+      const observed = observedSlotFor(display, displayMirror.value);
+      const marginal = detail?.offsets[observed];
+      const top = marginal?.occupants[0];
+      const signedOffset = marginal?.signed_offset ?? SIGNED_OFFSETS[observed] ?? 0;
+      if (marginal === undefined || top === undefined || marginal.observed_member_count === 0) {
+        return {
+          signed_offset: signedOffset,
+          locus: null,
+          absence_reason: "contig_end" as const,
+          same_strand: null,
+        };
+      }
+      const recorded = top.same_strand_gene_count * 2 >= top.gene_count;
+      return {
+        signed_offset: signedOffset,
+        locus: top.locus,
+        absence_reason: top.locus === null ? ("outside_catalogue" as const) : null,
+        same_strand: top.locus === null ? null : strandRelationAsShown(recorded, displayMirror.value),
+      };
+    });
+  });
+
   /** Whether the anchored genome carries the arrangement currently drawn. */
   const drawnArrangementIsAnchored = computed(() => {
     const arrangement = drawnArrangement.value;
@@ -136,10 +191,12 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
   function togglePopoverAt(display: DisplaySlot): void {
     const observed = observedSlotFor(display, displayMirror.value);
     openPopoverSlot.value = openPopoverSlot.value === observed ? null : observed;
+    if (openPopoverSlot.value !== null) isFocalPopoverOpen.value = false;
   }
 
   function closePopover(): void {
     openPopoverSlot.value = null;
+    isFocalPopoverOpen.value = false;
   }
 
   /**
@@ -152,8 +209,7 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
    * Returns the direction it walked in, or `null` if that column has no occupant to walk to.
    */
   async function walkTo(display: DisplaySlot): Promise<WalkDirection | null> {
-    const shown = slotsShown.value;
-    if (shown === null) return null;
+    const shown = slotsForDisplay.value;
     const slot = shown[display];
     if (slot === undefined || slot.locus === null || slot.same_strand === null) return null;
     const direction = walkDirectionAfterStep(slot.same_strand);
@@ -182,9 +238,28 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
     return strandRelationAsShown(recorded, displayMirror.value);
   }
 
+  /**
+   * Warm the cache for a locus the reader is hovering. Runs on no lane and reports nothing — a
+   * prefetch the reader did not ask for must leave no trace when it fails.
+   */
+  function prefetchNeighbour(speciesKey: string, locusLabel: string): void {
+    void cache.prefetch(speciesKey, locusLabel, anchorSampleId.value);
+  }
+
+  function toggleFocalPopover(): void {
+    isFocalPopoverOpen.value = !isFocalPopoverOpen.value;
+    // ⚠ The two popovers are mutually exclusive on screen, so opening one closes the other rather
+    // than leaving a stale panel pointing at a position the reader has stopped asking about.
+    if (isFocalPopoverOpen.value) openPopoverSlot.value = null;
+  }
+
   return {
     selectedArrangementIndex,
     openPopoverSlot,
+    isFocalPopoverOpen,
+    slotsForDisplay,
+    prefetchNeighbour,
+    toggleFocalPopover,
     drawnArrangement,
     drawnArrangementIsAnchored,
     displayMirror,
