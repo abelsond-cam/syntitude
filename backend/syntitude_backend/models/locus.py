@@ -213,6 +213,22 @@ class Locus(Base):
     #: Stored rather than aggregated per request so the locus view stays at one statement per table.
     arrangement_member_gene_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
+    #: DISTINCT genomes with at least one gene in SOME arrangement — the UNION, over all of them.
+    #:
+    #: ⛔ **Not derivable from `arrangement_member_gene_count`, and not a sum.** The page has two
+    #: different sentences for an anchored genome that carries no arrangement here — *"has no gene at
+    #: this locus"* and *"has no recorded neighbourhood at this locus"* — and only one of them is
+    #: ever true (`app.js:1762-1771`). Which one is settled by whether every genome present reaches
+    #: an arrangement, which is a GENOME question: a genome at ρ > 1 has two genes here, and one of
+    #: them missing a window leaves it counted in the gene remainder while it is still perfectly
+    #: present in an arrangement. `sum(member_genome_count)` is likewise wrong, and wrong upward, for
+    #: the same reason — it double-counts exactly those genomes.
+    #:
+    #: Measured on the published payloads: **6.26 % of ecoli loci and 3.69 % of kp loci** have at
+    #: least one genome present and in no arrangement (worst case 64 of 100), and at those loci
+    #: *"this genome has no gene here"* is simply false.
+    arrangement_member_genome_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
     #: `render_page.ranking`'s score, precomputed. Drives the landing locus and the example chips,
     #: which were a render-time payload mutation and are now columns behind a verification gate.
     interest_score: Mapped[float | None] = measurement()

@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 
 import pytest
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import Session
 
 from syntitude_backend.application_factory import create_application
@@ -227,6 +227,102 @@ def test_the_stored_arrangement_member_total_agrees_with_the_rows_it_summarises(
             .where(Locus.arrangement_member_gene_count > Locus.member_gene_count)
         ).scalar_one()
     assert impossible == 0
+
+
+def test_membership_completeness_is_a_UNION_over_genomes_and_never_a_sum(application):
+    """⛔ The anchor line's two sentences, and the one quantity that can tell them apart.
+
+    *"has no gene at this locus"* and *"has no recorded neighbourhood at this locus"* are different
+    claims and only one is ever true (`app.js:1762-1771`). Which one is settled by whether every
+    genome present reaches an arrangement — a GENOME question. There is deliberately no uniqueness
+    constraint on (locus, genome), because a genome at rho > 1 sits in two arrangements at one
+    locus, so `sum(member_genome_count)` double-counts exactly those genomes.
+
+    ⭐ Measured on the loaded catalogues, the naive sum is not merely inelegant: it **exceeds** the
+    locus's own genome count at 415 loci, and would call **72 loci complete that are not** — at each
+    of which the page would then say "has no gene at this locus", which is false.
+    """
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        # ⛔ The stored union must equal `count(DISTINCT g)` over the unnested arrays, for EVERY
+        # locus in both catalogues. A denormalised count that drifts reads as a measured one.
+        disagreeing, examined = session.execute(
+            text(
+                """
+                SELECT count(*) FILTER (
+                         WHERE l.arrangement_member_genome_count <> coalesce(u.n, 0)),
+                       count(*)
+                  FROM locus l
+                  LEFT JOIN LATERAL (
+                        SELECT count(DISTINCT g) AS n
+                          FROM locus_arrangement a, unnest(a.member_genome_ids) AS g
+                         WHERE a.locus_id = l.locus_id) AS u ON true
+                """
+            )
+        ).one()
+        assert examined > 30_000, f"only {examined:,} loci examined"
+        assert disagreeing == 0
+
+        # ⛔ It can never exceed the locus's genome count — that is what "complete" means, and an
+        # over-count would make every incomplete locus claim completeness.
+        impossible = session.execute(
+            select(func.count())
+            .select_from(Locus)
+            .where(Locus.arrangement_member_genome_count > Locus.member_genome_count)
+        ).scalar_one()
+        assert impossible == 0
+
+        # ⭐ And the naive sum really does get it wrong here, so this column is not decoration.
+        would_be_wrong = session.execute(
+            text(
+                """
+                WITH summed AS (
+                  SELECT l.locus_id, l.member_genome_count, l.arrangement_member_genome_count,
+                         coalesce(sum(a.member_genome_count), 0) AS naive
+                    FROM locus l LEFT JOIN locus_arrangement a USING (locus_id)
+                   GROUP BY 1, 2, 3)
+                SELECT count(*) FILTER (WHERE naive > member_genome_count),
+                       count(*) FILTER (WHERE naive >= member_genome_count
+                                          AND arrangement_member_genome_count < member_genome_count)
+                  FROM summed
+                """
+            )
+        ).one()
+    assert would_be_wrong[0] > 0, "the sum never overcounts here, so this test proves nothing"
+    assert would_be_wrong[1] > 0, "the sum never mislabels a locus complete, so nothing is at stake"
+
+
+def test_the_incomplete_loci_are_the_share_the_published_page_measured(client, application):
+    """⭐ 6.26 % of ecoli loci and 3.69 % of kp loci, which is `app.js`'s own figure.
+
+    Reproducing a number the reference computed a different way is the strongest check available
+    that the union means what the page meant by it — not a threshold this rebuild invented.
+    """
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        shares = dict(
+            session.execute(
+                text(
+                    """
+                    SELECT s.species_key,
+                           round(100.0 * count(*) FILTER (
+                             WHERE l.arrangement_member_genome_count < l.member_genome_count)
+                             / count(*), 2)
+                      FROM locus l JOIN pathogen_species s USING (pathogen_species_id)
+                     GROUP BY 1
+                    """
+                )
+            ).all()
+        )
+    assert float(shares["ecoli"]) == 6.26
+    assert float(shares["kp"]) == 3.69
+
+    # And the flag reaches the wire, with both values represented across the catalogue.
+    body = client.get("/api/v1/species/ecoli/loci/17243").get_json()["arrangements"]
+    assert body["membership_is_complete"] is False
+    assert client.get("/api/v1/species/ecoli/loci/17526").get_json()["arrangements"][
+        "membership_is_complete"
+    ] is True
 
 
 def test_the_cosine_matrix_is_resolved_server_side_and_is_symmetric_with_a_unit_diagonal(client):

@@ -244,6 +244,7 @@
      ],
      "members_in_arrangements_not_listed": 0,
      "members_without_a_neighbourhood": 0,
+     "membership_is_complete": true,
      "total": 3
     },
     "intergenic_gaps": [
@@ -1635,6 +1636,7 @@
      ],
      "members_in_arrangements_not_listed": 86,
      "members_without_a_neighbourhood": 7,
+     "membership_is_complete": false,
      "total": 84
     },
     "intergenic_gaps": [
@@ -3738,6 +3740,7 @@
      ],
      "members_in_arrangements_not_listed": 4,
      "members_without_a_neighbourhood": 64,
+     "membership_is_complete": false,
      "total": 12
     },
     "intergenic_gaps": [

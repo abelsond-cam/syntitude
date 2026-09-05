@@ -280,6 +280,15 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
             "members_without_a_neighbourhood": max(
                 0, locus.member_gene_count - locus.arrangement_member_gene_count
             ),
+            # ⛔ Whether EVERY genome present reaches an arrangement — a GENOME question, and the
+            # only thing that settles which of two sentences the anchor line may say. Empty anchor
+            # ranks mean *"has no gene at this locus"* only where membership is complete; where it
+            # is not, the true sentence is *"has no recorded neighbourhood at this locus"*, and at
+            # 6.26 % of ecoli loci the first one is false. ⚠ Not derivable from the gene counts
+            # above: a genome at ρ > 1 can lose one gene's window and keep its arrangement.
+            "membership_is_complete": (
+                locus.arrangement_member_genome_count >= locus.member_genome_count
+            ),
         },
         # ⛔ A LIST, and it is not decoration: without it a client cannot draw the anchored
         # arrangement by default, and cannot offer the button that the display cap's whole rule

@@ -37,6 +37,7 @@ import { SLOT_COUNT } from "@/lib/slotSpaces";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
+import ArrangementSwitcher from "@/components/track/ArrangementSwitcher.vue";
 import GeneTrack from "@/components/track/GeneTrack.vue";
 
 vi.mock("@/api/client", () => ({
@@ -284,6 +285,76 @@ describe("⭐ the A0 card, mounted on the same real bytes", () => {
       const card = mountCard(kind);
       expect(card.findAll(".alt")).toHaveLength(detailFor(kind).arrangements.listed.length);
       expect(card.findAll("button.alt")).toHaveLength(0);
+    }
+  });
+});
+
+describe("⭐ the switcher, on the same real bytes", () => {
+  function mountSwitcher(kind: (typeof CASES)[number], anchor: string | null = null) {
+    const detail = detailFor(kind);
+    return mount(ArrangementSwitcher, {
+      props: {
+        locus: detail.locus,
+        arrangements: detail.arrangements.listed,
+        total: detail.arrangements.total,
+        selectedIndex: 0,
+        anchorRanks: detail.anchor.arrangement_ranks,
+        anchorGenomeName: anchor,
+        membershipIsComplete: detail.arrangements.membership_is_complete,
+        walkDirection: "forward" as const,
+      },
+    });
+  }
+
+  it("⛔ the server sends `membership_is_complete`, and the three loci disagree about it", () => {
+    // A field every response carried the same value for would be untested by this fixture, so
+    // assert the cases actually differ — otherwise the branch below is never taken either way.
+    const flags = CASES.map((kind) => detailFor(kind).arrangements.membership_is_complete);
+    expect(flags.every((flag) => typeof flag === "boolean")).toBe(true);
+    expect(new Set(flags).size).toBe(2);
+  });
+
+  it("⛔ picks the anchor sentence from THAT field, not from the gene remainders", () => {
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const text = mountSwitcher(kind, "SAMEA_TEST").find(".arr-anchored").text();
+      // Every fixture locus has an empty anchor rank list, so this is the muted branch throughout.
+      expect(detail.anchor.arrangement_ranks).toHaveLength(0);
+      if (detail.arrangements.membership_is_complete) {
+        expect(text).toContain("has no gene at this locus");
+      } else {
+        expect(text).toContain("has no recorded neighbourhood at this locus");
+      }
+    }
+  });
+
+  it("⚠ `no_window` is the locus that proves the gene remainder cannot answer it", () => {
+    // 64 members have no window here — and `over_cap` has 7, an order of magnitude fewer, yet both
+    // are incomplete. A rule keyed on the gene count would have to pick a threshold; there isn't one.
+    const noWindow = detailFor("no_window").arrangements;
+    const overCap = detailFor("over_cap").arrangements;
+    expect(noWindow.members_without_a_neighbourhood).toBeGreaterThan(
+      overCap.members_without_a_neighbourhood,
+    );
+    expect(noWindow.membership_is_complete).toBe(false);
+    expect(overCap.membership_is_complete).toBe(false);
+  });
+
+  it("counts the total in the sentence and the drawn rows in the coverage", () => {
+    const detail = detailFor("over_cap");
+    const head = mountSwitcher("over_cap").find(".arr-head").text();
+    expect(head).toContain(`sits in ${detail.arrangements.total} neighbourhoods`);
+    expect(head).toContain(`The ${detail.arrangements.listed.length} here account for`);
+    expect(head).not.toContain("100% of its genes");
+  });
+
+  it("offers exactly the rows the track holds slots for, and no more", () => {
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const buttons = mountSwitcher(kind).findAll(".arr-opt");
+      // The single-arrangement branch draws none; every other locus draws one per listed row.
+      const expected = detail.arrangements.total <= 1 ? 0 : detail.arrangements.listed.length;
+      expect(buttons).toHaveLength(expected);
     }
   });
 });

@@ -275,6 +275,7 @@ describe("the whole track", () => {
         arrangements_not_listed: 11,
         members_in_arrangements_not_listed: 15,
         members_without_a_neighbourhood: 5,
+        membership_is_complete: true,
       },
       anchor: { is_anchored: false, arrangement_ranks: [] },
       offsets: SIGNED_OFFSETS.map((signed_offset) => marginal({ signed_offset })),

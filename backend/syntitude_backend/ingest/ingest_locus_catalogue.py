@@ -282,6 +282,7 @@ LOCUS_COLUMNS = (
     "context_observed_member_counts",
     "total_arrangement_count",
     "arrangement_member_gene_count",
+    "arrangement_member_genome_count",
     "interest_score",
     "search_text",
 )
@@ -356,6 +357,7 @@ def _locus_rows(
             list(row["context_observed_member_counts"]),
             int(row["total_arrangement_count"]),
             int(row["arrangement_member_gene_count"]),
+            int(row["arrangement_member_genome_count"]),
             derived["interest_score"][index],
             derived["search_text"][index],
         )

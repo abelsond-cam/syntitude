@@ -47,6 +47,7 @@ function locusDetail(
       arrangements_not_listed: Math.max(0, total - listed.length),
       members_in_arrangements_not_listed: 0,
       members_without_a_neighbourhood: 0,
+      membership_is_complete: true,
     },
     anchor: { is_anchored: false, arrangement_ranks: [] },
     offsets: [],

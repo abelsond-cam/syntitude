@@ -474,6 +474,9 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
     loci["arrangement_member_gene_count"] = _arrangement_member_total(
         arrangement_frame, node_position, n_loci, numpy
     )
+    loci["arrangement_member_genome_count"] = _arrangement_member_genome_total(
+        arrangement_frame, node_position, n_loci, numpy, pandas
+    )
 
     annotation_entries = _annotation_entries(
         {
@@ -543,6 +546,38 @@ def _total_arrangements(arrangement_frame, node_position, n_loci, numpy):
         totals[first["node"].map(node_position).to_numpy(dtype=int)] = first["total"].to_numpy(
             dtype=numpy.int64
         )
+    return totals.tolist()
+
+
+def _arrangement_member_genome_total(arrangement_frame, node_position, n_loci, numpy, pandas):
+    """DISTINCT genomes reaching SOME arrangement — the UNION over all of them, per locus.
+
+    ⛔ **A union, never a sum.** `sum(genomes)` over a locus's arrangements double-counts every
+    genome at ρ > 1, which sits in two of them — so a locus where every genome is accounted for
+    would report *more* genomes than the locus has, and the API's "is the membership complete"
+    question would answer yes at loci where it is no. There is deliberately no uniqueness
+    constraint on (locus, genome) for exactly this reason.
+
+    ⚠ `gset` is the arrangement's membership as collection ordinals, written by `build_arrangements`
+    in the same pass as the row it rides on, so the two cannot describe different rows.
+
+    Exploded rather than looped: this is O(genes), 486,717 entries at 100 genomes, and the same
+    order as the gene-membership pass beside it.
+    """
+    totals = numpy.zeros(n_loci, dtype=numpy.int64)
+    if not len(arrangement_frame) or "gset" not in arrangement_frame.columns:
+        return totals.tolist()
+    pairs = arrangement_frame[["node", "gset"]].explode("gset").dropna()
+    if not len(pairs):
+        return totals.tolist()
+    counted = pairs.drop_duplicates().groupby("node").size()
+    positions = counted.index.map(node_position)
+    keep = positions.notna() if hasattr(positions, "notna") else None
+    if keep is not None and not keep.all():
+        counted = counted[keep]
+        positions = positions[keep]
+    totals[positions.to_numpy(dtype=int)] = counted.to_numpy(dtype=numpy.int64)
+    del pairs
     return totals.tolist()
 
 

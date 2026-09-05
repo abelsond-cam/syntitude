@@ -172,9 +172,10 @@ def test_a_locus_array_column_round_trips(session, _seed_ids):
         ("pangenome_id", "pathogen_species_id", "node_label", "catalogue_ordinal",
          "member_gene_count", "member_genome_count", "prevalence_band", "display_name",
          "display_name_source", "named_member_count", "context_observed_member_counts",
-         "total_arrangement_count", "arrangement_member_gene_count"),
+         "total_arrangement_count", "arrangement_member_gene_count",
+         "arrangement_member_genome_count"),
         [(_seed_ids["pangenome"], _seed_ids["species"], "0", 0, 99, 97,
-          PrevalenceBand.CORE, "wzi", "bakta_symbol", 63, counts, 4, 99)],
+          PrevalenceBand.CORE, "wzi", "bakta_symbol", 63, counts, 4, 99, 97)],
     )
     session.commit()
 

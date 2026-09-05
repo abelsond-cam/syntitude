@@ -47,6 +47,7 @@ function locusDetail(overrides: Partial<LocusDetailResponse> = {}): LocusDetailR
       arrangements_not_listed: 0,
       members_in_arrangements_not_listed: 0,
       members_without_a_neighbourhood: 0,
+      membership_is_complete: true,
     },
     anchor: { is_anchored: false, arrangement_ranks: [] },
     offsets: [],
@@ -384,7 +385,7 @@ describe("the track display", () => {
       arrangement({ rank: 37 }),
     ];
     await walkTo("1", locusDetail({
-      arrangements: { listed, total: 60, arrangements_not_listed: 52, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0 },
+      arrangements: { listed, total: 60, arrangements_not_listed: 52, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0, membership_is_complete: true },
       anchor: { is_anchored: true, arrangement_ranks: [37] },
     }));
     expect(track.selectedArrangementIndex).toBe(2);
@@ -398,7 +399,7 @@ describe("the track display", () => {
     const track = useTrackDisplayStore();
     const listed = [arrangement({ rank: 0 }), arrangement({ rank: 2 }), arrangement({ rank: 5 })];
     await walkTo("1", locusDetail({
-      arrangements: { listed, total: 6, arrangements_not_listed: 3, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0 },
+      arrangements: { listed, total: 6, arrangements_not_listed: 3, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0, membership_is_complete: true },
       anchor: { is_anchored: true, arrangement_ranks: [5, 2] },
     }));
     // The track can only draw one of them, so it draws the first.
@@ -436,6 +437,7 @@ describe("the track display", () => {
         arrangements_not_listed: 0,
         members_in_arrangements_not_listed: 0,
         members_without_a_neighbourhood: 0,
+        membership_is_complete: true,
       },
     }));
     // Display column 0 holds the slot recorded at 9, whose recorded relation is false → shown true.
@@ -456,6 +458,7 @@ describe("the track display", () => {
         arrangements_not_listed: 0,
         members_in_arrangements_not_listed: 0,
         members_without_a_neighbourhood: 0,
+        membership_is_complete: true,
       },
     }));
     fetchLocus.mockClear();

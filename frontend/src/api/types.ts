@@ -190,6 +190,17 @@ export interface LocusDetailResponse {
      * genes have no coordinates when they simply sit past the display cap.
      */
     readonly members_without_a_neighbourhood: number;
+    /**
+     * ⛔ Whether EVERY genome present reaches an arrangement — a **genome** question, and the only
+     * thing that settles which of two sentences the anchor line may say. With no anchored ranks,
+     * `true` means *"has no gene at this locus"* and `false` means *"has no recorded neighbourhood
+     * at this locus"*; they are different claims and only one is ever true. Measured: **6.26 % of
+     * ecoli loci and 3.69 % of kp loci** are incomplete (worst case 64 genomes of 100).
+     *
+     * ⚠ Not derivable from the two gene remainders above. A genome at ρ > 1 has two genes here, and
+     * one of them losing its window leaves the genome fully present in an arrangement.
+     */
+    readonly membership_is_complete: boolean;
   };
   /**
    * ⛔ Which arrangement RANKS the anchored genome carries — a **list**, because rho > 1 puts one
