@@ -94,8 +94,19 @@ class NeighbourDisplayIndex:
     by_catalogue_ordinal: dict = field(default_factory=dict)
 
     def all_rows(self) -> list:
-        """Every distinct row, for a serialiser that wants to emit the block once."""
-        return list({row.locus_id: row for row in self.by_locus_id.values()}.values())
+        """Every distinct row, for a serialiser that wants to emit the block once.
+
+        ⛔ BOTH indexes. A row reached only by catalogue ordinal — every arrangement slot occupant
+        that is not also a marginal mode — is a real neighbour the response refers to, and omitting
+        it from `neighbour_display_rows` leaves the track with a block it can name from the slot but
+        cannot label, size or colour.
+        """
+        return list(
+            {
+                row.locus_id: row
+                for row in (*self.by_locus_id.values(), *self.by_catalogue_ordinal.values())
+            }.values()
+        )
 
 
 @dataclass
@@ -279,7 +290,19 @@ def _neighbour_display_rows(
             Locus.prevalence_band,
         ).where(
             Locus.pangenome_id == pangenome_id,
-            or_(Locus.locus_id.in_(locus_ids), Locus.catalogue_ordinal.in_(locus_ids)),
+            # ⛔⛔ `catalogue_ordinals` on the second branch, NOT `locus_ids`. This line read
+            # `catalogue_ordinal.in_(locus_ids)` — the precise mistake the comment at the call site
+            # warns about, made one screen below it: two key spaces over the same small integers,
+            # merged.
+            #
+            # ⚠ **It mostly worked, which is why nothing caught it.** An arrangement occupant is
+            # usually also a marginal mode, so its row came back on the FIRST branch and was then
+            # indexed by its ordinal anyway. Only the occupants that are not marginal modes fell
+            # through: measured at **36 of 5,423 named slots (0.7 %) over a random 200 loci, but
+            # touching 11 of those 200** — and each one is a blank, unwalkable block sitting where a
+            # real neighbour is. On loci with unusually many arrangements it is far worse: on the
+            # three the API-contract fixture pins, 37 of 190.
+            or_(Locus.locus_id.in_(locus_ids), Locus.catalogue_ordinal.in_(catalogue_ordinals)),
         )
     ).all()
     for locus_id, ordinal, label, name, source, genomes, length, band in rows:

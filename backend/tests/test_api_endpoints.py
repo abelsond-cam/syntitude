@@ -368,6 +368,52 @@ def test_an_anchored_genome_with_no_gene_here_is_NOT_the_same_as_no_anchor(clien
     assert body["anchor"] == {"is_anchored": True, "arrangement_ranks": []}
 
 
+def test_every_arrangement_slot_that_NAMES_a_neighbour_resolves_to_one(client, application):
+    """⛔⛔ Two key spaces over the same small integers, merged — and it MOSTLY worked.
+
+    `_neighbour_display_rows` read `catalogue_ordinal.in_(locus_ids)` where it meant
+    `catalogue_ordinals`. An arrangement occupant is usually also a marginal mode, so its row came
+    back on the first branch and was indexed by its ordinal anyway; only occupants that are *not*
+    marginal modes fell through. 36 of 5,423 named slots over a random 200 loci — 0.7 %, but
+    touching 11 of the 200 — each a blank, unwalkable block where a real neighbour sits.
+
+    ⚠ Sampled over 120 loci rather than one: on any single ordinary locus the bug does not appear,
+    which is exactly why it survived 279 tests.
+    """
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        labels = (
+            session.execute(
+                select(Locus.node_label)
+                .where(Locus.pangenome_id == 1, Locus.total_arrangement_count > 1)
+                .order_by(func.md5(Locus.node_label))
+                .limit(120)
+            )
+            .scalars()
+            .all()
+        )
+
+    named = unresolved = 0
+    offenders = []
+    for label in labels:
+        body = client.get(f"/api/v1/species/ecoli/loci/{label}").get_json()
+        rows = {row["label"] for row in body["neighbour_display_rows"]}
+        for arrangement in body["arrangements"]["listed"]:
+            for slot in arrangement["slots"]:
+                # ⛔ `contig_end` is an OBSERVATION — the member genuinely has no gene there — and
+                # is not what this test is about.
+                if slot["absence_reason"] == "contig_end":
+                    continue
+                named += 1
+                if slot["locus"] is None or slot["locus"] not in rows:
+                    unresolved += 1
+                    offenders.append((label, slot["signed_offset"], slot["absence_reason"]))
+
+    # Coverage before the verdict: a sample that named no neighbours would pass trivially.
+    assert named > 3_000, f"only {named:,} named slots examined"
+    assert unresolved == 0, f"{unresolved:,} of {named:,} unresolved, e.g. {offenders[:5]}"
+
+
 # ── search ─────────────────────────────────────────────────────────────────────────────────────
 def test_search_keeps_MID_WORD_substring_which_prefix_buckets_lose(client):
     """⭐ `ligase` finds *O-antigen ligase RfaL* — the semantics `serving_at_scale.md` §6 flagged."""
