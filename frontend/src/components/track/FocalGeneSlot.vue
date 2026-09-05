@@ -17,6 +17,8 @@ import type { WalkDirection } from "@/lib/walkDirection";
 const props = defineProps<{
   locus: Locus;
   arrangements: readonly Arrangement[];
+  /** ⛔ Every arrangement this locus has — NOT `arrangements.length`, which the display cap moved. */
+  total: number;
   selectedIndex: number;
   /** Which ranks the anchored genome carries here, so its row can be marked. */
   anchorRanks: readonly number[];
@@ -44,7 +46,7 @@ const size = computed(() => props.locus.gene_count);
 const accessibleName = computed(
   () =>
     `${props.locus.display_name} (locus ${props.locus.label}) — ` +
-    `${props.arrangements.length} of ${props.arrangements.length + 0} arrangements shown`,
+    `${props.arrangements.length} of ${props.total} arrangements shown`,
 );
 </script>
 
@@ -71,8 +73,8 @@ const accessibleName = computed(
         class="marg-hit"
         :class="{ on: isPopoverOpen }"
         :aria-expanded="isPopoverOpen"
-        :aria-label="`Show every arrangement at this locus — ${arrangements.length} shown of ${locus.gene_count} member genes`"
-        :data-tip="`${arrangements.length} of ${arrangements.length} arrangements`"
+        :aria-label="`Show all ${total} arrangements at this locus — ${arrangements.length} drawn here, over ${locus.gene_count} member genes`"
+        :data-tip="`${arrangements.length} of ${total} arrangements`"
         @click.stop="emit('togglePopover')"
       >
         <span class="marg">

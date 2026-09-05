@@ -142,6 +142,7 @@ function prefetch(locus: string | null): void {
           v-if="item.kind === 'focal'"
           :locus="detail.locus"
           :arrangements="detail.arrangements.listed"
+          :total="detail.arrangements.total"
           :selected-index="selectedArrangementIndex"
           :anchor-ranks="detail.anchor.arrangement_ranks"
           :members-in-arrangements-not-listed="detail.arrangements.members_in_arrangements_not_listed"

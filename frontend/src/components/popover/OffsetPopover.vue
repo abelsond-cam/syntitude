@@ -15,7 +15,9 @@
 import { computed } from "vue";
 
 import type { NeighbourDisplayRow, OffsetMarginal } from "@/api/types";
+import { offsetLabel } from "@/lib/arrangementDisplay";
 import { type DisplayMirror, strandRelationAsShown } from "@/lib/slotSpaces";
+import { sharePercent } from "@/lib/formatting";
 import { walkDirectionAfterStep, type WalkDirection } from "@/lib/walkDirection";
 
 const props = defineProps<{
@@ -36,10 +38,6 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ walk: [locus: string, direction: WalkDirection] }>();
-
-function offsetLabel(offset: number): string {
-  return `A${offset > 0 ? "+" : ""}${offset}`;
-}
 
 const heading = computed(
   () => `${offsetLabel(props.labelledOffset)} · ${props.labelledOffset < 0 ? "upstream" : "downstream"}`,
@@ -90,10 +88,6 @@ const tail = computed(() => {
   if (missing > 0) parts.push(`${missing} genes: contig ends first`);
   return parts;
 });
-
-function percent(share: number): string {
-  return `${(100 * share).toFixed(share < 0.1 ? 1 : 0)}%`;
-}
 </script>
 
 <template>
@@ -123,7 +117,7 @@ function percent(share: number): string {
         </div>
         <div class="alt-desc">{{ row.product ?? `locus ${row.locus}` }}</div>
       </div>
-      <div class="alt-n">{{ row.geneCount }} · {{ percent(row.share) }}</div>
+      <div class="alt-n">{{ row.geneCount }} · {{ sharePercent(row.share) }}</div>
     </button>
 
     <p v-if="tail.length" class="pop-tail">{{ tail.join(" · ") }}</p>

@@ -153,11 +153,31 @@ export class RequestLane {
 }
 
 /**
- * ⛔ **The three lanes, and there are three.** Named here rather than created ad hoc so that adding
- * a fourth is a visible edit to this list and has to be argued for.
+ * ⛔ **The lanes, named here rather than created ad hoc so that adding one is a visible edit to
+ * this list and has to be argued for.** Three of them are the hot path's own rule — navigating,
+ * opening the EggNOG tab, opening the Sequence tab — and the fourth is argued below.
+ *
+ * ⭐ **`arrangements` — the argument, made once, so the next lane has to clear the same bar.**
+ * The three-lane rule exists to keep the *hot path* one round trip: everything a reader does to
+ * the drawn locus — switching arrangement, flipping the frame, opening a popover, changing map
+ * representation — is answered from the response already in hand. Paging past the arrangement cut
+ * is not on that path. It is a deliberate second act by a reader who has opened the A0 card, and
+ * it is the fourth fetch the design named from the start.
+ *
+ * It cannot ride either of the other lanes, and the reason is supersession rather than tidiness:
+ * `RequestLane.run` **cancels whatever that lane is holding**. On `navigation`, asking for the next
+ * page of arrangements would abort the reader's own walk; on `function`, opening the EggNOG tab
+ * while the scroller loads would abort one of two independent surfaces. Lanes are not a namespace —
+ * they are a cancellation domain, and these are three domains.
+ *
+ * ⚠ Navigating away must still discard an arrangement page in flight, and the lane cannot do that
+ * on its own. `arrangementBrowserStore` cancels this lane when the drawn locus changes, and
+ * re-checks the label after the await, because a Vue watcher runs after the microtask that resolves
+ * the fetch.
  */
 export const LANES = {
   navigation: new RequestLane("navigation"),
   function: new RequestLane("function"),
   sequence: new RequestLane("sequence"),
+  arrangements: new RequestLane("arrangements"),
 } as const;

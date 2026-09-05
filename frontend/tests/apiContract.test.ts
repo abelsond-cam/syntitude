@@ -36,6 +36,7 @@ import type { LocusDetailResponse } from "@/api/types";
 import { SLOT_COUNT } from "@/lib/slotSpaces";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
+import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
 import GeneTrack from "@/components/track/GeneTrack.vue";
 
 vi.mock("@/api/client", () => ({
@@ -208,5 +209,81 @@ describe("⭐ the remainder split, on the locus that proves it matters", () => {
     expect(
       wouldHaveClaimed - arrangements.members_without_a_neighbourhood,
     ).toBe(arrangements.members_in_arrangements_not_listed);
+  });
+});
+
+describe("⭐ the A0 card, mounted on the same real bytes", () => {
+  function mountCard(kind: (typeof CASES)[number]) {
+    const detail = detailFor(kind);
+    return mount(ArrangementPopover, {
+      props: {
+        locus: detail.locus,
+        arrangements: detail.arrangements.listed,
+        total: detail.arrangements.total,
+        selectedRank: detail.arrangements.listed[0]?.rank ?? null,
+        anchorRanks: detail.anchor.arrangement_ranks,
+        membersWithoutANeighbourhood: detail.arrangements.members_without_a_neighbourhood,
+        walkDirection: "forward" as const,
+        arrangementsNotShown: detail.arrangements.arrangements_not_listed,
+        loadStatus: "idle" as const,
+      },
+    });
+  }
+
+  it("⛔ derives the display cut to exactly what the SERVER named it", () => {
+    // The card cannot use `members_in_arrangements_not_listed` directly — that number is computed
+    // against the capped list and stops being true the moment a page arrives — so it derives the
+    // same quantity from `gene_count − members_without_a_neighbourhood − Σ listed`. This asserts
+    // the two agree on real bytes, which is the only thing that proves the identity holds.
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const card = mountCard(kind);
+      const tail = card.find(".pop-tail");
+      const expected = detail.arrangements.members_in_arrangements_not_listed;
+      if (expected > 0) {
+        expect(tail.text()).toContain(`${expected} member genes sit in arrangements not listed here`);
+      } else {
+        // ⚠ Read the whole card, not the tail: with both remainders zero there IS no tail element,
+        // and `.text()` on an absent wrapper throws rather than returning "" — which would have
+        // made this branch pass without looking at anything.
+        expect(card.text()).not.toContain("sit in arrangements not listed here");
+      }
+    }
+  });
+
+  it("⛔ still names the members with no window as their own, separate sentence", () => {
+    const detail = detailFor("no_window");
+    expect(detail.arrangements.members_without_a_neighbourhood).toBeGreaterThan(0);
+    expect(mountCard("no_window").find(".pop-tail").text()).toContain(
+      `${detail.arrangements.members_without_a_neighbourhood} member genes have no recorded neighbourhood`,
+    );
+  });
+
+  it("⚠ does not claim completeness at a locus where 76 arrangements are missing", () => {
+    const detail = detailFor("over_cap");
+    expect(detail.arrangements.total).toBeGreaterThan(detail.arrangements.listed.length);
+    const lede = mountCard("over_cap").find(".pop-lede").text();
+    expect(lede).not.toContain("every one of them");
+    expect(lede).toContain(`${detail.arrangements.listed.length} of them listed below`);
+    expect(lede).toContain(`sits in ${detail.arrangements.total}`);
+  });
+
+  it("says every one IS listed where every one is, and prints no tail at all", () => {
+    const detail = detailFor("ordinary");
+    expect(detail.arrangements.arrangements_not_listed).toBe(0);
+    expect(detail.arrangements.members_in_arrangements_not_listed).toBe(0);
+    expect(detail.arrangements.members_without_a_neighbourhood).toBe(0);
+    const card = mountCard("ordinary");
+    expect(card.find(".pop-lede").text()).toContain("every one of them listed below");
+    expect(card.find(".pop-tail").exists()).toBe(false);
+    expect(card.find(".arr-more").exists()).toBe(false);
+  });
+
+  it("⛔ lists one row per arrangement the response carried, and none of them selectable", () => {
+    for (const kind of CASES) {
+      const card = mountCard(kind);
+      expect(card.findAll(".alt")).toHaveLength(detailFor(kind).arrangements.listed.length);
+      expect(card.findAll("button.alt")).toHaveLength(0);
+    }
   });
 });

@@ -219,12 +219,33 @@ describe("a request lane", () => {
   });
 });
 
-describe("⛔ there are exactly three lanes", () => {
-  it("and a fourth is a visible edit to that list", async () => {
-    // Navigating, opening the function tab, opening the sequence tab. Everything else the reader
-    // can do is answered out of the response already in hand — so a fourth lane means something
-    // has been moved off the hot path that belongs on it.
+describe("⛔ the lanes are a closed list, and adding one is a visible edit", () => {
+  it("names every one of them", async () => {
+    // Three are the hot path's own rule — navigating, the function tab, the sequence tab. The
+    // fourth, `arrangements`, pages the A0 card past the display cut: not on the hot path, and on
+    // its own lane because a lane is a CANCELLATION domain, so sharing one would abort the reader's
+    // walk to fetch a scroller. The argument is beside `LANES`; this test is what makes a fifth
+    // impossible to add quietly.
     const { LANES } = await import("./request");
-    expect(Object.keys(LANES).sort()).toEqual(["function", "navigation", "sequence"]);
+    expect(Object.keys(LANES).sort()).toEqual([
+      "arrangements",
+      "function",
+      "navigation",
+      "sequence",
+    ]);
+  });
+
+  it("⛔ keeps them independent — one lane's cancel does not touch another's", async () => {
+    // The whole reason `arrangements` is not folded into `navigation`: `run` aborts whatever its
+    // own lane is holding, so a shared lane would make paging the card cancel the walk.
+    const { LANES } = await import("./request");
+    let release: (value: unknown) => void = () => {};
+    const walking = LANES.navigation.run(
+      () => new Promise<never>((resolve) => { release = resolve as never; }),
+    );
+    LANES.arrangements.cancel();
+    expect(LANES.navigation.isBusy).toBe(true);
+    release(success(1));
+    await walking;
   });
 });
