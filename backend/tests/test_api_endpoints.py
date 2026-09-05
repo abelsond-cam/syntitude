@@ -139,16 +139,94 @@ def test_a_slot_is_null_plus_a_REASON_and_never_a_bare_minus_one(client, applica
     assert all(slot["locus"] != -1 for slot in slots)
 
 
-def test_the_four_remainders_are_four_separately_named_fields(client):
+def test_every_remainder_is_its_own_named_field(client):
     """⛔ A rewrite that computes "the rest" once collapses them, and the page overclaims."""
     payload = client.get("/api/v1/species/ecoli/loci/2811").get_json()
     assert "arrangements_not_listed" in payload["arrangements"]
+    assert "members_in_arrangements_not_listed" in payload["arrangements"]
     assert "members_without_a_neighbourhood" in payload["arrangements"]
     for offset in payload["offsets"]:
         assert "observed_not_listed" in offset
         assert "members_without_an_observation" in offset
     assert len(payload["offsets"]) == 10
     assert [offset["signed_offset"] for offset in payload["offsets"]] == [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
+
+
+def test_a_member_past_the_arrangement_CAP_is_not_reported_as_having_no_coordinates(
+    client, application
+):
+    """⛔⛔ The remainder the cap invented, and the sharpest find of the front-end build.
+
+    `members_without_a_neighbourhood` was `size − Σ(listed)`. On the published page that is right,
+    because that payload is UNCAPPED — the difference really is *"no coordinates for the gene, so no
+    window"*. The API caps at 8, so the same subtraction swept in every member sitting past the cap
+    and told the reader those genes had no coordinates. **15,912 E. coli genes over 2,340 loci** and
+    **10,437 kp genes over 1,548**.
+    """
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        label, total, size, in_arrangements = session.execute(
+            select(
+                Locus.node_label,
+                Locus.total_arrangement_count,
+                Locus.member_gene_count,
+                Locus.arrangement_member_gene_count,
+            )
+            .where(Locus.pangenome_id == 1, Locus.total_arrangement_count > 12)
+            .order_by(Locus.total_arrangement_count.desc())
+            .limit(1)
+        ).one()
+
+    body = client.get(f"/api/v1/species/ecoli/loci/{label}").get_json()["arrangements"]
+    listed = sum(a["gene_count"] for a in body["listed"])
+
+    # The locus genuinely has members past the cap — otherwise this test proves nothing.
+    assert body["members_in_arrangements_not_listed"] > 0
+    assert body["members_in_arrangements_not_listed"] == in_arrangements - listed
+    # ⭐ And THAT is what the old subtraction would have called "no recorded neighbourhood".
+    assert body["members_without_a_neighbourhood"] == size - in_arrangements
+    assert body["members_without_a_neighbourhood"] < size - listed
+    assert body["total"] == total
+
+
+def test_the_stored_arrangement_member_total_agrees_with_the_rows_it_summarises(application):
+    """⚠ A denormalised count that drifts is worse than none: it reads as measured. Checked against
+    the rows for EVERY locus in both catalogues, not a sample."""
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        from syntitude_backend.models.locus_arrangement import LocusArrangement
+
+        summed = (
+            select(
+                LocusArrangement.locus_id.label("locus_id"),
+                func.sum(LocusArrangement.member_gene_count).label("member_genes"),
+            )
+            .group_by(LocusArrangement.locus_id)
+            .subquery()
+        )
+        disagreeing, examined = session.execute(
+            select(
+                func.count().filter(
+                    Locus.arrangement_member_gene_count
+                    != func.coalesce(summed.c.member_genes, 0)
+                ),
+                func.count(),
+            )
+            .select_from(Locus)
+            .outerjoin(summed, summed.c.locus_id == Locus.locus_id)
+        ).one()
+    assert examined > 30_000, f"only {examined:,} loci examined"
+    assert disagreeing == 0
+
+    # ⛔ And it must never exceed the locus size, or `members_without_a_neighbourhood` goes negative
+    # and gets clamped to zero — hiding the disagreement instead of reporting it.
+    with Session(engine) as session:
+        impossible = session.execute(
+            select(func.count())
+            .select_from(Locus)
+            .where(Locus.arrangement_member_gene_count > Locus.member_gene_count)
+        ).scalar_one()
+    assert impossible == 0
 
 
 def test_the_cosine_matrix_is_resolved_server_side_and_is_symmetric_with_a_unit_diagonal(client):

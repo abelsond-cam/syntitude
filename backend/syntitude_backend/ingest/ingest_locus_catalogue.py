@@ -281,6 +281,7 @@ LOCUS_COLUMNS = (
     "gene_length_interquartile_range_nt",
     "context_observed_member_counts",
     "total_arrangement_count",
+    "arrangement_member_gene_count",
     "interest_score",
     "search_text",
 )
@@ -354,6 +355,7 @@ def _locus_rows(
             _int_or_none(row["gene_length_interquartile_range_nt"]),
             list(row["context_observed_member_counts"]),
             int(row["total_arrangement_count"]),
+            int(row["arrangement_member_gene_count"]),
             derived["interest_score"][index],
             derived["search_text"][index],
         )

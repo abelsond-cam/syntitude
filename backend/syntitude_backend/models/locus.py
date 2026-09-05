@@ -202,6 +202,17 @@ class Locus(Base):
     #: with the number listed: the page keys sentences on this.
     total_arrangement_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
+    #: Member genes that sit in SOME arrangement — summed over ALL of them, capped or not.
+    #:
+    #: ⛔ **This exists so the API can keep two remainders apart that the published page never had
+    #: to.** That payload is uncapped, so there `member_gene_count − Σ(listed)` really did mean
+    #: *"member genes with no recorded neighbourhood — no coordinates for the gene, so no window"*.
+    #: The API caps at 8, so the same subtraction silently swept in every member sitting in an
+    #: arrangement past the cap: measured at **15,912 E. coli genes over 2,340 loci and 10,437 kp
+    #: genes over 1,548**, each of which the page would have told a reader has no coordinates.
+    #: Stored rather than aggregated per request so the locus view stays at one statement per table.
+    arrangement_member_gene_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
     #: `render_page.ranking`'s score, precomputed. Drives the landing locus and the example chips,
     #: which were a render-time payload mutation and are now columns behind a verification gate.
     interest_score: Mapped[float | None] = measurement()

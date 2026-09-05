@@ -45,6 +45,7 @@ function locusDetail(overrides: Partial<LocusDetailResponse> = {}): LocusDetailR
       listed: [arrangement()],
       total: 1,
       arrangements_not_listed: 0,
+      members_in_arrangements_not_listed: 0,
       members_without_a_neighbourhood: 0,
     },
     anchor: { is_anchored: false, arrangement_ranks: [] },
@@ -383,7 +384,7 @@ describe("the track display", () => {
       arrangement({ rank: 37 }),
     ];
     await walkTo("1", locusDetail({
-      arrangements: { listed, total: 60, arrangements_not_listed: 52, members_without_a_neighbourhood: 0 },
+      arrangements: { listed, total: 60, arrangements_not_listed: 52, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0 },
       anchor: { is_anchored: true, arrangement_ranks: [37] },
     }));
     expect(track.selectedArrangementIndex).toBe(2);
@@ -397,7 +398,7 @@ describe("the track display", () => {
     const track = useTrackDisplayStore();
     const listed = [arrangement({ rank: 0 }), arrangement({ rank: 2 }), arrangement({ rank: 5 })];
     await walkTo("1", locusDetail({
-      arrangements: { listed, total: 6, arrangements_not_listed: 3, members_without_a_neighbourhood: 0 },
+      arrangements: { listed, total: 6, arrangements_not_listed: 3, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0 },
       anchor: { is_anchored: true, arrangement_ranks: [5, 2] },
     }));
     // The track can only draw one of them, so it draws the first.
@@ -433,6 +434,7 @@ describe("the track display", () => {
         listed: [arrangement({ is_recorded_reverse_complement: true })],
         total: 1,
         arrangements_not_listed: 0,
+        members_in_arrangements_not_listed: 0,
         members_without_a_neighbourhood: 0,
       },
     }));
@@ -452,6 +454,7 @@ describe("the track display", () => {
         listed: [arrangement({ slots: slots(["A", null, "C", "D", "E", "F", "G", "H", "I", "J"]) })],
         total: 1,
         arrangements_not_listed: 0,
+        members_in_arrangements_not_listed: 0,
         members_without_a_neighbourhood: 0,
       },
     }));

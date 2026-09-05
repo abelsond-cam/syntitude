@@ -471,6 +471,9 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
     )
     loci["context_observed_member_counts"] = _observed_counts(occupants, node_position, n_loci, numpy)
     loci["total_arrangement_count"] = _total_arrangements(arrangement_frame, node_position, n_loci, numpy)
+    loci["arrangement_member_gene_count"] = _arrangement_member_total(
+        arrangement_frame, node_position, n_loci, numpy
+    )
 
     annotation_entries = _annotation_entries(
         {
@@ -540,6 +543,26 @@ def _total_arrangements(arrangement_frame, node_position, n_loci, numpy):
         totals[first["node"].map(node_position).to_numpy(dtype=int)] = first["total"].to_numpy(
             dtype=numpy.int64
         )
+    return totals.tolist()
+
+
+def _arrangement_member_total(arrangement_frame, node_position, n_loci, numpy):
+    """Member genes sitting in SOME arrangement, summed over ALL of them.
+
+    ⛔ Over every arrangement, not the exported few — this is the denominator that lets the API tell
+    *"in an arrangement past the display cap"* apart from *"no coordinates for the gene, so no
+    window"*. Summed here rather than aggregated per request so the locus view stays at one
+    statement per table.
+    """
+    totals = numpy.zeros(n_loci, dtype=numpy.int64)
+    if len(arrangement_frame):
+        summed = arrangement_frame.groupby("node")["genes"].sum()
+        positions = summed.index.map(node_position)
+        keep = positions.notna() if hasattr(positions, "notna") else None
+        if keep is not None and not keep.all():
+            summed = summed[keep]
+            positions = positions[keep]
+        totals[positions.to_numpy(dtype=int)] = summed.to_numpy(dtype=numpy.int64)
     return totals.tolist()
 
 

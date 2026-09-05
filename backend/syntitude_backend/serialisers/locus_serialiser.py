@@ -4,11 +4,17 @@
 packed form is exactly where the "−1 means five different things" trap lives, and a serialiser that
 mapped every `-1` to `null` would be right twice and destroy three meanings.
 
-⛔ **The four remainders are four separately named fields.** `observed_not_listed` is a *display*
-cut; `members_without_an_observation` is *missing data* (a contig end); `arrangements_not_listed` is
-what the cap left out; `members_without_a_neighbourhood` is members with no recorded window. A
-rewrite that computes "the rest" once collapses them and the page starts making a claim it cannot
-support — so each is emitted, and each is emitted even when it is zero.
+⛔ **Every remainder is its own named field, one per sentence.** `observed_not_listed` is a
+*display* cut; `members_without_an_observation` is *missing data* (a contig end);
+`arrangements_not_listed` is what the arrangement cap left out; `members_in_arrangements_not_listed`
+is the members inside those; `members_without_a_neighbourhood` is members with no recorded window at
+all. A rewrite that computes "the rest" once collapses them and the page starts making a claim it
+cannot support — so each is emitted, and each is emitted even when it is zero.
+
+⚠ **There are five here and four in the plan, and the fifth is the API's own doing.** The published
+payload is uncapped, so *members past the cap* did not exist as a category and `size − Σ(listed)`
+really did mean "no coordinates for the gene, so no window". The moment the API capped the
+arrangement list that stopped being true, and splitting the two is what keeps the fourth honest.
 
 ⚠ **`null` is *not measured* and `0.0` is *measured zero*, everywhere below.** A serialiser that
 emitted `0` for an absent float would turn "we did not look" into "we looked and found nothing".
@@ -262,7 +268,18 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
             "arrangements_not_listed": max(
                 0, locus.total_arrangement_count - detail.arrangements_listed
             ),
-            "members_without_a_neighbourhood": max(0, locus.member_gene_count - listed_members),
+            # ⛔⛔ TWO remainders, and the API needs both where the published page needed only one.
+            # That payload is UNCAPPED, so `size − Σ(listed)` there really did mean "no coordinates
+            # for the gene, so no window". Capping the list at 8 makes the same subtraction sweep in
+            # every member sitting past the cap — 15,912 E. coli genes over 2,340 loci and 10,437 kp
+            # genes over 1,548 — each of which the page would then have told a reader has no
+            # coordinates. `arrangement_member_gene_count` is the denominator that separates them.
+            "members_in_arrangements_not_listed": max(
+                0, locus.arrangement_member_gene_count - listed_members
+            ),
+            "members_without_a_neighbourhood": max(
+                0, locus.member_gene_count - locus.arrangement_member_gene_count
+            ),
         },
         # ⛔ A LIST, and it is not decoration: without it a client cannot draw the anchored
         # arrangement by default, and cannot offer the button that the display cap's whole rule

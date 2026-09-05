@@ -176,9 +176,19 @@ export interface LocusDetailResponse {
     readonly listed: readonly Arrangement[];
     /** ⛔ Never moved by any display cap, and never conflated with the number listed. */
     readonly total: number;
-    /** ⛔ Arrangements the cap left out. */
+    /** ⛔ Arrangements the cap left out — a COUNT of arrangements. */
     readonly arrangements_not_listed: number;
-    /** ⛔ Members with no recorded neighbourhood at all. A fourth, different remainder. */
+    /**
+     * ⛔ Members sitting INSIDE those uncapped arrangements. A different remainder from the one
+     * below, and the API's own creation: the published payload is uncapped, so this category did
+     * not exist there.
+     */
+    readonly members_in_arrangements_not_listed: number;
+    /**
+     * ⛔ Members with no recorded neighbourhood **at all** — no coordinates for the gene, so no
+     * window. ⚠ Folding this together with the field above tells a reader that 15,912 *E. coli*
+     * genes have no coordinates when they simply sit past the display cap.
+     */
     readonly members_without_a_neighbourhood: number;
   };
   /**
