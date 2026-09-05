@@ -113,6 +113,15 @@ class LocusDetail:
     geometry: dict = field(default_factory=dict)
     #: ⭐ How many DISTINCT other loci this response resolved. The fan-out, measured per request.
     resolved_neighbour_count: int = 0
+    #: ⛔ Which arrangement RANKS the anchored genome carries here — a **list**, because a genome at
+    #: rho > 1 occupies two arrangements at one locus and there is no uniqueness constraint on
+    #: (locus, genome) anywhere. Empty when there is no anchor, or when the anchored genome has no
+    #: gene at this locus; those two are distinguished by `anchor_genome_id` being set at all.
+    anchor_arrangement_ranks: list[int] = field(default_factory=list)
+    #: Whether a genome was anchored at all. ⚠ Distinguishes "no anchor set" from "anchored, and
+    #: this genome has no gene at this locus" — an empty rank list means the second only when this
+    #: is true, and the two are different sentences on the page.
+    is_anchored: bool = False
 
 
 def _locus_by_label(session: Session, pangenome_id: int, node_label: str) -> Locus:
@@ -173,6 +182,17 @@ def load_locus_detail(
         ).scalars()
     )
     detail.arrangements_listed = len(detail.arrangements)
+    detail.is_anchored = anchor_genome_id is not None
+    if anchor_genome_id is not None:
+        # ⛔ Recomputed from the rows rather than inferred from the OR above: the anchored genome's
+        # arrangement may ALSO be within the cap, in which case the OR added nothing and a client
+        # that assumed "the last one" would mark the wrong row. And it is a list, not a scalar —
+        # see `anchor_arrangement_ranks`.
+        detail.anchor_arrangement_ranks = [
+            arrangement.rank_within_locus
+            for arrangement in detail.arrangements
+            if anchor_genome_id in (arrangement.member_genome_ids or ())
+        ]
 
     # ── the marginal view ──────────────────────────────────────────────────────────────────────
     occupants = session.execute(

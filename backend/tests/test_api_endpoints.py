@@ -206,6 +206,89 @@ def test_an_anchored_genome_gets_its_arrangement_even_past_the_display_cap(clien
     assert far.rank_within_locus in ranks_anchored
     assert plain["arrangements"]["total"] == anchored["arrangements"]["total"]
 
+    # ⛔ And the response has to SAY WHICH ONE. Including the arrangement while leaving the client
+    # to guess makes the whole rule unusable: it cannot draw the anchored arrangement by default,
+    # and it cannot offer the button the cap exists for. A list, because rho > 1 puts one genome in
+    # two arrangements at one locus and there is no uniqueness constraint on (locus, genome).
+    assert plain["anchor"] == {"is_anchored": False, "arrangement_ranks": []}
+    assert anchored["anchor"]["is_anchored"] is True
+    assert far.rank_within_locus in anchored["anchor"]["arrangement_ranks"]
+    assert anchored["anchor"]["arrangement_ranks"] == sorted(
+        anchored["anchor"]["arrangement_ranks"]
+    )
+    # Every rank it names must be one the response actually carries, or the page marks a row that
+    # is not on screen.
+    assert set(anchored["anchor"]["arrangement_ranks"]) <= ranks_anchored
+
+
+def test_the_anchor_block_is_MARKED_even_when_the_arrangement_was_within_the_cap(client, application):
+    """The anchored rank is reported even when the OR added nothing.
+
+    ⚠ The OR that adds a far arrangement adds NOTHING when the genome's arrangement is already
+    listed — so a client inferring "the anchored one is the extra row" marks the wrong row on the
+    common case. The ranks are recomputed from the rows, and this is what pins that.
+    """
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        from syntitude_backend.models.genome import Genome
+        from syntitude_backend.models.locus_arrangement import LocusArrangement
+
+        # A rank-0 arrangement: always within the cap, so the OR contributes nothing.
+        top = session.execute(
+            select(LocusArrangement, Locus.node_label)
+            .join(Locus, Locus.locus_id == LocusArrangement.locus_id)
+            .where(
+                Locus.pangenome_id == 1,
+                LocusArrangement.rank_within_locus == 0,
+                LocusArrangement.member_genome_count > 0,
+            )
+            .limit(1)
+        ).one()
+        arrangement, label = top
+        sample_id = session.execute(
+            select(Genome.sample_id).where(Genome.genome_id == arrangement.member_genome_ids[0])
+        ).scalar_one()
+
+    anchored = client.get(f"/api/v1/species/ecoli/loci/{label}?anchor={sample_id}").get_json()
+    assert anchored["anchor"]["is_anchored"] is True
+    assert 0 in anchored["anchor"]["arrangement_ranks"]
+
+
+def test_an_anchored_genome_with_no_gene_here_is_NOT_the_same_as_no_anchor(client, application):
+    """An empty rank list carries two different facts, and `is_anchored` separates them.
+
+    ⛔ Both give an empty rank list, and they are different sentences: *"your genome has no gene at
+    this locus"* against *"you have not anchored one"*. A client that read only the list would
+    render one as the other.
+    """
+    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    with Session(engine) as session:
+        from syntitude_backend.models.genome import Genome
+        from syntitude_backend.models.locus_arrangement import LocusArrangement
+
+        # A locus that is NOT in every genome, and a genome that is not one of its members.
+        locus = session.execute(
+            select(Locus)
+            .where(Locus.pangenome_id == 1, Locus.member_genome_count == 1)
+            .limit(1)
+        ).scalar_one()
+        held = {
+            genome_id
+            for ids in session.execute(
+                select(LocusArrangement.member_genome_ids).where(
+                    LocusArrangement.locus_id == locus.locus_id
+                )
+            ).scalars()
+            for genome_id in (ids or ())
+        }
+        outsider = session.execute(
+            select(Genome.sample_id).where(Genome.genome_id.not_in(held or {-1})).limit(1)
+        ).scalar_one()
+
+    response = client.get(f"/api/v1/species/ecoli/loci/{locus.node_label}?anchor={outsider}")
+    body = response.get_json()
+    assert body["anchor"] == {"is_anchored": True, "arrangement_ranks": []}
+
 
 # ── search ─────────────────────────────────────────────────────────────────────────────────────
 def test_search_keeps_MID_WORD_substring_which_prefix_buckets_lose(client):

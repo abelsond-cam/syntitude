@@ -264,6 +264,15 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
             ),
             "members_without_a_neighbourhood": max(0, locus.member_gene_count - listed_members),
         },
+        # ⛔ A LIST, and it is not decoration: without it a client cannot draw the anchored
+        # arrangement by default, and cannot offer the button that the display cap's whole rule
+        # exists for — "otherwise the reader is told in words that their genome sits in #37 and has
+        # no button to go back to it". Empty means the anchored genome has no gene here, which is a
+        # different statement from there being no anchor; `is_anchored` separates them.
+        "anchor": {
+            "is_anchored": detail.is_anchored,
+            "arrangement_ranks": list(detail.anchor_arrangement_ranks),
+        },
         "offsets": serialise_offset_occupants(detail),
         "intergenic_gaps": [
             serialise_intergenic_gap(gap, labels) for gap in detail.intergenic_gaps

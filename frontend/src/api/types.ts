@@ -181,6 +181,19 @@ export interface LocusDetailResponse {
     /** ⛔ Members with no recorded neighbourhood at all. A fourth, different remainder. */
     readonly members_without_a_neighbourhood: number;
   };
+  /**
+   * ⛔ Which arrangement RANKS the anchored genome carries — a **list**, because rho > 1 puts one
+   * genome in two arrangements at one locus and there is no uniqueness constraint on
+   * (locus, genome) anywhere.
+   *
+   * ⚠ An empty list carries two different facts and `is_anchored` is what separates them: *"your
+   * genome has no gene at this locus"* against *"you have not anchored one"*. They are different
+   * sentences on the page.
+   */
+  readonly anchor: {
+    readonly is_anchored: boolean;
+    readonly arrangement_ranks: readonly number[];
+  };
   readonly offsets: readonly OffsetMarginal[];
   readonly intergenic_gaps: readonly IntergenicGap[];
   /** ⭐ The 15–303-locus fan-out, answered in THIS response rather than in that many more. */

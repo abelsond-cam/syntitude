@@ -1,0 +1,199 @@
+/**
+ * What the track is showing right now: which arrangement is drawn, and which position's popover is
+ * open. **Both reset on a new locus**, and neither fetches anything.
+ *
+ * ⭐ Every action here is zero round trips. Switching arrangement, flipping the frame, opening and
+ * closing a popover are all answered out of the locus response already in hand — which is the whole
+ * reason that response carries all ten offset slots, the drawn arrangements, the gaps and the map
+ * geometry together.
+ */
+
+import { defineStore, storeToRefs } from "pinia";
+import { computed, ref, watch } from "vue";
+
+import type { Arrangement, LocusDetailResponse } from "@/api/types";
+import {
+  type DisplayMirror,
+  type DisplaySlot,
+  type NeighbourSlot,
+  type ObservedSlot,
+  displayMirrorApplied,
+  marginalDisplayMirror,
+  observedSlotFor,
+  slotsInDisplayOrder,
+  strandRelationAsShown,
+} from "@/lib/slotSpaces";
+import { type WalkDirection, walkDirectionAfterStep } from "@/lib/walkDirection";
+
+import { useLocusNavigationStore } from "./locusNavigationStore";
+
+export const useTrackDisplayStore = defineStore("trackDisplay", () => {
+  const navigation = useLocusNavigationStore();
+  const { drawable, walkDirection } = storeToRefs(navigation);
+
+  /**
+   * Which of `arrangements.listed` is drawn — an INDEX into that array, not a rank. The two differ
+   * the moment an anchored arrangement past the cap is spliced in.
+   */
+  const selectedArrangementIndex = ref(0);
+
+  /**
+   * The position whose popover is open, in the OBSERVED space, or `null` for none.
+   *
+   * ⚠ A new locus opens with none. The old page's panel lived in a fixed column and could sensibly
+   * default to A−1; a popover that opened by itself on every step would sit over the track the
+   * reader is trying to read.
+   */
+  const openPopoverSlot = ref<ObservedSlot | null>(null);
+
+  /**
+   * ⭐ A newly DRAWN locus takes its own default arrangement, and closes the popover. Anchored that
+   * means whichever arrangement THIS genome carries here, so the anchor is a default per locus and
+   * a manual pick still wins until the reader walks on.
+   *
+   * ⛔ Keyed on the label of what is **drawable**, not on the route. The route changes the instant
+   * the reader clicks, before any response has arrived — so watching it computed the default from
+   * the PREVIOUS locus's arrangements and then never corrected itself, silently drawing rank 1 at
+   * every anchored locus. Keying on the drawn locus also gives the right behaviour while
+   * `refreshing`: the previous track stays up with its own arrangement until the new one lands.
+   *
+   * ⚠ And it must not be the route for a second reason: flipping the walk direction is the same
+   * locus seen the other way round, and must not reset the reader's arrangement choice or shut
+   * their popover.
+   */
+  watch(
+    () => drawable.value?.locus.label ?? null,
+    (label, previousLabel) => {
+      if (label === previousLabel) return;
+      selectedArrangementIndex.value = defaultArrangementIndex(drawable.value);
+      openPopoverSlot.value = null;
+    },
+  );
+
+  /**
+   * The anchored genome's arrangement if it carries one, else rank 1.
+   *
+   * ⛔ Takes the FIRST of the anchor's ranks. A genome at rho > 1 sits in two arrangements at one
+   * locus and the track can only draw one of them — the same rule as the published page's bisect,
+   * which returns the lowest rank for exactly this reason.
+   */
+  function defaultArrangementIndex(detail: LocusDetailResponse | null): number {
+    if (detail === null) return 0;
+    const ranks = detail.anchor.arrangement_ranks;
+    if (ranks.length === 0) return 0;
+    const wanted = Math.min(...ranks);
+    const index = detail.arrangements.listed.findIndex(
+      (arrangement) => arrangement.rank === wanted,
+    );
+    return index >= 0 ? index : 0;
+  }
+
+  /** The arrangement actually drawn, or `null` where the locus has no recorded neighbourhood. */
+  const drawnArrangement = computed<Arrangement | null>(() => {
+    const listed = drawable.value?.arrangements.listed ?? [];
+    return listed[selectedArrangementIndex.value] ?? listed[0] ?? null;
+  });
+
+  /**
+   * ⭐ The mirroring applied to draw the current row — the arrangement's own recorded
+   * reverse-complement composed with the reader's walk direction, and the two CANCEL.
+   *
+   * With no arrangement drawn only the walk contributes, which is the marginal fallback.
+   */
+  const displayMirror = computed<DisplayMirror>(() => {
+    const arrangement = drawnArrangement.value;
+    return arrangement === null
+      ? marginalDisplayMirror(walkDirection.value)
+      : displayMirrorApplied(arrangement.is_recorded_reverse_complement, walkDirection.value);
+  });
+
+  /** The ten slots in the order the reader sees them, strand bits already mirrored. */
+  const slotsShown = computed<readonly NeighbourSlot[] | null>(() => {
+    const arrangement = drawnArrangement.value;
+    return arrangement === null
+      ? null
+      : slotsInDisplayOrder(arrangement.slots, displayMirror.value);
+  });
+
+  /** Whether the anchored genome carries the arrangement currently drawn. */
+  const drawnArrangementIsAnchored = computed(() => {
+    const arrangement = drawnArrangement.value;
+    const detail = drawable.value;
+    if (arrangement === null || detail === null || !detail.anchor.is_anchored) return false;
+    return detail.anchor.arrangement_ranks.includes(arrangement.rank);
+  });
+
+  /** Absolute. Ignores an index the response does not carry rather than clamping into a neighbour. */
+  function selectArrangement(index: number): void {
+    const listed = drawable.value?.arrangements.listed ?? [];
+    if (index < 0 || index >= listed.length) return;
+    selectedArrangementIndex.value = index;
+    // ⚠ The popover names a position on the row that is going away, so it closes with it.
+    openPopoverSlot.value = null;
+  }
+
+  /** Open the popover for a display column, or close it if that column is already open. */
+  function togglePopoverAt(display: DisplaySlot): void {
+    const observed = observedSlotFor(display, displayMirror.value);
+    openPopoverSlot.value = openPopoverSlot.value === observed ? null : observed;
+  }
+
+  function closePopover(): void {
+    openPopoverSlot.value = null;
+  }
+
+  /**
+   * Walk to the locus in a display column.
+   *
+   * ⛔ The direction is computed from the strand relation **as shown** — already mirrored by
+   * `slotsInDisplayOrder` — and handed to `walkDirectionAfterStep`, which is absolute. Passing the
+   * recorded relation instead, or composing with the current direction, is the two-mirrorings bug.
+   *
+   * Returns the direction it walked in, or `null` if that column has no occupant to walk to.
+   */
+  async function walkTo(display: DisplaySlot): Promise<WalkDirection | null> {
+    const shown = slotsShown.value;
+    if (shown === null) return null;
+    const slot = shown[display];
+    if (slot === undefined || slot.locus === null || slot.same_strand === null) return null;
+    const direction = walkDirectionAfterStep(slot.same_strand);
+    await navigation.navigateTo(slot.locus, direction);
+    return direction;
+  }
+
+  /**
+   * The strand relation a reader sees at a display column, for drawing the arrow.
+   *
+   * ⚠ Anything that draws an arrow must come through here or through `slotsShown`. The published
+   * page's marginal list and its no-arrangement fallback both used the raw recorded value and
+   * pointed the wrong way under a reversed walk.
+   */
+  function shownStrandAt(display: DisplaySlot): boolean | null {
+    const shown = slotsShown.value;
+    if (shown !== null) return shown[display]?.same_strand ?? null;
+    // The marginal fallback: no arrangement, so the recorded mode is raw and needs mirroring here.
+    const observed = observedSlotFor(display, displayMirror.value);
+    const marginal = drawable.value?.offsets[observed];
+    const top = marginal?.occupants[0];
+    if (top === undefined || marginal === undefined || marginal.observed_member_count === 0) {
+      return null;
+    }
+    const recorded = top.same_strand_gene_count * 2 >= top.gene_count;
+    return strandRelationAsShown(recorded, displayMirror.value);
+  }
+
+  return {
+    selectedArrangementIndex,
+    openPopoverSlot,
+    drawnArrangement,
+    drawnArrangementIsAnchored,
+    displayMirror,
+    slotsShown,
+    selectArrangement,
+    togglePopoverAt,
+    closePopover,
+    walkTo,
+    shownStrandAt,
+    defaultArrangementIndex,
+  };
+});
