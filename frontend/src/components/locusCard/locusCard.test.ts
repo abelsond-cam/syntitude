@@ -42,6 +42,7 @@ function projection(representation: Representation, mean: number): MapProjection
     extent: [0, 0, 1, 1],
     cosine_scale_factor: 10_000,
     null_mean_cosine: mean,
+    scatter_sprite: null,
     null_bin_lower_edge: -0.1,
     null_bin_width: 0.1,
     null_bin_counts: [1, 4, 30, 12, 3, 1, 0, 0, 0, 0, 0, 0],

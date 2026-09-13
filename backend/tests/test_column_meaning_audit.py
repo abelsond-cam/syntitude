@@ -56,8 +56,9 @@ def test_the_census_examines_every_column_and_NAMES_what_it_could_not(census, lo
     """⛔ A census that omitted its empty tables would report full coverage over half the schema."""
     observations = list(census.values())
     assert len(observations) >= 320, f"examined {len(observations)} columns"
-    # 27 since `pfam_family` — the public Pfam reference the card's chips are resolved from.
-    assert len({row.table for row in observations}) == 27
+    # 28 since `locus_map_scatter_sprite` — the whole-catalogue dust, rendered once at ingest
+    # because it is the one part of the map that is O(catalogue).
+    assert len({row.table for row in observations}) == 28
     unexamined = sorted({row.table for row in observations if row.is_empty})
     # ⚠ One table is legitimately empty: the roster build report belongs to the Klebsiella lineage.
     assert unexamined == ["genome_collection_build_report"]

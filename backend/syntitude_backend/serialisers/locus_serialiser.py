@@ -346,6 +346,11 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
                     "esm": row.esm_within_medoid_distance,
                     "bacformer": row.bacformer_within_medoid_distance,
                 },
+                # ⭐ Where this locus sits on the whole-catalogue SPRITE, per representation —
+                # quantised `map_x`/`map_y`, `null` where it has no medoid and so is not on the
+                # picture. ⚠ Here rather than in a second request because the "these loci" ↔ "whole
+                # catalogue" switch must be zero-fetch, like every other thing the popover does.
+                "map_position": row.map_position,
                 "display_name": row.display_name,
                 "display_name_source": row.display_name_source,
                 "genome_count": row.member_genome_count,

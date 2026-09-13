@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from flask import Blueprint, current_app, jsonify, request
 
+from syntitude_backend.models.enumerations import EmbeddingRepresentation
 from syntitude_backend.serialisers.locus_serialiser import (
     serialise_annotation_entry,
     serialise_arrangement,
@@ -33,6 +34,7 @@ from syntitude_backend.services.locus_search_service import DEFAULT_RESULT_LIMIT
 from syntitude_backend.services.species_catalogue_service import (
     SpeciesNotPublished,
     list_published_species,
+    load_scatter_sprite,
     load_species_catalogue,
 )
 
@@ -167,6 +169,11 @@ def get_species_catalogue(species_key: str):
                         "null_bin_counts": projection.null_bin_counts,
                         # ⭐ The other half of "p12 of 12,104 loci".
                         "separation_measurable_locus_count": projection.separation_measurable_locus_count,
+                        # ⭐ The whole-catalogue dust, which is a PICTURE — the descriptor only, and
+                        # `null` where this representation has no sprite. Its bytes come from
+                        # `/map/{rep}/scatter.png`; the viewport in here is what the client projects
+                        # the six foreground dots with, and it must not compute one of its own.
+                        "scatter_sprite": catalogue.scatter_sprites.get(projection.representation.value),
                     }
                     for projection in catalogue.map_projections
                 ],
@@ -180,6 +187,51 @@ def get_species_catalogue(species_key: str):
 def _resolve_pangenome(session, species_key: str):
     catalogue = load_species_catalogue(session, species_key)
     return catalogue.pangenome
+
+
+@species_blueprint.get("/species/<species_key>/map/<representation>/scatter.png")
+def get_catalogue_scatter_sprite(species_key: str, representation: str):
+    """⭐ The whole catalogue as one picture — the only endpoint that does not return JSON.
+
+    Every other thing the map needs is a number. The dust behind the six dots is the one part that
+    is O(catalogue): 889,160 positions at the design target, sent to draw a texture out of which no
+    reader ever reads a value.
+
+    ⚠ **Its ETag is the CONTENT digest, not the pangenome id.** Every JSON response here is keyed on
+    the build because a build is what changes it; an image, though, is cached hard and for a long
+    time by browsers and proxies we do not control, so a re-render under the same pangenome id has
+    to be able to invalidate it. The client also appends the digest as `?v=`, which makes the URL
+    itself immutable and the cache entry permanent.
+    """
+    if representation not in {member.value for member in EmbeddingRepresentation}:
+        return _not_found(f"no representation {representation!r}")
+
+    with _session() as session:
+        try:
+            pangenome = _resolve_pangenome(session, species_key)
+        except SpeciesNotPublished as error:
+            return _not_found(str(error))
+
+        sprite = load_scatter_sprite(session, pangenome.pangenome_id, representation)
+        # ⛔ A missing sprite is a 404 that SAYS SO, never an empty 200 and never a blank PNG: a
+        # blank square reads as "this catalogue has no loci anywhere", which is a different claim
+        # and a false one.
+        if sprite is None:
+            return _not_found(
+                f"{species_key} has no {representation} scatter sprite — its catalogue map was "
+                "never built for that representation"
+            )
+
+        etag = f'"{sprite.content_digest}"'
+        if request.if_none_match.contains_weak(sprite.content_digest):
+            response = current_app.response_class(status=304)
+        else:
+            response = current_app.response_class(sprite.image_png, mimetype=sprite.image_media_type)
+        response.headers["ETag"] = etag
+        # `immutable` on top of the year: the URL carries the digest, so this exact URL can never
+        # describe different bytes.
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return response
 
 
 @species_blueprint.get("/species/<species_key>/loci/<path:locus_label>")

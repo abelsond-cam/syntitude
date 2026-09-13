@@ -18,9 +18,16 @@ from dataclasses import dataclass, field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.enumerations import EvaluationKind, PrevalenceBand
+from syntitude_backend.models.enumerations import (
+    EmbeddingRepresentation,
+    EvaluationKind,
+    PrevalenceBand,
+)
 from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_embedding_geometry import LocusMapProjection
+from syntitude_backend.models.locus_embedding_geometry import (
+    LocusMapProjection,
+    LocusMapScatterSprite,
+)
 from syntitude_backend.models.nuna_model import NunaModel
 from syntitude_backend.models.pangenome import Pangenome, PangenomeEvaluation, PangenomeStep
 from syntitude_backend.models.pathogen_species import PathogenSpecies
@@ -56,6 +63,9 @@ class SpeciesCatalogue:
     prevalence_census: dict = field(default_factory=dict)
     audit_headline: dict = field(default_factory=dict)
     map_projections: list = field(default_factory=list)
+    #: ⚠ Descriptors ONLY — never the bytes. The species response is JSON and the sprite is a
+    #: megabyte of PNG; they travel by different routes on purpose.
+    scatter_sprites: dict = field(default_factory=dict)
     landing_locus_label: str | None = None
     example_locus_labels: list = field(default_factory=list)
 
@@ -129,6 +139,7 @@ def load_species_catalogue(session: Session, species_key: str) -> SpeciesCatalog
             select(LocusMapProjection).where(LocusMapProjection.pangenome_id == pangenome.pangenome_id)
         ).scalars()
     )
+    catalogue.scatter_sprites = load_scatter_sprite_descriptors(session, pangenome.pangenome_id)
 
     wanted = [pangenome.landing_locus_id, *(pangenome.example_locus_ids or [])]
     labels = {
@@ -144,3 +155,61 @@ def load_species_catalogue(session: Session, species_key: str) -> SpeciesCatalog
         labels[locus_id] for locus_id in (pangenome.example_locus_ids or []) if locus_id in labels
     ]
     return catalogue
+
+
+def load_scatter_sprite_descriptors(session: Session, pangenome_id: int) -> dict:
+    """Everything about the whole-catalogue sprite EXCEPT its bytes, keyed by representation.
+
+    ⛔ **The columns are named one by one, and that is the point.** `select(LocusMapScatterSprite)`
+    would pull a megabyte of PNG into the species response's session for every page load, to send a
+    dozen numbers. The blob has its own endpoint because it has its own content type, its own cache
+    lifetime and its own ETag; this query must never be the thing that fetches it.
+    """
+    rows = session.execute(
+        select(
+            LocusMapScatterSprite.representation,
+            LocusMapScatterSprite.pixel_size,
+            LocusMapScatterSprite.viewport_centre_x,
+            LocusMapScatterSprite.viewport_centre_y,
+            LocusMapScatterSprite.viewport_span,
+            LocusMapScatterSprite.dust_radius_pixels,
+            LocusMapScatterSprite.alpha_per_locus,
+            LocusMapScatterSprite.plotted_locus_count,
+            LocusMapScatterSprite.unplotted_locus_count,
+            LocusMapScatterSprite.content_digest,
+        ).where(LocusMapScatterSprite.pangenome_id == pangenome_id)
+    ).all()
+    return {
+        row.representation.value: {
+            "pixel_size": row.pixel_size,
+            # ⛔ The transform the renderer ACTUALLY used, in the quantised units of `map_x`/`map_y`.
+            # The client projects the six foreground dots with exactly these, never with the extent:
+            # a re-derived viewport puts the focal dot beside its own speck, not on it.
+            "viewport_centre": [row.viewport_centre_x, row.viewport_centre_y],
+            "viewport_span": row.viewport_span,
+            "dust_radius_pixels": row.dust_radius_pixels,
+            "alpha_per_locus": row.alpha_per_locus,
+            # ⭐ Both counts. The published caption quoted the CATALOGUE size — a locus with no
+            # medoid is not on this picture at all, and the page now says which number it means.
+            "plotted_locus_count": row.plotted_locus_count,
+            "unplotted_locus_count": row.unplotted_locus_count,
+            # ⚠ The ETag, and the client's cache-buster. Not the pangenome id — an image is cached
+            # hard by caches we do not control, so a re-render must be able to invalidate it.
+            "content_digest": row.content_digest,
+        }
+        for row in rows
+    }
+
+
+def load_scatter_sprite(session: Session, pangenome_id: int, representation: str):
+    """The sprite bytes and their digest, or `None` where this representation has no map."""
+    return session.execute(
+        select(
+            LocusMapScatterSprite.image_png,
+            LocusMapScatterSprite.image_media_type,
+            LocusMapScatterSprite.content_digest,
+        ).where(
+            LocusMapScatterSprite.pangenome_id == pangenome_id,
+            LocusMapScatterSprite.representation == EmbeddingRepresentation(representation),
+        )
+    ).one_or_none()

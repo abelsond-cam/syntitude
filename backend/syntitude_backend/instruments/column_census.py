@@ -127,6 +127,17 @@ def census_column(session: Session, table, column) -> ColumnObservation:
         observation.minimum, observation.maximum = lengths
         return observation
 
+    # ⚠ A blob has no length, no distinct set worth counting and no min/max — but "we did not look
+    # at it" and "there was nothing to see" must not read the same, which is this instrument's whole
+    # premise. Its size distribution is the one fact that can be wrong: a sprite of 300 bytes is a
+    # blank square, and nothing else in the schema would say so.
+    if "BYTEA" in kind or "BLOB" in kind:
+        observation.minimum, observation.maximum = session.execute(
+            select(func.min(func.octet_length(column)), func.max(func.octet_length(column)))
+            .select_from(table)
+        ).one()
+        return observation
+
     if any(token in kind for token in ("CHAR", "TEXT")):
         observation.minimum_text_length, observation.maximum_text_length = session.execute(
             select(func.min(func.length(column)), func.max(func.length(column))).select_from(table)

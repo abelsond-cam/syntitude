@@ -27,6 +27,7 @@ from syntitude_backend.models.locus_arrangement import LocusArrangement  # noqa:
 from syntitude_backend.models.locus_embedding_geometry import (  # noqa: F401
     LocusEmbeddingGeometry,
     LocusMapProjection,
+    LocusMapScatterSprite,
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant  # noqa: F401
 from syntitude_backend.models.nuna_model import NunaModel, NunaModelStep  # noqa: F401
@@ -57,6 +58,7 @@ __all__ = [
     "LocusArrangement",
     "LocusEmbeddingGeometry",
     "LocusMapProjection",
+    "LocusMapScatterSprite",
     "LocusOffsetOccupant",
     "LocusUnirefFamilyCrosstab",
     "NunaModel",

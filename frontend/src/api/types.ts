@@ -180,6 +180,17 @@ export interface NeighbourDisplayRow {
    */
   readonly best_product: string | null;
   /**
+   * ⭐ Where this locus sits on the **whole-catalogue sprite**, per representation — the quantised
+   * `map_x`/`map_y`, in the units {@link projectOntoSprite} expects.
+   *
+   * ⛔ `null` is *not on the picture at all* — a locus with no medoid never reached the map — and is
+   * emphatically not a position of `0, 0`, which is a PLACE, in the middle of the frame.
+   *
+   * ⚠ It rides along here rather than being fetched when the reader switches zoom, because every
+   * zoom, every arrangement and every popover on this page is **zero round trips**.
+   */
+  readonly map_position: Readonly<Record<Representation, MapPosition | null>>;
+  /**
    * ⭐ The map's RING for this locus, per representation — its own members' median distance from its
    * centre, at true scale. *"A ring reaching a neighbour is a spread that reaches it."*
    *
@@ -331,6 +342,34 @@ export interface ModelStep {
   readonly stage_detail: string | null;
 }
 
+/** A position on the catalogue map, in quantised units — the same integers the sprite was drawn from. */
+export type MapPosition = readonly [number, number];
+
+/**
+ * ⭐ The whole-catalogue scatter, as a picture rather than an array — the one part of the map that
+ * is O(catalogue). Its BYTES come from `/species/{key}/map/{rep}/scatter.png`; this is everything
+ * needed to draw on top of them.
+ */
+export interface CatalogueScatterSprite {
+  readonly pixel_size: number;
+  /**
+   * ⛔⛔ **The transform the renderer actually used, and the client must not compute one of its
+   * own.** See `lib/catalogueMapViewport.ts`: a re-derived viewport puts the focal dot beside its
+   * own speck rather than on it, and the picture still looks like a picture.
+   */
+  readonly viewport_centre: readonly [number, number];
+  readonly viewport_span: number;
+  /** What one locus looks like on the picture, so the caption can say so. */
+  readonly dust_radius_pixels: number;
+  readonly alpha_per_locus: number;
+  /** ⭐ What is ON the picture — NOT the catalogue size, which is what the published caption quoted. */
+  readonly plotted_locus_count: number;
+  /** Loci with no medoid: they never reached the map and have no speck. */
+  readonly unplotted_locus_count: number;
+  /** ⚠ The ETag and the cache-buster — sha256 of the bytes, not the pangenome id. */
+  readonly content_digest: string;
+}
+
 export interface MapProjection {
   readonly representation: Representation;
   readonly method: string;
@@ -344,6 +383,8 @@ export interface MapProjection {
   readonly null_bin_counts: readonly number[] | null;
   /** ⭐ The other half of "p12 of 12,104 loci". */
   readonly separation_measurable_locus_count: number | null;
+  /** `null` where this representation has no rendered sprite — the global zoom is then unavailable. */
+  readonly scatter_sprite: CatalogueScatterSprite | null;
 }
 
 export interface SpeciesCatalogueResponse {

@@ -108,9 +108,10 @@ export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitu
 ```
 
 Then **publish** — a separate, explicit step, because the pointer is what the service reads and a
-load that is not published changes nothing a reader can see. `--publish` verifies eight things about
-the catalogue (locus count against the row count, the landing locus, both map representations, every
-locus named …) and refuses to move the pointer if any fails.
+load that is not published changes nothing a reader can see. `--publish` verifies eleven things about
+the catalogue (locus count against the row count, the landing locus, both map representations, both
+**catalogue scatter sprites** and that each accounts for every locus, every locus named …) and
+refuses to move the pointer if any fails.
 
 ```bash
 .venv/bin/python -m syntitude_backend.ingest --stage pangenome --publish  ...  # as above
@@ -126,10 +127,30 @@ locus named …) and refuses to move the pointer if any fails.
 | `GET …/loci/{label}/arrangements` | `focalCard`'s full scroller, paged |
 | `GET …/loci/{label}/function` | `renderFunction`, on tab open |
 | `GET /api/v1/species/{key}/search` | `search()` and the 3.0 MB `HAY` |
+| `GET /api/v1/species/{key}/map/{rep}/scatter.png` | ⭐ `drawGlobal`'s catalogue dust — the one non-JSON response |
 
 Measured on the loaded *E. coli* catalogue: the landing locus is **11.8 kB in 36 ms**, and a locus
 view is **8 statements whether it resolves 2 neighbours or 49** — the property
 `tests/test_api_endpoints.py` asserts, rather than a recorded budget that could be re-baselined.
+
+⭐ **The scatter sprite is a picture because it is the one part of the map that is O(catalogue).**
+Everything else the map needs is a handful of numbers; the dust behind the six dots is 889,160
+positions at the design target, sent on every page load to draw a texture no reader reads a value
+out of. Rendered once at ingest into `locus_map_scatter_sprite` and served with an **ETag that is
+the content digest** — not the pangenome id like every JSON response here — because an image is
+cached hard by caches we do not control, so a re-render has to be able to invalidate it.
+
+⚠ **It does not win at today's size, and that is fine.** Measured: 17,531 loci is ~118 kB as a
+sprite against ~70 kB of raw positions; the crossover is near 30k loci, and at 889,160 the positions
+are 3.56 MB while the sprite is ~0.3 MB. A sprite is bounded by 1200² pixels; a coordinate array is
+bounded by nothing.
+
+⛔ **The sprite's four viewport columns are a contract, not metadata.** The published page could
+project the six foreground loci itself because it held every coordinate; a client holding only the
+picture cannot. Re-derive the transform anywhere and the focal dot lands *beside* its own speck
+rather than on it — and the result still looks exactly like a scatter plot with a highlighted point.
+`test_a_REAL_locus_projected_with_the_SERVED_viewport_lands_on_LIT_dust` checks 2,000 real loci
+against the actual PNG bytes for precisely that.
 
 ⭐ **The parity suites need a loaded database.** `tests/test_catalogue_parity.py` (T1, T3a, T5, T7)
 reads `SYNTITUDE_DATABASE_URL` and compares every locus against the published catalogue in

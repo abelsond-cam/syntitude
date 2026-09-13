@@ -39,6 +39,7 @@ from syntitude_backend.ingest.derive_locus_ranking import (
     ranking,
     separation_index,
 )
+from syntitude_backend.ingest.render_catalogue_scatter_sprite import render_catalogue_scatter_sprite
 from syntitude_backend.ingest.staging_table_loader import copy_rows
 from syntitude_backend.models.enumerations import (
     AnnotationKind,
@@ -55,6 +56,7 @@ from syntitude_backend.models.locus_embedding_geometry import (
     NOWHERE_SENTINEL,
     LocusEmbeddingGeometry,
     LocusMapProjection,
+    LocusMapScatterSprite,
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
@@ -83,6 +85,7 @@ class CatalogueLoadReport:
     intergenic_gap_features: int = 0
     map_projections: int = 0
     embedding_geometry_rows: int = 0
+    scatter_sprites: list = field(default_factory=list)
     landing_locus_label: str | None = None
     example_locus_labels: list[str] = field(default_factory=list)
     display_name_sources: dict = field(default_factory=dict)
@@ -105,6 +108,14 @@ class CatalogueLoadReport:
             f"({self.intergenic_gap_features:,} named features)",
             f"  map projections         {self.map_projections} "
             f"({self.embedding_geometry_rows:,} geometry rows)",
+            *(
+                # ⭐ A sprite reports BOTH counts. "17,531 loci" was the published caption and it was
+                # the catalogue size, not the number of specks on the picture.
+                f"  scatter sprite {sprite['representation']:<9s} {sprite['plotted']:,} plotted, "
+                f"{sprite['unplotted']:,} with no medoid — {sprite['bytes']:,} B at "
+                f"{sprite['pixel_size']}²"
+                for sprite in self.scatter_sprites
+            ),
             f"  landing locus           {self.landing_locus_label}",
             f"  example loci            {', '.join(self.example_locus_labels)}",
             f"  display names           {self.display_name_sources}",
@@ -398,6 +409,7 @@ def _delete_pangenome_layer(session: Session, pangenome_id: int) -> None:
         (LocusOffsetOccupant, LocusOffsetOccupant.pangenome_id),
         (LocusArrangement, LocusArrangement.pangenome_id),
         (LocusMapProjection, LocusMapProjection.pangenome_id),
+        (LocusMapScatterSprite, LocusMapScatterSprite.pangenome_id),
     ):
         if column is None:
             session.query(IntergenicGapFeature).filter(
@@ -468,7 +480,11 @@ def ingest_locus_catalogue(
     report.intergenic_gaps, report.intergenic_gap_features = _load_intergenic_gaps(
         session, frames, pangenome_id, locus_id_by_label
     )
-    report.map_projections, report.embedding_geometry_rows = _load_map_geometry(
+    (
+        report.map_projections,
+        report.embedding_geometry_rows,
+        report.scatter_sprites,
+    ) = _load_map_geometry(
         session, frames, pangenome_id, locus_id_by_label, derived
     )
 
@@ -833,7 +849,7 @@ def _load_intergenic_gaps(session, frames, pangenome_id, locus_id_by_label) -> t
     return written, features
 
 
-def _load_map_geometry(session, frames, pangenome_id, locus_id_by_label, derived) -> tuple[int, int]:
+def _load_map_geometry(session, frames, pangenome_id, locus_id_by_label, derived) -> tuple[int, int, list]:
     """The two projections and their per-locus six-point geometry.
 
     ⛔ `nearest_locus_ordinals` stays as **catalogue ordinals with `-1` for absent**, because slots
@@ -853,6 +869,7 @@ def _load_map_geometry(session, frames, pangenome_id, locus_id_by_label, derived
     }
     projections = 0
     geometry_rows = 0
+    sprites: list[dict] = []
     for representation in REPRESENTATIONS:
         entry = geometry.get(representation)
         if entry is None:
@@ -942,7 +959,43 @@ def _load_map_geometry(session, frames, pangenome_id, locus_id_by_label, derived
 
         geometry_rows += copy_rows(session, LocusEmbeddingGeometry.__table__, columns, rows())
 
+        # ⭐ The whole-catalogue dust, rendered from the SAME quantised arrays that were just
+        # written — so the sprite and `map_x`/`map_y` cannot be projections of different numbers.
+        # ⛔ `unplotted` is measured here and only here: a locus with no medoid never reaches the map
+        # CSV, so it has no geometry row and no speck, and the catalogue size is not what the
+        # picture shows. Deriving it downstream would mean subtracting two counts from two tables.
+        sprite = render_catalogue_scatter_sprite(
+            quantised_x,
+            quantised_y,
+            unplotted_locus_count=len(locus_id_by_label) - len(labels),
+        )
+        session.add(
+            LocusMapScatterSprite(
+                pangenome_id=pangenome_id,
+                representation=EmbeddingRepresentation(representation),
+                image_png=sprite.image_png,
+                pixel_size=sprite.pixel_size,
+                viewport_centre_x=sprite.viewport_centre_x,
+                viewport_centre_y=sprite.viewport_centre_y,
+                viewport_span=sprite.viewport_span,
+                dust_radius_pixels=sprite.dust_radius_pixels,
+                alpha_per_locus=sprite.alpha_per_locus,
+                plotted_locus_count=sprite.plotted_locus_count,
+                unplotted_locus_count=sprite.unplotted_locus_count,
+                content_digest=sprite.content_digest,
+            )
+        )
+        sprites.append(
+            {
+                "representation": representation,
+                "plotted": sprite.plotted_locus_count,
+                "unplotted": sprite.unplotted_locus_count,
+                "bytes": len(sprite.image_png),
+                "pixel_size": sprite.pixel_size,
+            }
+        )
+
     # ⚠ A locus with no medoid never reaches the map CSV at all, so it simply has no geometry row —
     # which is why `NOWHERE_SENTINEL` is a column default and not something written here.
     assert NOWHERE_SENTINEL == -32768
-    return projections, geometry_rows
+    return projections, geometry_rows, sprites

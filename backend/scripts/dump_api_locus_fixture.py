@@ -33,6 +33,13 @@ with Session(engine) as session:
 
 client = app.test_client()
 out = {"recorded_from": "the API test client", "loci": {}}
+
+# ⭐ The species response too, for the catalogue map: the sprite's viewport comes from THIS endpoint
+# and the loci's positions from the other, so the pair is the only thing that can show them
+# disagreeing — and a disagreement is a picture that still looks like a picture.
+species = client.get("/api/v1/species/ecoli")
+assert species.status_code == 200, species.status_code
+out["species"] = species.get_json()
 for name, label in (("ordinary", ordinary), ("over_cap", over_cap), ("no_window", no_window)):
     response = client.get(f"/api/v1/species/ecoli/loci/{label}")
     assert response.status_code == 200, (name, label, response.status_code)

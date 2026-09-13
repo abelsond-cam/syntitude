@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, Float, ForeignKey, Integer, SmallInteger, String, UniqueConstraint
+from sqlalchemy import (
+    BigInteger,
+    Float,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    SmallInteger,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -105,3 +114,61 @@ class LocusEmbeddingGeometry(Base):
     #: real fit of those six, not a crop of a global one. The gene UMAP died because a crop was
     #: exactly what it was: six nearest loci spanned a median 18.5 % of the map.
     pairwise_cosine_scaled: Mapped[list[int]] = mapped_column(ARRAY(SmallInteger), nullable=False)
+
+
+class LocusMapScatterSprite(Base):
+    """⭐ The whole-catalogue dust, pre-rendered — the one part of the map that is O(catalogue).
+
+    At the design target a representation's positions are 889,160 × two int16 = 3.5 MB sent on every
+    page load to draw a texture out of which no reader ever reads a value. A 1200² PNG is a fraction
+    of that and does not grow with the catalogue, which is the argument `serving_at_scale.md` §6 made
+    and could not act on.
+
+    ⛔ **The viewport columns are the contract between this picture and the dots drawn on top.** The
+    published page could project the six foreground loci itself because it held every coordinate; a
+    client holding only the sprite cannot, and one that re-derives the transform from the extent puts
+    the focal dot *beside* its own speck rather than on it — with a picture that still looks like a
+    picture. So the renderer records the numbers it actually used and the client projects with those,
+    never with anything it computed. ⚠ They are in the **quantised** units of `map_x`/`map_y`, which
+    is what makes that projection a subtraction and a scale rather than a unit conversion.
+
+    ⚠ **Its own grain is (pangenome, representation) — the same as `LocusMapProjection`** — and it is
+    a separate table anyway, because a `bytea` on that row would be pulled into the species response
+    by every unguarded `select(LocusMapProjection)`. Separating them makes "never select the blob by
+    accident" structural rather than a convention someone has to remember.
+    """
+
+    __tablename__ = "locus_map_scatter_sprite"
+    __table_args__ = (UniqueConstraint("pangenome_id", "representation"),)
+
+    locus_map_scatter_sprite_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    pangenome_id: Mapped[int] = mapped_column(
+        ForeignKey("pangenome.pangenome_id", ondelete="CASCADE"), nullable=False
+    )
+    representation: Mapped[EmbeddingRepresentation] = mapped_column(nullable=False)
+
+    image_png: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    #: Stated, not assumed. The endpoint serves whatever this says rather than hard-coding a type
+    #: beside bytes it did not encode.
+    image_media_type: Mapped[str] = mapped_column(String(32), nullable=False, default="image/png")
+
+    pixel_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    #: ⛔ The four numbers the renderer used. See the class docstring — do not re-derive them.
+    viewport_centre_x: Mapped[float] = mapped_column(Float, nullable=False)
+    viewport_centre_y: Mapped[float] = mapped_column(Float, nullable=False)
+    viewport_span: Mapped[float] = mapped_column(Float, nullable=False)
+    #: What one locus looks like, so a caption can say so and a re-render is comparable.
+    dust_radius_pixels: Mapped[float] = mapped_column(Float, nullable=False)
+    alpha_per_locus: Mapped[float] = mapped_column(Float, nullable=False)
+
+    #: ⭐ The honest denominator. The published caption read "among all 17,531" — the catalogue size
+    #: — but a locus with no medoid never reaches the map CSV and so has no geometry row and no
+    #: speck. Both halves are stored so the page can say which number it is quoting.
+    plotted_locus_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    unplotted_locus_count: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    #: ⚠ **sha256 of the bytes, and it is the ETag** — not the pangenome id, which every other
+    #: response uses. An image is cached hard and for a long time by things we do not control, so a
+    #: re-render under the same pangenome id must be able to invalidate it; the client appends this
+    #: to the URL and the endpoint answers `If-None-Match` with it.
+    content_digest: Mapped[str] = mapped_column(String(64), nullable=False)

@@ -24,10 +24,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from sqlalchemy import or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_, select
+from sqlalchemy.orm import Session, aliased
 
-from syntitude_backend.models.enumerations import AnnotationKind
+from syntitude_backend.models.enumerations import AnnotationKind, EmbeddingRepresentation
 from syntitude_backend.models.intergenic_gap import IntergenicGap
 from syntitude_backend.models.locus import Locus
 from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
@@ -92,6 +92,12 @@ class NeighbourDisplayRow:
     member_genome_count: int
     median_gene_length_nt: int | None
     prevalence_band: str
+    #: ⭐ Where this locus sits on the WHOLE-CATALOGUE sprite, per representation — quantised
+    #: `map_x`/`map_y`, `None` where the locus has no medoid and so is not on the picture at all.
+    #: ⚠ Needed here rather than fetched per dot, because the global map's five nearest are named by
+    #: `catalogue_ordinal` and the switch from "these loci" to "whole catalogue" must be
+    #: **zero-fetch**: the popover is offline and so is every zoom.
+    map_position: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -320,6 +326,7 @@ def load_locus_detail(
         locus_ids=neighbour_locus_ids,
         catalogue_ordinals=neighbour_ordinals,
         focal_locus=locus,
+        focal_geometry=detail.geometry,
     )
     # ⚠ Every DISTINCT locus the block resolved, across BOTH key spaces — not just the marginal
     # occupants. It counted only `by_locus_id` while the block already carried arrangement occupants
@@ -352,11 +359,18 @@ def _neighbour_display_rows(
     locus_ids: set[int],
     catalogue_ordinals: set[int],
     focal_locus: Locus,
+    focal_geometry: dict,
 ) -> NeighbourDisplayIndex:
     """Every locus this response refers to, by either address — **one statement, always**."""
     index = NeighbourDisplayIndex()
     if not locus_ids and not catalogue_ordinals:
         return index
+    # ⭐ **Two OUTER joins, not two queries.** Each neighbour's position on the catalogue sprite
+    # is one row of `locus_embedding_geometry` per representation; joining them here keeps the
+    # neighbour block at the one statement its docstring promises, and an INNER join would silently
+    # drop every neighbour with no medoid — which is a blank block where a real locus is.
+    esm_geometry = aliased(LocusEmbeddingGeometry)
+    bacformer_geometry = aliased(LocusEmbeddingGeometry)
     rows = session.execute(
         select(
             Locus.locus_id,
@@ -370,7 +384,26 @@ def _neighbour_display_rows(
             Locus.member_genome_count,
             Locus.median_gene_length_nt,
             Locus.prevalence_band,
-        ).where(
+            esm_geometry.map_x,
+            esm_geometry.map_y,
+            bacformer_geometry.map_x,
+            bacformer_geometry.map_y,
+        )
+        .outerjoin(
+            esm_geometry,
+            and_(
+                esm_geometry.locus_id == Locus.locus_id,
+                esm_geometry.representation == EmbeddingRepresentation.ESM,
+            ),
+        )
+        .outerjoin(
+            bacformer_geometry,
+            and_(
+                bacformer_geometry.locus_id == Locus.locus_id,
+                bacformer_geometry.representation == EmbeddingRepresentation.BACFORMER,
+            ),
+        )
+        .where(
             Locus.pangenome_id == pangenome_id,
             # ⛔⛔ `catalogue_ordinals` on the second branch, NOT `locus_ids`. This line read
             # `catalogue_ordinal.in_(locus_ids)` — the precise mistake the comment at the call site
@@ -387,7 +420,10 @@ def _neighbour_display_rows(
             or_(Locus.locus_id.in_(locus_ids), Locus.catalogue_ordinal.in_(catalogue_ordinals)),
         )
     ).all()
-    for locus_id, ordinal, label, name, source, product, esm, bacformer, genomes, length, band in rows:
+    for (
+        locus_id, ordinal, label, name, source, product, esm, bacformer, genomes, length, band,
+        esm_x, esm_y, bacformer_x, bacformer_y,
+    ) in rows:
         row = NeighbourDisplayRow(
             locus_id=locus_id,
             catalogue_ordinal=ordinal,
@@ -400,6 +436,7 @@ def _neighbour_display_rows(
             member_genome_count=genomes,
             median_gene_length_nt=length,
             prevalence_band=band.value,
+            map_position=_map_position_pair(esm_x, esm_y, bacformer_x, bacformer_y),
         )
         if locus_id in locus_ids:
             index.by_locus_id[locus_id] = row
@@ -419,10 +456,34 @@ def _neighbour_display_rows(
         member_genome_count=focal_locus.member_genome_count,
         median_gene_length_nt=focal_locus.median_gene_length_nt,
         prevalence_band=focal_locus.prevalence_band.value,
+        # ⚠ From the geometry already loaded above, not from a second query — and the focal locus
+        # really can be its own neighbour (tandem repeats), so it needs a position like any other.
+        map_position={
+            representation: (
+                None if geometry is None else [geometry.map_x, geometry.map_y]
+            )
+            for representation, geometry in (
+                ("esm", focal_geometry.get("esm")),
+                ("bacformer", focal_geometry.get("bacformer")),
+            )
+        },
     )
     index.by_locus_id.setdefault(focal_locus.locus_id, focal)
     index.by_catalogue_ordinal.setdefault(focal_locus.catalogue_ordinal, focal)
     return index
+
+
+def _map_position_pair(esm_x, esm_y, bacformer_x, bacformer_y) -> dict:
+    """The two representations' sprite positions, `None` where the locus has no medoid there.
+
+    ⛔ `None` is *not on the picture*, which is a different thing from a position of `0, 0` — the
+    origin is a PLACE, in the middle of the map. That is the same reason the quantisation uses
+    `-32768` as its sentinel rather than zero.
+    """
+    return {
+        "esm": None if esm_x is None else [esm_x, esm_y],
+        "bacformer": None if bacformer_x is None else [bacformer_x, bacformer_y],
+    }
 
 
 def load_function_block(session: Session, *, locus_id: int) -> dict:

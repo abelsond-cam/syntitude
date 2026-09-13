@@ -685,3 +685,149 @@ def test_search_is_ONE_statement_however_many_hits_it_returns(application):
         result = search_loci(session, pangenome_id=1, query="ligase", limit=25)
     assert result.hits
     report.assert_at_most(1, what="a search over 17,531 loci")
+
+
+# ── the whole-catalogue sprite ─────────────────────────────────────────────────────────────────
+def _sprite_descriptor(client, species_key: str, representation: str):
+    payload = client.get(f"/api/v1/species/{species_key}").get_json()
+    for projection in payload["map_projections"]:
+        if projection["representation"] == representation:
+            return projection["scatter_sprite"]
+    raise AssertionError(f"no {representation} projection for {species_key}")
+
+
+def test_the_species_response_describes_the_sprite_WITHOUT_carrying_its_bytes(client):
+    """⚠ A megabyte of PNG must not ride in the JSON that every page load fetches."""
+    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
+    assert descriptor["pixel_size"] == 1200
+    assert len(descriptor["content_digest"]) == 64
+    assert "image_png" not in descriptor
+
+
+def test_the_sprite_counts_ACCOUNT_for_every_locus_in_the_catalogue(client):
+    """⭐ The honest denominator, checked as a sum rather than trusted as a label.
+
+    The published caption quoted the catalogue size; a locus with no medoid is not on the picture.
+    Plotted + unplotted must be the catalogue, or one of the two numbers means something else.
+    """
+    catalogue = client.get("/api/v1/species/ecoli").get_json()
+    locus_count = catalogue["pangenome"]["locus_count"]
+    for representation in ("bacformer", "esm"):
+        descriptor = _sprite_descriptor(client, "ecoli", representation)
+        total = descriptor["plotted_locus_count"] + descriptor["unplotted_locus_count"]
+        assert total == locus_count, f"{representation}: {total} vs {locus_count} loci"
+
+
+def test_the_sprite_endpoint_serves_a_png_that_is_cacheable_FOREVER(client):
+    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
+    response = client.get("/api/v1/species/ecoli/map/bacformer/scatter.png")
+    assert response.status_code == 200
+    assert response.mimetype == "image/png"
+    assert response.data[:8] == b"\x89PNG\r\n\x1a\n"
+    # ⚠ The ETag is the CONTENT digest, not the pangenome id like every JSON response here: an
+    # image is cached hard by caches we do not control, so a re-render must be able to invalidate it.
+    assert response.headers["ETag"] == f'"{descriptor["content_digest"]}"'
+    assert "immutable" in response.headers["Cache-Control"]
+
+
+def test_an_unchanged_sprite_answers_304_rather_than_resending_a_megabyte(client):
+    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
+    response = client.get(
+        "/api/v1/species/ecoli/map/bacformer/scatter.png",
+        headers={"If-None-Match": f'"{descriptor["content_digest"]}"'},
+    )
+    assert response.status_code == 304
+    assert not response.data
+
+
+def test_the_two_representations_are_DIFFERENT_pictures(client):
+    """⚠ They are different spaces; one sprite served for both would be a plausible wrong answer."""
+    bacformer = client.get("/api/v1/species/ecoli/map/bacformer/scatter.png").data
+    esm = client.get("/api/v1/species/ecoli/map/esm/scatter.png").data
+    assert bacformer != esm
+    assert len(bacformer) > 1000 and len(esm) > 1000
+
+
+def test_an_unknown_representation_is_a_NAMED_404_and_never_a_blank_image(client):
+    """⛔ A blank PNG reads as "this catalogue has no loci anywhere" — a claim, and a false one."""
+    response = client.get("/api/v1/species/ecoli/map/bacformerr/scatter.png")
+    assert response.status_code == 404
+    assert "bacformerr" in response.get_json()["detail"]
+
+
+def test_an_unpublished_species_says_which_thing_was_missing(client):
+    response = client.get("/api/v1/species/nosuchspecies/map/esm/scatter.png")
+    assert response.status_code == 404
+    assert response.get_json()["error"] == "not_found"
+
+
+def test_a_REAL_locus_projected_with_the_SERVED_viewport_lands_on_LIT_dust(client, application):
+    """⛔⛔ **The end-to-end version of the whole contract, on the real catalogue.**
+
+    Three artifacts have to agree: the PNG, the viewport the species endpoint publishes, and the
+    positions the locus endpoint publishes. If any pair disagrees every dot still draws — over dust
+    that looks exactly like dust — so nothing on the page could contradict it. This takes only what
+    a browser gets and checks the pixel underneath the dot.
+    """
+    import numpy
+    from sqlalchemy.orm import Session as OrmSession
+
+    from syntitude_backend.models.enumerations import EmbeddingRepresentation
+    from syntitude_backend.models.locus_embedding_geometry import LocusEmbeddingGeometry
+
+    from .test_catalogue_scatter_sprite import decode_greyscale_alpha_png
+
+    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
+    image = client.get("/api/v1/species/ecoli/map/bacformer/scatter.png").data
+    _, alpha = decode_greyscale_alpha_png(image)
+
+    engine = application.extensions["syntitude_database"].engine
+    with OrmSession(engine) as session:
+        positions = session.execute(
+            select(LocusEmbeddingGeometry.map_x, LocusEmbeddingGeometry.map_y)
+            .join(Locus, Locus.locus_id == LocusEmbeddingGeometry.locus_id)
+            .where(
+                Locus.pangenome_id == 1,
+                LocusEmbeddingGeometry.representation == EmbeddingRepresentation.BACFORMER,
+            )
+            .limit(2_000)
+        ).all()
+    assert len(positions) == 2_000, f"only {len(positions)} positions to check"
+
+    centre_x, centre_y = descriptor["viewport_centre"]
+    size = descriptor["pixel_size"]
+    scale = size / descriptor["viewport_span"]
+    x = numpy.array([row.map_x for row in positions], dtype=numpy.float64)
+    y = numpy.array([row.map_y for row in positions], dtype=numpy.float64)
+    pixel_x = numpy.floor((x - centre_x) * scale + size / 2).astype(int)
+    pixel_y = numpy.floor(size / 2 - (y - centre_y) * scale).astype(int)
+
+    unlit = int((alpha[pixel_y, pixel_x] == 0).sum())
+    assert unlit == 0, (
+        f"{unlit} of {len(positions)} real loci would be drawn over empty ground — the sprite, its "
+        "viewport and the stored positions are not all the same numbers"
+    )
+
+
+def test_the_publish_gate_NAMES_the_sprite_checks_and_they_pass(application):
+    """⛔ A gate whose checks are silent is a gate that has told you nothing.
+
+    The published page's "whole catalogue" zoom is unavailable without a sprite, and nothing a
+    reader sees would say why — so publishing verifies one exists per representation AND that its
+    two counts account for every locus. A sprite rendered from a partial geometry load is a picture
+    missing loci that says nothing about it, which is the failure this table exists to prevent.
+    """
+    from sqlalchemy.orm import Session as OrmSession
+
+    from syntitude_backend.ingest.publish_pangenome import verify_pangenome_is_servable
+    from syntitude_backend.models.pangenome import Pangenome
+
+    engine = application.extensions["syntitude_database"].engine
+    with OrmSession(engine) as session:
+        pangenome = session.get(Pangenome, 1)
+        passed, failed = verify_pangenome_is_servable(session, pangenome)
+
+    assert failed == []
+    assert "both catalogue scatter sprites are present" in passed
+    for representation in ("esm", "bacformer"):
+        assert f"the {representation} sprite accounts for every locus" in passed
