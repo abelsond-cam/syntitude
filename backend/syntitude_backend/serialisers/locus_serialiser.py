@@ -303,6 +303,28 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
         "intergenic_gaps": [
             serialise_intergenic_gap(gap, labels) for gap in detail.intergenic_gaps
         ],
+        # ⭐ Every Pfam family the response MENTIONS, resolved here rather than by shipping the
+        # 833 kB vendored table to the browser. Keyed VERSION-STRIPPED — a chip holding `PF00126.29`
+        # must cut at the dot before looking itself up, or it silently misses and falls back to a
+        # bare accession, which reads as "this family has no name" rather than as a failed join.
+        # ⚠ An empty string is what the vendored table HAD, not a missing key: the reader pads short
+        # rows. A caller must test membership, never truthiness of `short_name`.
+        "pfam_reference": {
+            accession: {
+                "short_name": family.short_name,
+                "description": family.description,
+                # ⭐ Preferred over the Pfam entry for the link: it is the integrated record, and the
+                # page a reader following a domain actually wants. "" where there is none.
+                "interpro_accession": family.interpro_accession,
+                "interpro_name": family.interpro_name,
+                # ⚠ "" is CLANLESS and is not an identity — only ~46 % of families are in a clan, so
+                # treating "" as a shared clan would make any two clanless families look like the
+                # same superfamily.
+                "clan_accession": family.clan_accession,
+                "clan_name": family.clan_name,
+            }
+            for accession, family in sorted(detail.pfam_families.items())
+        },
         # ⭐ The fan-out, answered in this response rather than in 15–303 more.
         "neighbour_display_rows": [
             {

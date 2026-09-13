@@ -34,6 +34,7 @@ from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, Locu
 from syntitude_backend.models.locus_arrangement import LocusArrangement
 from syntitude_backend.models.locus_embedding_geometry import LocusEmbeddingGeometry
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from syntitude_backend.models.reference_vocabulary import PfamFamily
 
 #: The signed offsets, in display order. ⛔ `0` is absent — it is the focal locus.
 SIGNED_OFFSETS = (-5, -4, -3, -2, -1, 1, 2, 3, 4, 5)
@@ -124,6 +125,10 @@ class LocusDetail:
     geometry: dict = field(default_factory=dict)
     #: ⭐ How many DISTINCT other loci this response resolved. The fan-out, measured per request.
     resolved_neighbour_count: int = 0
+    #: ⭐ Every Pfam family this response MENTIONS, resolved once — `{accession: PfamFamily}`. The
+    #: same move as `neighbour_display_rows`: a bounded block in one round trip instead of the page
+    #: carrying an 833 kB vendored reference to render a chip. ⚠ Keyed VERSION-STRIPPED.
+    pfam_families: dict = field(default_factory=dict)
     #: ⛔ Which arrangement RANKS the anchored genome carries here — a **list**, because a genome at
     #: rho > 1 occupies two arrangements at one locus and there is no uniqueness constraint on
     #: (locus, genome) anywhere. Empty when there is no anchor, or when the anchored genome has no
@@ -133,6 +138,49 @@ class LocusDetail:
     #: this genome has no gene at this locus" — an empty rank list means the second only when this
     #: is true, and the two are different sentences on the page.
     is_anchored: bool = False
+
+
+def pfam_accessions_in(architecture: str | None) -> list[str]:
+    """`"PF00126.29,PF03466"` → `["PF00126", "PF03466"]`.
+
+    ⛔ **The version suffix must be cut before lookup.** `pfam_reference` strips it when it builds
+    the table, so an annotation carrying `PF00126.29` looked up as written silently misses and the
+    chip falls back to a bare accession — which reads as "this family has no name" rather than as a
+    failed join. The published page cuts at the dot for exactly this reason (`app.js:3285`).
+    """
+    if not architecture:
+        return []
+    out = []
+    for raw in architecture.split(","):
+        accession = raw.split(".")[0].strip()
+        if accession:
+            out.append(accession)
+    return out
+
+
+def _resolve_pfam_families(session: Session, detail: LocusDetail) -> dict:
+    """Every Pfam accession this response mentions, in ONE statement.
+
+    ⚠ Bounded by construction: the top-5 architectures plus one modal architecture per listed
+    UniRef50 family, each a handful of domains. It does not grow with the catalogue, which is what
+    makes a single `= ANY(...)` the right shape rather than a per-chip lookup.
+    """
+    wanted: set[str] = set()
+    for entry in detail.card_annotations.get(AnnotationKind.PFAM_ARCHITECTURE.value, []):
+        wanted.update(pfam_accessions_in(entry.term_value))
+    for family in detail.uniref_families:
+        wanted.update(pfam_accessions_in(family.modal_pfam_architecture))
+    if not wanted:
+        # ⛔ No statement at all rather than `IN ()`. An empty IN is valid SQL and returns nothing,
+        # but it still costs a round trip on every locus with no Pfam coverage — which is 22 % of
+        # them — and the cost oracle would then be measuring a query that can never return a row.
+        return {}
+    return {
+        family.pfam_accession: family
+        for family in session.execute(
+            select(PfamFamily).where(PfamFamily.pfam_accession.in_(sorted(wanted)))
+        ).scalars()
+    }
 
 
 def _locus_by_label(session: Session, pangenome_id: int, node_label: str) -> Locus:
@@ -204,6 +252,8 @@ def load_locus_detail(
             for arrangement in detail.arrangements
             if anchor_genome_id in (arrangement.member_genome_ids or ())
         ]
+
+    detail.pfam_families = _resolve_pfam_families(session, detail)
 
     # ── the marginal view ──────────────────────────────────────────────────────────────────────
     occupants = session.execute(

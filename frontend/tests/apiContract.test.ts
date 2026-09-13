@@ -37,6 +37,10 @@ import { SLOT_COUNT } from "@/lib/slotSpaces";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
+import EmbeddingGeometryCard from "@/components/locusCard/EmbeddingGeometryCard.vue";
+import LocusHeadline from "@/components/locusCard/LocusHeadline.vue";
+import SequenceDiversityCard from "@/components/locusCard/SequenceDiversityCard.vue";
+import { PREVALENCE_BANDS } from "@/lib/prevalence";
 import ArrangementSwitcher from "@/components/track/ArrangementSwitcher.vue";
 import GeneTrack from "@/components/track/GeneTrack.vue";
 
@@ -97,6 +101,7 @@ describe.each(CASES)("%s — the real response satisfies the contract the client
         "locus",
         "neighbour_display_rows",
         "offsets",
+        "pfam_reference",
         "resolved_neighbour_count",
         "uniref50_families",
       ].sort(),
@@ -356,5 +361,154 @@ describe("⭐ the switcher, on the same real bytes", () => {
       const expected = detail.arrangements.total <= 1 ? 0 : detail.arrangements.listed.length;
       expect(buttons).toHaveLength(expected);
     }
+  });
+});
+
+describe("⭐ the locus card, on real bytes", () => {
+  /** The catalogue-level block the card needs; the fixture is per locus, so this stands in. */
+  const PROJECTIONS = [
+    {
+      representation: "bacformer" as const,
+      method: "cmds",
+      requested_metric: "cosine",
+      extent: [0, 0, 1, 1] as [number, number, number, number],
+      cosine_scale_factor: 10_000,
+      null_mean_cosine: 0.065,
+      null_bin_lower_edge: -0.1,
+      null_bin_width: 0.1,
+      null_bin_counts: [1, 4, 30, 12, 3, 1, 0, 0, 0, 0, 0, 0],
+      separation_measurable_locus_count: 12_104,
+    },
+    {
+      representation: "esm" as const,
+      method: "cmds",
+      requested_metric: "cosine",
+      extent: [0, 0, 1, 1] as [number, number, number, number],
+      cosine_scale_factor: 10_000,
+      null_mean_cosine: 0.645,
+      null_bin_lower_edge: -0.1,
+      null_bin_width: 0.1,
+      null_bin_counts: [1, 4, 30, 12, 3, 1, 0, 0, 0, 0, 0, 0],
+      separation_measurable_locus_count: 12_104,
+    },
+  ];
+
+  it("⛔ every prevalence band on the wire is in the union the client switches on", () => {
+    // `rare` was absent from `PrevalenceBand` while 30 % of loci carried it. TypeScript cannot see
+    // that — the value arrives as a string — so this is the assertion that can.
+    const seen = new Set<string>();
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      seen.add(detail.locus.prevalence_band);
+      for (const row of detail.neighbour_display_rows) seen.add(row.prevalence_band);
+    }
+    expect(seen.size).toBeGreaterThan(1);
+    for (const band of seen) {
+      expect(PREVALENCE_BANDS).toContain(band);
+    }
+  });
+
+  it("mounts the headline against every fixture locus without a warning", () => {
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const head = mount(LocusHeadline, {
+        props: {
+          locus: detail.locus,
+          collectionGenomeCount: 100,
+          mapProjections: PROJECTIONS,
+          separationMeasurableLocusCount: 12_104,
+        },
+      });
+      expect(head.find(".locus-name").text()).toBe(detail.locus.display_name);
+      expect(head.findAll(".tile")).toHaveLength(6);
+      // ⛔ No tile may render `undefined` or `NaN`: both are what a missing field looks like once
+      // it has been through `toFixed` or a percentage.
+      for (const tile of head.findAll(".tile .v")) {
+        expect(tile.text()).not.toContain("undefined");
+        expect(tile.text()).not.toContain("NaN");
+      }
+    }
+  });
+
+  it("⭐ resolves every Pfam accession the card chips — no bare accessions survive", () => {
+    // The reference is built from the accessions the response itself mentions, so a bare chip means
+    // the join failed. This is the assertion that the version-stripping actually works on real data.
+    let chipped = 0;
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const card = mount(SequenceDiversityCard, {
+        props: {
+          locus: detail.locus,
+          families: detail.uniref50_families,
+          symbols: detail.annotations["gene_symbol"] ?? [],
+          pfamReference: detail.pfam_reference,
+          listedArchitectureCount: (detail.annotations["pfam_architecture"] ?? []).length,
+        },
+      });
+      for (const chip of card.findAll(".chip.pfam")) {
+        chipped += 1;
+        expect(chip.text()).not.toMatch(/^PF\d{5}$/);
+        expect(chip.attributes("href")).toMatch(/^https:\/\/www\.ebi\.ac\.uk\/interpro\/entry\//);
+      }
+    }
+    expect(chipped).toBeGreaterThan(0);
+  });
+
+  it("⛔ takes every family share over the LOCUS SIZE, so they need not sum to 100 %", () => {
+    const detail = detailFor("over_cap");
+    const card = mount(SequenceDiversityCard, {
+      props: {
+        locus: detail.locus,
+        families: detail.uniref50_families,
+        symbols: detail.annotations["gene_symbol"] ?? [],
+        pfamReference: detail.pfam_reference,
+        listedArchitectureCount: (detail.annotations["pfam_architecture"] ?? []).length,
+      },
+    });
+    const listed = detail.uniref50_families.reduce((total, one) => total + one.gene_count, 0);
+    expect(listed).toBeLessThanOrEqual(detail.locus.gene_count);
+    const rows = card.findAll("tbody tr");
+    expect(rows).toHaveLength(detail.uniref50_families.length);
+  });
+
+  it("mounts the geometry card and never prints a distance where a similarity belongs", () => {
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const card = mount(EmbeddingGeometryCard, {
+        props: {
+          geometry: detail.locus.geometry,
+          mapProjections: PROJECTIONS,
+          geneCount: detail.locus.gene_count,
+          separationMeasurableLocusCount: 12_104,
+        },
+      });
+      if (!card.find(".card").exists()) continue;
+      // ⛔ Every rail is a SIMILARITY, and the column stores a DISTANCE. Asserted as the exact
+      // identity rather than as a plausible range: on this fixture a real `nearest other` sits at
+      // 0.404, so any threshold that would catch an unconverted distance also rejects real data.
+      const expected = (["bacformer", "esm"] as const).flatMap((representation) => {
+        const geometry = detail.locus.geometry[representation];
+        return [geometry.within_medoid_distance, geometry.nearest_medoid_distance]
+          .filter((distance): distance is number => distance !== null)
+          .map((distance) => (1 - distance).toFixed(3));
+      });
+      expect(card.findAll(".pair:not(.sep) .val").map((node) => node.text())).toEqual(expected);
+    }
+  });
+
+  it("⚠ renders a MEASURED ZERO distance as a similarity of 1.000, not as a missing rail", () => {
+    // ESM's median member→medoid distance is ~1e-5, which the payload's precision stores as 0.0.
+    // A card testing truthiness rather than `!== null` would drop that rail entirely.
+    const detail = detailFor("ordinary");
+    expect(detail.locus.geometry.esm.within_medoid_distance).toBe(0);
+    const card = mount(EmbeddingGeometryCard, {
+      props: {
+        geometry: detail.locus.geometry,
+        mapProjections: PROJECTIONS,
+        geneCount: detail.locus.gene_count,
+        separationMeasurableLocusCount: 12_104,
+      },
+    });
+    expect(card.findAll(".pair:not(.sep) .val").map((node) => node.text())).toContain("1.000");
   });
 });

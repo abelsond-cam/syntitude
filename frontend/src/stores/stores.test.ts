@@ -52,6 +52,7 @@ function locusDetail(overrides: Partial<LocusDetailResponse> = {}): LocusDetailR
     anchor: { is_anchored: false, arrangement_ranks: [] },
     offsets: [],
     intergenic_gaps: [],
+    pfam_reference: {},
     neighbour_display_rows: [],
     resolved_neighbour_count: 0,
     ...overrides,

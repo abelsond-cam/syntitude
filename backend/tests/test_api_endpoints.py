@@ -590,7 +590,16 @@ def test_the_statement_count_of_a_locus_view_does_NOT_grow_with_the_neighbour_co
     for name, label in (("fewest", fewest), ("most", most)):
         with Session(engine) as session, SqlCostOracle(engine) as report:
             detail = load_locus_detail(session, pangenome_id=1, node_label=label)
-            measured[name] = (report.statement_count, detail.resolved_neighbour_count)
+            # ⚠ ONE statement is conditional and it is not the fan-out: a locus mentioning no Pfam
+            # accession — 22 % of them — issues no reference lookup at all, because a query that can
+            # never return a row is a round trip bought for nothing. Normalising it out here keeps
+            # the assertion about the thing it is named for, and the normalisation is derived from
+            # the response rather than recorded from a run.
+            conditional = 1 if detail.pfam_families else 0
+            measured[name] = (
+                report.statement_count - conditional,
+                detail.resolved_neighbour_count,
+            )
 
     assert measured["most"][1] > measured["fewest"][1], "the two loci resolve the same neighbours"
     assert measured["fewest"][0] == measured["most"][0], (
@@ -603,14 +612,19 @@ def test_the_statement_count_of_a_locus_view_does_NOT_grow_with_the_neighbour_co
 def test_a_locus_view_issues_ONE_statement_PER_TABLE_and_no_more(application):
     """The logical minimum, computed from the response rather than recorded from a run.
 
-    ⭐ Seven tables contribute to a locus view — `locus`, its annotation entries, its UniRef50
-    cross-tab, its arrangements, its offset occupants, its gaps and its geometry — plus one for the
-    neighbour block that fixes the fan-out. Eight is therefore the minimum a correct implementation
-    can issue, and the bound is that number, derived here and not remembered.
+    ⭐ Eight tables contribute to a locus view — `locus`, its annotation entries, its UniRef50
+    cross-tab, its arrangements, its offset occupants, its gaps, its geometry and the Pfam reference
+    its chips are resolved from — plus one for the neighbour block that fixes the fan-out. Nine is
+    therefore the minimum a correct implementation can issue, and the bound is that number, derived
+    here and not remembered.
+
+    ⚠ The Pfam lookup is the one statement a locus may legitimately skip, on the 22 % that mention
+    no accession. That makes nine a ceiling rather than an equality, which is what `assert_at_most`
+    already expresses.
     """
     from syntitude_backend.services.locus_detail_service import load_locus_detail
 
-    tables_a_locus_view_reads = 7
+    tables_a_locus_view_reads = 8
     neighbour_resolution_statements = 1
     budget = tables_a_locus_view_reads + neighbour_resolution_statements
 

@@ -17,7 +17,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-#: NCBI table 11 in ``TCAG`` order, byte-identical to `nuna.tl.bakta_rna.coords.CODON_TABLE`.
+#: NCBI table 11 in ``TCAG`` order, byte-identical to `bac80.bakta_rna.coords.CODON_TABLE`
+#: (moved there from `nuna.tl.bakta_rna` in nuna 504067f), and pinned to it by a test.
 _BASES = "TCAG"
 _AMINO_ACIDS = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
 CODON_TABLE = {

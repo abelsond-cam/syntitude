@@ -37,6 +37,7 @@ from syntitude_backend.models.pangenome import (  # noqa: F401
     PangenomeStep,
 )
 from syntitude_backend.models.pathogen_species import PathogenSpecies  # noqa: F401
+from syntitude_backend.models.reference_vocabulary import PfamFamily  # noqa: F401
 
 __all__ = [
     "Gene",

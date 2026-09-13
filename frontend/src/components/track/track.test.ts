@@ -280,6 +280,7 @@ describe("the whole track", () => {
       anchor: { is_anchored: false, arrangement_ranks: [] },
       offsets: SIGNED_OFFSETS.map((signed_offset) => marginal({ signed_offset })),
       intergenic_gaps: [],
+      pfam_reference: {},
       neighbour_display_rows: SIGNED_OFFSETS.map((_unused, position) => ({
         ...NEIGHBOUR,
         label: `n${position}`,

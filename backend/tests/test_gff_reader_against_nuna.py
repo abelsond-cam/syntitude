@@ -47,7 +47,11 @@ def _some_gffs(limit):
 
 
 def test_the_vendored_codon_table_is_byte_identical_to_nunas():
-    from nuna.tl.bakta_rna.coords import CODON_TABLE as NUNA_TABLE
+    # ⚠ Moved 2026-09 from `nuna.tl.bakta_rna` to the new top-level `bac80` package — nuna's own
+    # commit 504067f, *"bac80 gets its own package — it was never nuna"*. `nuna.tl.locus_browser.
+    # genome_sequence` imports it from there too, so this follows the same door rather than
+    # vendoring a second copy.
+    from bac80.bakta_rna.coords import CODON_TABLE as NUNA_TABLE
 
     assert CODON_TABLE == NUNA_TABLE
     assert len(CODON_TABLE) == 64, "table 11 has 64 codons; a short table silently yields X"

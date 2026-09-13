@@ -1026,6 +1026,16 @@
       "signed_offset": 5
      }
     ],
+    "pfam_reference": {
+     "PF01327": {
+      "clan_accession": "",
+      "clan_name": "",
+      "description": "Polypeptide deformylase",
+      "interpro_accession": "IPR023635",
+      "interpro_name": "Peptide deformylase",
+      "short_name": "Pep_deformylase"
+     }
+    },
     "resolved_neighbour_count": 31,
     "uniref50_families": [
      {
@@ -3114,6 +3124,16 @@
       "signed_offset": 5
      }
     ],
+    "pfam_reference": {
+     "PF04002": {
+      "clan_accession": "CL0366",
+      "clan_name": "JAB",
+      "description": "RadC-like JAB domain",
+      "interpro_accession": "IPR025657",
+      "interpro_name": "RadC-like JAB domain",
+      "short_name": "RadC"
+     }
+    },
     "resolved_neighbour_count": 49,
     "uniref50_families": [
      {
@@ -5218,6 +5238,32 @@
       "signed_offset": 5
      }
     ],
+    "pfam_reference": {
+     "PF00665": {
+      "clan_accession": "CL0219",
+      "clan_name": "RNase_H",
+      "description": "Integrase core domain",
+      "interpro_accession": "IPR001584",
+      "interpro_name": "Integrase, catalytic core",
+      "short_name": "rve"
+     },
+     "PF03050": {
+      "clan_accession": "CL0219",
+      "clan_name": "RNase_H",
+      "description": "Transposase IS66 family ",
+      "interpro_accession": "IPR004291",
+      "interpro_name": "Transposase IS66, central domain",
+      "short_name": "DDE_Tnp_IS66"
+     },
+     "PF13610": {
+      "clan_accession": "CL0219",
+      "clan_name": "RNase_H",
+      "description": "DDE domain",
+      "interpro_accession": "IPR032874",
+      "interpro_name": "DDE domain",
+      "short_name": "DDE_Tnp_IS240"
+     }
+    },
     "resolved_neighbour_count": 47,
     "uniref50_families": [
      {

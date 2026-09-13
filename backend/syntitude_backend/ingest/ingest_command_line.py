@@ -38,6 +38,7 @@ from syntitude_backend.ingest.ingest_nuna_model_registry import (
 from syntitude_backend.ingest.ingest_pangenome_run import ingest_pangenome_run
 from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
 from syntitude_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
+from syntitude_backend.ingest.ingest_reference_vocabularies import load_pfam_reference
 from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
 from syntitude_backend.models.genome import Genome, GenomeContig
 from syntitude_backend.models.locus import Locus
@@ -266,12 +267,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--data-root", type=Path, default=Path("~/developer/nuna/data"),
                         help="the local mirror of the cluster artifacts")
     parser.add_argument("--set-key", default="ecoli", help="the dataset token in filenames")
-    parser.add_argument("--model-label", required=True, help="the audit's --model-label")
-    parser.add_argument("--run-id", required=True, help="the assignment stem")
+    # ⚠ NOT `required=True`: `--stage reference` loads the public vocabularies, which belong to no
+    # model and no run, and demanding a run id there would mean naming an arbitrary catalogue to
+    # load a table that has nothing to do with it. `main` requires them for every other stage.
+    parser.add_argument("--model-label", default=None, help="the audit's --model-label")
+    parser.add_argument("--run-id", default=None, help="the assignment stem")
     parser.add_argument("--database-url", default=os.environ.get("SYNTITUDE_DATABASE_URL"))
-    parser.add_argument("--stage", choices=("genomes", "pangenome", "all"), default="all",
-                        help="`genomes` is model-INDEPENDENT and a new pangenome must never rewrite "
-                             "it; `pangenome` needs it already loaded")
+    parser.add_argument("--stage", choices=("reference", "genomes", "pangenome", "all"), default="all",
+                        help="`reference` is the public vocabularies, global to every species and "
+                             "model; `genomes` is model-INDEPENDENT and a new pangenome must never "
+                             "rewrite it; `pangenome` needs it already loaded")
     parser.add_argument("--publish", action="store_true",
                         help="after loading, VERIFY the catalogue and point its species at it. The "
                              "pointer is what the service reads, so this is a separate, explicit "
@@ -290,6 +295,19 @@ def main(argv: list[str] | None = None) -> int:
         print("SYNTITUDE_DATABASE_URL is not set and --database-url was not given", file=sys.stderr)
         return 2
 
+    # ⛔ The reference stage reads no artifacts at all — the vocabularies are global — so it must
+    # not be made to name a catalogue, and must not verify one.
+    if args.stage == "reference":
+        engine = create_engine(args.database_url, future=True)
+        with Session(engine) as session:
+            print(load_pfam_reference(session).render())
+            session.commit()
+        return 0
+
+    if not args.model_label or not args.run_id:
+        print("--model-label and --run-id are required for this stage", file=sys.stderr)
+        return 2
+
     artifacts = CatalogueArtifacts(
         data_root=args.data_root, set_key=args.set_key,
         model_label=args.model_label, run_id=args.run_id,
@@ -300,6 +318,13 @@ def main(argv: list[str] | None = None) -> int:
     engine = create_engine(args.database_url, future=True)
     report, differences = None, []
     with Session(engine) as session:
+        # ⚠ First in `all`: the vocabularies are global and idempotent, so re-running costs one
+        # upsert and an absent reference degrades chips rather than failing — but the count is
+        # printed either way, so a silently missing table is visible here rather than inferred from
+        # blank chips three screens into the page.
+        if args.stage == "all":
+            print(load_pfam_reference(session).render())
+            session.commit()
         if args.stage in ("genomes", "all"):
             report = load_genome_layer(
                 session, artifacts, limit=args.limit, only=set(args.only) if args.only else None

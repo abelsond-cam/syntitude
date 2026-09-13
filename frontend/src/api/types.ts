@@ -16,8 +16,18 @@ export type { NeighbourSlot };
 /** Which of the two embeddings a geometric claim is made in. */
 export type Representation = "esm" | "bacformer";
 
-/** How common a locus is across the collection. */
-export type PrevalenceBand = "core" | "soft_core" | "shell" | "cloud";
+/**
+ * How common a locus is across the collection — **five** bands, `prevalence.categorise`'s own.
+ *
+ * ⛔ `rare` was missing from this union while 9,877 of 33,201 loci — **30 %** — carry it. TypeScript
+ * cannot catch that: the value arrives as a string and only a lookup keyed on the band, or an
+ * exhaustive switch, ever notices, and then as `undefined` at render time rather than as an error.
+ * `apiContract.test.ts` now asserts the union covers every band the real responses carry.
+ *
+ * ⚠ The order below is the order the bands are *drawn* in, commonest first. `PREVALENCE_BANDS` in
+ * `lib/prevalence` is the runtime copy; the two are pinned to each other by a test.
+ */
+export type PrevalenceBand = "core" | "soft_core" | "shell" | "cloud" | "rare";
 
 /** The three GO namespaces, spelled as the API spells them. */
 export type GeneOntologyNamespace =
@@ -46,10 +56,18 @@ export interface UnirefFamily {
   readonly gene_count: number;
   readonly modal_product: string | null;
   readonly modal_architecture: string | null;
-  readonly pfam_annotated_gene_count: number;
+  /**
+   * ⚠ **Nullable in the schema**, though populated for all 38,672 crosstab rows in the two loaded
+   * catalogues. Typed as the column allows rather than as this data happens to be: a contract that
+   * promises non-null where the schema permits null is a latent crash one ingest away, and the card
+   * must test `!== null` — a measured **zero** here is the loudest case, a family where no gene is
+   * annotated at all.
+   */
+  readonly pfam_annotated_gene_count: number | null;
+  /** ⚠ `null` for 20,600 of 38,672 rows — over half the families carry no modal symbol. */
   readonly modal_symbol: string | null;
   /** ⚠ A COUNT, not a list. The card shows the modal plus "+N" and cannot name the others. */
-  readonly distinct_symbol_count: number;
+  readonly distinct_symbol_count: number | null;
 }
 
 export interface Arrangement {
@@ -116,6 +134,32 @@ export interface LocusGeometry {
    * reading by rank draws one locus's distances on another, and it still looks like a picture.
    */
   readonly cosine_matrix: readonly (readonly (number | null)[])[] | null;
+}
+
+/**
+ * One Pfam-A family, resolved server-side from the vendored public reference.
+ *
+ * ⚠ **Every field is a string and `""` means the table HAD no value** — never that the key is
+ * missing. The vendored reader pads short rows rather than skipping them, so a caller tests
+ * membership of the map, not the truthiness of `short_name`.
+ */
+export interface PfamFamilyReference {
+  /** `Sigma70_r2` — what the chip says when it has one. */
+  readonly short_name: string;
+  readonly description: string;
+  /**
+   * ⭐ Preferred over the Pfam entry for the link: it is the integrated record, and the page a
+   * reader following a domain actually wants. `""` where there is no integrated entry.
+   */
+  readonly interpro_accession: string;
+  readonly interpro_name: string;
+  /**
+   * ⚠ `""` is CLANLESS and is **not** an identity. Only ~46 % of families are in a clan, so
+   * treating `""` as a shared clan would make any two clanless families look like the same
+   * superfamily — the common case, not the corner.
+   */
+  readonly clan_accession: string;
+  readonly clan_name: string;
 }
 
 export interface NeighbourDisplayRow {
@@ -217,6 +261,16 @@ export interface LocusDetailResponse {
   };
   readonly offsets: readonly OffsetMarginal[];
   readonly intergenic_gaps: readonly IntergenicGap[];
+  /**
+   * ⭐ Every Pfam family this response MENTIONS, keyed by **version-stripped** accession. The same
+   * move as `neighbour_display_rows`: a bounded block in one round trip, instead of the page
+   * carrying an 833 kB vendored reference to render a chip.
+   *
+   * ⛔ A chip holding `PF00126.29` must cut at the dot before looking itself up, or it silently
+   * misses and falls back to a bare accession — which reads as *"this family has no name"* rather
+   * than as a failed join.
+   */
+  readonly pfam_reference: Readonly<Record<string, PfamFamilyReference>>;
   /** ⭐ The 15–303-locus fan-out, answered in THIS response rather than in that many more. */
   readonly neighbour_display_rows: readonly NeighbourDisplayRow[];
   readonly resolved_neighbour_count: number;
