@@ -25,20 +25,16 @@ export interface Verdict {
 }
 
 /**
- * ⛔⛔ **CONFLICT OF RECORD, unresolved — do not silently settle it.**
+ * ⚠ **`synteny_only`'s wording is the published page's, and stays that way — SETTLED, do not
+ * re-raise (David, 2026-09-13).**
  *
- * `synteny_only` below carries the *published page's* words, reproduced for parity: tone `bad`, and
- * a note calling it *"the over-merge the audit exists to count"*. The project's own `CLAUDE.md`
- * (David, 2026-08-18) says the opposite in terms:
- *
- * > *"`synteny only` names the evidence, NOT a mistake. It used to be called 'the over-merge,
- * > target 0'; reading the clusters showed many are plainly right — non-homologous cargo in a
- * > genuinely conserved neighbourhood is the thing an identity threshold cannot see and the reason
- * > this method exists. Minimise and **inspect** it; never report it as a failure count."*
- *
- * The live page predates that and still says the old thing. Changing a user-facing claim is not a
- * porting decision, so this reproduces the page and flags the disagreement here rather than picking
- * a side. **Raised with David; until he rules, the words below are the page's, not the project's.**
+ * Its note calls the tier *"the over-merge the audit exists to count"*, which reads against
+ * `CLAUDE.md`'s later position that *"`synteny only` names the evidence, NOT a mistake"* (David,
+ * 2026-08-18). Asked directly, David ruled: **not relevant to the backend rebuild, not a porting
+ * decision, and not a major discrepancy — leave it.** The rebuild's job here is to carry the page
+ * across faithfully; re-wording the science it states is a separate piece of work on a separate
+ * day. This note exists so the next reader who spots the tension finds the answer rather than
+ * re-opening it.
  */
 export const COLLAPSE_TIERS: Readonly<Record<string, Verdict>> = {
   pfam_not_alignable: {

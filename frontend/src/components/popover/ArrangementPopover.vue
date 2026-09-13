@@ -110,9 +110,12 @@ const tail = computed(() => {
     );
   }
   if (props.membersWithoutANeighbourhood > 0) {
-    // ⚠ The published page's own words, kept for parity, and demonstrably the wrong REASON: these
-    // genes are biconditionally the ones alone on their contig, not the ones missing coordinates
-    // (`nuna/docs/interesting_loci.md` §6). Rewording it is David's call and is open.
+    // ⚠ **SETTLED (David, 2026-09-13) — this wording is right and stays.** *"No coordinates for
+    // the gene, so no window"* is what happened FROM NUNA'S SIDE: `coords` is an inner join in the
+    // export, the gene reached no window, and that is the whole of what this page can say about it.
+    // *"Alone on its contig"* — which these genes biconditionally are — is the EXPLANATION of why,
+    // and it lives in `nuna/docs/interesting_loci.md` §6. Two mirrors of one fact; the page states
+    // the one it observed. Do not "correct" this to the other.
     parts.push(
       `${props.membersWithoutANeighbourhood} member genes have no recorded neighbourhood — ` +
         "no coordinates for the gene, so no window",
