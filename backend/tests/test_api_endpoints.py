@@ -122,6 +122,49 @@ def test_the_landing_locus_carries_its_name_its_product_and_its_neighbours(clien
     assert payload["neighbour_display_rows"], "the fan-out block is empty — the track cannot draw"
     assert payload["resolved_neighbour_count"] == len(payload["neighbour_display_rows"])
 
+    # ⛔ COMPLETENESS, which the count alone cannot show: every locus the response refers to by
+    # either address must have a row, or the page can name a block it cannot label.
+    labelled = {row["label"] for row in payload["neighbour_display_rows"]}
+    for arrangement in payload["arrangements"]["listed"]:
+        for slot in arrangement["slots"]:
+            if slot["locus"] is not None:
+                assert slot["locus"] in labelled, f"arrangement slot {slot['locus']} has no row"
+    for marginal in payload["offsets"]:
+        for occupant in marginal["occupants"]:
+            if occupant["locus"] is not None:
+                assert occupant["locus"] in labelled, f"occupant {occupant['locus']} has no row"
+
+
+def test_the_MAPs_nearest_loci_are_resolved_too_and_they_are_a_DIFFERENT_set(client, application):
+    """⭐ The map legend names five loci per representation, and they are not the track's neighbours.
+
+    ⛔ They were not resolved at all: the fan-out collected arrangement slot ordinals and marginal
+    occupant locus ids, and the map's `nearest_locus_ordinals` are a third source in the **ordinal**
+    space. Without them the legend has a swatch and a number and no name to put beside it.
+
+    ⚠ And the two representations disagree with each other — their separations correlate at only
+    rho ~0.47 — so this also asserts the two sets are not the same five loci, which is the reason
+    switching the map's tab changes the legend as well as the picture.
+    """
+    payload = client.get("/api/v1/species/ecoli/loci/2811").get_json()
+    ordinals = {row["catalogue_ordinal"] for row in payload["neighbour_display_rows"]}
+
+    seen: dict[str, set[int]] = {}
+    for representation in ("bacformer", "esm"):
+        nearest = payload["locus"]["geometry"][representation]["nearest_locus_ordinals"]
+        assert nearest, f"{representation} has no nearest loci, so this test proves nothing"
+        # ⛔ `-1` is "outside the catalogue" and drops its SLOT, not its rank — never resolved.
+        present = {ordinal for ordinal in nearest if ordinal >= 0}
+        assert present <= ordinals, (
+            f"{representation}'s nearest loci {sorted(present - ordinals)} have no display row"
+        )
+        seen[representation] = present
+
+    assert seen["bacformer"] != seen["esm"], (
+        "the two representations name the same five loci here, so this locus cannot show that "
+        "switching the map tab changes the legend"
+    )
+
 
 def test_a_slot_is_null_plus_a_REASON_and_never_a_bare_minus_one(client, application):
     """⛔ `occ(code)` is deleted — the packed form is where "−1 means five things" lives."""

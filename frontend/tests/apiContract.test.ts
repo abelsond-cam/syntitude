@@ -37,6 +37,7 @@ import { SLOT_COUNT } from "@/lib/slotSpaces";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
+import NeighbourhoodMapCard from "@/components/map/NeighbourhoodMapCard.vue";
 import EmbeddingGeometryCard from "@/components/locusCard/EmbeddingGeometryCard.vue";
 import LocusHeadline from "@/components/locusCard/LocusHeadline.vue";
 import SequenceDiversityCard from "@/components/locusCard/SequenceDiversityCard.vue";
@@ -510,5 +511,87 @@ describe("⭐ the locus card, on real bytes", () => {
       },
     });
     expect(card.findAll(".pair:not(.sep) .val").map((node) => node.text())).toContain("1.000");
+  });
+});
+
+describe("⭐ the neighbourhood map, on real bytes", () => {
+  it("⛔ resolves every map neighbour — the set the fan-out nearly missed entirely", () => {
+    // `nearest_locus_ordinals` is a THIRD address space alongside arrangement slot ordinals and
+    // marginal occupant locus ids, and it was not collected at all: the legend would have had a
+    // swatch and a cosine with no name beside it.
+    let checked = 0;
+    for (const kind of CASES) {
+      const detail = detailFor(kind);
+      const byOrdinal = new Set(detail.neighbour_display_rows.map((row) => row.catalogue_ordinal));
+      for (const representation of ["bacformer", "esm"] as const) {
+        const nearest = detail.locus.geometry[representation].nearest_locus_ordinals ?? [];
+        for (const ordinal of nearest) {
+          // ⛔ `-1` is "outside the catalogue" and is never resolved — it drops its SLOT, not its rank.
+          if (ordinal < 0) continue;
+          checked += 1;
+          expect(byOrdinal.has(ordinal)).toBe(true);
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("⚠ the two representations really do name different loci on real data", () => {
+    // The reason the tab changes the legend and not just the picture. If they agreed here, every
+    // test above about switching representations would be proving nothing.
+    let differing = 0;
+    for (const kind of CASES) {
+      const geometry = detailFor(kind).locus.geometry;
+      const context = new Set(geometry.bacformer.nearest_locus_ordinals ?? []);
+      const sequence = new Set(geometry.esm.nearest_locus_ordinals ?? []);
+      if ([...context].some((ordinal) => !sequence.has(ordinal))) differing += 1;
+    }
+    expect(differing).toBeGreaterThan(0);
+  });
+
+  it("fits a real cosine matrix and never draws a NaN coordinate", () => {
+    let drawn = 0;
+    for (const kind of CASES) {
+      for (const representation of ["bacformer", "esm"] as const) {
+        const map = mount(NeighbourhoodMapCard, {
+          props: {
+            detail: detailFor(kind),
+            representation,
+            availableRepresentations: ["bacformer", "esm"] as const,
+          },
+        });
+        const dots = map.findAll(".map-dot");
+        if (dots.length === 0) continue;
+        drawn += 1;
+        for (const dot of dots) {
+          // ⛔ A NaN coordinate is what an unclamped `Math.sqrt` of a negative distance produces,
+          // and SVG silently drops the element rather than complaining.
+          expect(Number.isFinite(Number(dot.attributes("cx")))).toBe(true);
+          expect(Number.isFinite(Number(dot.attributes("cy")))).toBe(true);
+          expect(Number.isFinite(Number(dot.attributes("r")))).toBe(true);
+        }
+        for (const ring of map.findAll(".map-ring")) {
+          expect(Number(ring.attributes("r"))).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+    expect(drawn).toBeGreaterThan(0);
+  });
+
+  it("⚠ keeps LESS than all the variance on real data — six loci are not planar", () => {
+    // If every real fit kept 100 %, the `kept` number would be decoration rather than a caveat.
+    const notes = CASES.map((kind) =>
+      mount(NeighbourhoodMapCard, {
+        props: {
+          detail: detailFor(kind),
+          representation: "bacformer" as const,
+          availableRepresentations: ["bacformer", "esm"] as const,
+        },
+      })
+        .findAll(".muted")
+        .at(-1)
+        ?.text() ?? "",
+    );
+    expect(notes.some((note) => /keeping (?!100%)\d/.test(note))).toBe(true);
   });
 });

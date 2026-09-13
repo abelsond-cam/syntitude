@@ -164,7 +164,29 @@ export interface PfamFamilyReference {
 
 export interface NeighbourDisplayRow {
   readonly label: string;
+  /**
+   * ⛔⛔ **The row's OTHER address, and the MAP needs exactly this one.** An arrangement slot code
+   * carries `catalogue_ordinal * 2 + strand`, and `geometry[rep].nearest_locus_ordinals` is in the
+   * same space — while the marginal occupants are addressed by `label`. Both are small integers
+   * over the same range, so resolving the map's nearest loci through anything else draws one locus
+   * where another belongs, on a page that still looks entirely right. That exact merge already cost
+   * this project once (`2b99bb4`).
+   */
+  readonly catalogue_ordinal: number;
   readonly display_name: string;
+  /**
+   * ⭐ For the MAP legend, not the track. *"The locus NUMBER is not what tells you whether a
+   * neighbour belongs here — the product is."* The track has no room for it and does not ask.
+   */
+  readonly best_product: string | null;
+  /**
+   * ⭐ The map's RING for this locus, per representation — its own members' median distance from its
+   * centre, at true scale. *"A ring reaching a neighbour is a spread that reaches it."*
+   *
+   * ⚠ A **distance**, as stored, so the client converts with `similarityFromDistance` exactly as
+   * the card does. `null` where it was never measured — a singleton is its own medoid.
+   */
+  readonly within_medoid_distance: Readonly<Record<Representation, number | null>>;
   readonly display_name_source: string;
   readonly genome_count: number;
   readonly median_gene_length_nt: number | null;

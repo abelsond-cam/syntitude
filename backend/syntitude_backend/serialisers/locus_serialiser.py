@@ -329,6 +329,23 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
         "neighbour_display_rows": [
             {
                 "label": row.node_label,
+                # ⛔⛔ The row's OTHER address, and the map needs exactly this one. A slot code
+                # carries `catalogue_ordinal * 2 + strand` and `nearest_locus_ordinals` is in the
+                # same space, while `locus_offset_occupant.neighbour_locus_id` is a surrogate id.
+                # Both are small integers over the same range, so looking one up in the other's
+                # index draws one locus where another belongs — with a page that still looks right.
+                # The client must resolve the map's nearest loci through THIS field.
+                "catalogue_ordinal": row.catalogue_ordinal,
+                # ⭐ For the MAP legend, not the track — the locus number is not what tells a reader
+                # whether a neighbour belongs there; the product is.
+                "best_product": row.best_product,
+                # ⭐ The map's RING, per representation — each locus's own members' median distance
+                # from its centre, at true scale, so a ring reaching a neighbour is a spread that
+                # reaches it. ⚠ DISTANCES as stored; the client converts, exactly as for the card.
+                "within_medoid_distance": {
+                    "esm": row.esm_within_medoid_distance,
+                    "bacformer": row.bacformer_within_medoid_distance,
+                },
                 "display_name": row.display_name,
                 "display_name_source": row.display_name_source,
                 "genome_count": row.member_genome_count,

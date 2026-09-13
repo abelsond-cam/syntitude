@@ -70,14 +70,25 @@ class LocusNotFound(LookupError):
 class NeighbourDisplayRow:
     """Everything the track needs to DRAW a neighbour block, without a second request.
 
-    ⚠ Three fields, and each is needed for a different part of the block: the name is its label, the
-    genome count sets its alpha, and the median length sets its width (`max(6, len_nt / 10)` px).
+    ⚠ Each field is needed for a different part of the block: the name is its label, the genome
+    count sets its alpha, and the median length sets its width (`max(6, len_nt / 10)` px).
+
+    ⭐ `best_product` is for the **map** legend rather than the track: *"the locus NUMBER is not what
+    tells you whether a neighbour belongs here — the product is"* (`app.js:2749`). The track has no
+    room for it and does not ask.
     """
 
     locus_id: int
+    #: ⛔ The row's OTHER address. Carried on the row so nothing has to look it up again in the
+    #: wrong index — see `NeighbourDisplayIndex`.
+    catalogue_ordinal: int
     node_label: str
     display_name: str
     display_name_source: str
+    best_product: str | None
+    #: ⚠ DISTANCES, as stored — the client converts. Nullable: a singleton is its own medoid.
+    esm_within_medoid_distance: float | None
+    bacformer_within_medoid_distance: float | None
     member_genome_count: int
     median_gene_length_nt: int | None
     prevalence_band: str
@@ -264,6 +275,17 @@ def load_locus_detail(
     for occupant in occupants:
         detail.offset_occupants.setdefault(occupant.signed_offset, []).append(occupant)
 
+    # ── the six-point geometry, both representations ───────────────────────────────────────────
+    # ⚠ Loaded BEFORE the fan-out, deliberately: the map legend names the five nearest loci in each
+    # representation, and those are a **different set** from the track's ±5 neighbours — the two
+    # representations do not even agree with each other (their separations correlate at rho ~0.47).
+    # Resolving them in the same statement costs nothing; a second one would be an N+1 the cost
+    # oracle is there to refuse.
+    for geometry in session.execute(
+        select(LocusEmbeddingGeometry).where(LocusEmbeddingGeometry.locus_id == locus.locus_id)
+    ).scalars():
+        detail.geometry[geometry.representation.value] = geometry
+
     # ── the fan-out, resolved in ONE statement ─────────────────────────────────────────────────
     # ⛔⛔ **TWO DIFFERENT INTEGER SPACES, KEPT APART.** `locus_offset_occupant.neighbour_locus_id`
     # is a surrogate `locus_id`; an arrangement slot code carries a **catalogue ordinal**
@@ -282,6 +304,16 @@ def load_locus_detail(
         for code in arrangement.neighbour_slot_codes
         if code >= 0
     }
+    # ⭐ The map's five nearest, per representation — catalogue ordinals, the same space as a slot
+    # code's `// 2` and NOT the locus-id space above.
+    # ⛔ `-1` here is *"a neighbour outside the catalogue"*, which drops its SLOT and not its rank
+    # (one of the five meanings of -1). Filtered, never resolved, and never renumbered.
+    neighbour_ordinals.update(
+        ordinal
+        for geometry in detail.geometry.values()
+        for ordinal in (geometry.nearest_locus_ordinals or ())
+        if ordinal >= 0
+    )
     detail.neighbour_display_rows = _neighbour_display_rows(
         session,
         pangenome_id=pangenome_id,
@@ -289,9 +321,11 @@ def load_locus_detail(
         catalogue_ordinals=neighbour_ordinals,
         focal_locus=locus,
     )
-    detail.resolved_neighbour_count = len(
-        {row.locus_id for row in detail.neighbour_display_rows.by_locus_id.values()}
-    )
+    # ⚠ Every DISTINCT locus the block resolved, across BOTH key spaces — not just the marginal
+    # occupants. It counted only `by_locus_id` while the block already carried arrangement occupants
+    # reached by ordinal, so the number under-reported the fan-out it exists to measure; adding the
+    # map's nearest loci made that visible rather than causing it.
+    detail.resolved_neighbour_count = len(detail.neighbour_display_rows.all_rows())
 
     # ── the gaps this locus can be an endpoint of ──────────────────────────────────────────────
     # ⛔ BOTH columns, because the canonical order is by node_label and a caller holding a locus_id
@@ -308,11 +342,6 @@ def load_locus_detail(
         ).scalars()
     )
 
-    # ── the six-point geometry, both representations ───────────────────────────────────────────
-    for geometry in session.execute(
-        select(LocusEmbeddingGeometry).where(LocusEmbeddingGeometry.locus_id == locus.locus_id)
-    ).scalars():
-        detail.geometry[geometry.representation.value] = geometry
     return detail
 
 
@@ -335,6 +364,9 @@ def _neighbour_display_rows(
             Locus.node_label,
             Locus.display_name,
             Locus.display_name_source,
+            Locus.best_product,
+            Locus.esm_within_medoid_distance,
+            Locus.bacformer_within_medoid_distance,
             Locus.member_genome_count,
             Locus.median_gene_length_nt,
             Locus.prevalence_band,
@@ -355,12 +387,16 @@ def _neighbour_display_rows(
             or_(Locus.locus_id.in_(locus_ids), Locus.catalogue_ordinal.in_(catalogue_ordinals)),
         )
     ).all()
-    for locus_id, ordinal, label, name, source, genomes, length, band in rows:
+    for locus_id, ordinal, label, name, source, product, esm, bacformer, genomes, length, band in rows:
         row = NeighbourDisplayRow(
             locus_id=locus_id,
+            catalogue_ordinal=ordinal,
             node_label=label,
             display_name=name,
             display_name_source=source,
+            best_product=product,
+            esm_within_medoid_distance=esm,
+            bacformer_within_medoid_distance=bacformer,
             member_genome_count=genomes,
             median_gene_length_nt=length,
             prevalence_band=band.value,
@@ -373,9 +409,13 @@ def _neighbour_display_rows(
     # and not a degenerate one, so it is always resolvable from its own response.
     focal = NeighbourDisplayRow(
         locus_id=focal_locus.locus_id,
+        catalogue_ordinal=focal_locus.catalogue_ordinal,
         node_label=focal_locus.node_label,
         display_name=focal_locus.display_name,
         display_name_source=focal_locus.display_name_source,
+        best_product=focal_locus.best_product,
+        esm_within_medoid_distance=focal_locus.esm_within_medoid_distance,
+        bacformer_within_medoid_distance=focal_locus.bacformer_within_medoid_distance,
         member_genome_count=focal_locus.member_genome_count,
         median_gene_length_nt=focal_locus.median_gene_length_nt,
         prevalence_band=focal_locus.prevalence_band.value,
