@@ -116,6 +116,39 @@ class GeneOntologyAgreementVerdict(enum.Enum):
     DISJOINT = "disjoint"
 
 
+#: ⛔ **The index↔name contract for `locus_annotation_entry.gene_ontology_namespace`**, which is
+#: stored as 0/1/2 because one list serves all three namespaces.
+#:
+#: ⚠ **Verified against the DATA, not against a comment** (2026-09-14, `syntitude_dev`): namespace 0
+#: is dominated by *nucleic acid binding*, *metal ion binding*, *ion binding*; 1 by *transport*,
+#: *metabolic process*, *biosynthetic process*; 2 by *cytoplasm*, *plasma membrane*, *membrane*.
+#: Each namespace also carries its own root term as a slim class — literally `molecular_function`,
+#: `biological_process`, `cellular_component` — so the ordering identifies itself. A transposed
+#: table here would file every molecular function under cellular component and the page would look
+#: entirely normal.
+GENE_ONTOLOGY_NAMESPACE_NAMES: tuple[str, str, str] = (
+    "molecular_function",
+    "biological_process",
+    "cellular_component",
+)
+
+
+def gene_ontology_namespace_name(index: int | None) -> str | None:
+    """0/1/2 → the namespace name the API speaks, or `None` for a non-GO row.
+
+    ⛔ The API must never emit the index. `coverage.go_annotated_gene_count` is already keyed by
+    NAME, so an entry keyed by number makes one response speak two dialects — and a client that
+    groups entries by a key the coverage block does not use renders three GO cards whose term lists
+    are all empty while their coverage lines say otherwise.
+    """
+    if index is None:
+        return None
+    try:
+        return GENE_ONTOLOGY_NAMESPACE_NAMES[index]
+    except IndexError:  # pragma: no cover - a fourth namespace would be a data error
+        raise ValueError(f"no GO namespace with index {index}") from None
+
+
 class EvaluationKind(enum.Enum):
     """Which arm of the funnel an evaluation row belongs to.
 

@@ -51,10 +51,34 @@ for representation in ("bacformer", "esm"):
     target = FIXTURES / f"catalogue_scatter_ecoli_{representation}.png"
     target.write_bytes(sprite.data)
     print(f"  sprite     {representation:<10s} {len(sprite.data):,} B -> {target.name}")
-for name, label in (("ordinary", ordinary), ("over_cap", over_cap), ("no_window", no_window)):
+# ⭐ A fourth case for the Function tab: a locus carrying EC *and* KEGG *and* all three GO
+# namespaces, because the thin EC/KEGG card and the three-namespace split are exactly the parts a
+# typical locus does not exercise — 22% of loci mention no Pfam at all and most carry no EC.
+with Session(engine) as session:
+    function_rich = session.execute(
+        select(Locus.node_label).where(
+            Locus.pangenome_id == 1,
+            Locus.ec_annotated_member_count > 0,
+            Locus.kegg_annotated_member_count > 0,
+            Locus.go_annotated_member_count_molecular_function > 0,
+            Locus.go_annotated_member_count_biological_process > 0,
+            Locus.go_annotated_member_count_cellular_component > 0,
+        ).order_by(Locus.member_gene_count.desc()).limit(1)
+    ).scalar_one()
+
+for name, label in (("ordinary", ordinary), ("over_cap", over_cap), ("no_window", no_window),
+                    ("function_rich", function_rich)):
     response = client.get(f"/api/v1/species/ecoli/loci/{label}")
     assert response.status_code == 200, (name, label, response.status_code)
-    out["loci"][name] = {"label": label, "response": response.get_json()}
+    # ⛔ The function block too, and for EVERY case — it is a second endpoint, so nothing but a
+    # recorded pair can show the two disagreeing about the same locus.
+    function = client.get(f"/api/v1/species/ecoli/loci/{label}/function")
+    assert function.status_code == 200, (name, label, function.status_code)
+    out["loci"][name] = {
+        "label": label,
+        "response": response.get_json(),
+        "function": function.get_json(),
+    }
 
 path = pathlib.Path(__file__).resolve()
 target = pathlib.Path("/Users/davidabelson/developer/syntitude/frontend/tests/fixtures/api_locus_responses.json")

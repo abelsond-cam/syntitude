@@ -22,6 +22,7 @@ emitted `0` for an absent float would turn "we did not look" into "we looked and
 
 from __future__ import annotations
 
+from syntitude_backend.models.enumerations import gene_ontology_namespace_name
 from syntitude_backend.services.locus_detail_service import (
     SIGNED_OFFSETS,
     LocusDetail,
@@ -40,8 +41,12 @@ def serialise_annotation_entry(entry) -> dict:
         "term": entry.term_value,
         "name": entry.term_name,
         "gene_count": entry.member_gene_count,
+        # ⛔ The NAME, never the stored 0/1/2. See `gene_ontology_namespace_name`: the coverage
+        # block of this very response keys its namespaces by name, and a client grouping entries by
+        # an integer renders three GO cards with empty term lists under coverage lines that promise
+        # otherwise. Found by building the tab, invisible to every test before it existed.
         **(
-            {"gene_ontology_namespace": entry.gene_ontology_namespace}
+            {"gene_ontology_namespace": gene_ontology_namespace_name(entry.gene_ontology_namespace)}
             if entry.gene_ontology_namespace is not None
             else {}
         ),

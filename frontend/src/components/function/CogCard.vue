@@ -1,0 +1,114 @@
+<script setup lang="ts">
+/**
+ * **COG** — the orthologous groups these genes were assigned, and how many of them there are.
+ *
+ * ⭐ **Partial COG coverage is HEADROOM, not a caveat (David, 2026-08-20).** COG is assigned by best
+ * hit rather than by a profile HMM, so a gene without one is *unlabelled*, not *different*. That is
+ * far weaker evidence of absence than a Pfam miss, which really is a profile failing to match — and
+ * the card says so, because the alternative reads as a hole in the locus when it is a hole in the
+ * annotation.
+ *
+ * ⛔ **It states that the opportunity exists; it does NOT predict.** Propagating a COG from the
+ * annotated members to the rest is *annotation transfer*, which is a method to be chosen
+ * deliberately: it needs a transfer rule, a confidence measure, a decision about discordant loci and
+ * a marking that can never be mistaken for a Bakta call. None of that is shipped, so neither is a
+ * predicted label.
+ *
+ * ⛔ **The distinct-id count is a COUNT, never a relation.** More than one orthologous group in a
+ * locus is an ordinary consequence of grouping above the family level, which is what this method
+ * does — it is read beside the sequence and context evidence, not as a fault.
+ */
+import { computed } from "vue";
+
+import type { AnnotationEntry, FunctionResponse } from "@/api/types";
+import { pluralise } from "@/lib/formatting";
+import { cogCategoryNames, cogEntryUrl, coverageParts } from "@/lib/functionVocabulary";
+
+import CountTable from "../shared/CountTable.vue";
+
+const props = defineProps<{
+  coverage: FunctionResponse["coverage"];
+  entries: readonly AnnotationEntry[];
+}>();
+
+const annotated = computed(() => props.coverage.cog_annotated_gene_count);
+const geneCount = computed(() => props.coverage.gene_count);
+
+const coverage = computed(() =>
+  coverageParts(annotated.value, geneCount.value, "a COG assignment"),
+);
+
+/** ⭐ The headroom sentence — present only when there IS headroom to describe. */
+const headroom = computed(() => {
+  const unlabelled = geneCount.value - annotated.value;
+  if (annotated.value === 0 || unlabelled <= 0) return null;
+  return (
+    `COG is assigned by best hit, not by a profile, so the remaining ${unlabelled} are unlabelled ` +
+    "rather than different — the gap this locus could fill, not a gap in it."
+  );
+});
+
+const categoryChip = computed(() => {
+  const categories = props.coverage.modal_cog_categories;
+  if (categories === null || categories.length === 0) return null;
+  // ⚠ A category is one letter OR SEVERAL (`EP`, `KT`, `NUW`, `EHJQ` are all real), so each letter
+  // is named. "Category W" is unreadable; "W — Extracellular structures" is the point of showing it.
+  return { code: categories.join(""), names: cogCategoryNames(categories).join(" · ") };
+});
+
+const groupChip = computed(() => {
+  const distinct = props.coverage.cog_distinct_id_count;
+  return {
+    tone: distinct <= 1 ? "win" : "neutral",
+    label: distinct <= 1 ? "one orthologous group" : pluralise(distinct, "orthologous group"),
+    isPlural: distinct > 1,
+  };
+});
+
+const rows = computed(() =>
+  props.entries.map((entry) => ({
+    key: entry.term,
+    count: entry.gene_count,
+    term: entry.term,
+    name: entry.name,
+  })),
+);
+</script>
+
+<template>
+  <div class="card">
+    <h3 class="sub-head">COG</h3>
+    <!-- ⛔ Coverage first, always, and against the LOCUS size — a share against the annotated subset
+         would read 100 % where one gene in forty carries a label. -->
+    <p class="muted cover"><b v-if="coverage.emphasis">{{ coverage.emphasis }}</b>{{ coverage.rest }}</p>
+    <p v-if="headroom" class="muted cover">{{ headroom }}</p>
+
+    <template v-if="annotated > 0">
+      <div class="chip-row">
+        <span
+          v-if="categoryChip"
+          class="chip neutral"
+          :title="`COG functional category ${categoryChip.code}`"
+        >{{ categoryChip.code }} — {{ categoryChip.names }}</span>
+        <span class="chip" :class="groupChip.tone">{{ groupChip.label }}</span>
+      </div>
+
+      <CountTable v-if="rows.length" :headings="['COG', 'what it is']" :rows="rows" :total="geneCount">
+        <template #cells="{ row }">
+          <td class="acc">
+            <a class="acc-link" :href="cogEntryUrl(row.term)" target="_blank" rel="noopener">{{ row.term }}</a>
+          </td>
+          <!-- ⚠ An em dash, not an empty cell: the vocabulary having no name is a fact about the
+               vocabulary, and a blank reads as a rendering failure. -->
+          <td>{{ row.name ?? "—" }}</td>
+        </template>
+      </CountTable>
+
+      <p v-if="groupChip.isPlural" class="muted">
+        More than one orthologous group is an ordinary consequence of grouping above the family
+        level, which is what this method does — read it beside the sequence and context evidence
+        rather than as a fault.
+      </p>
+    </template>
+  </div>
+</template>

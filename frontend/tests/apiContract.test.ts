@@ -32,11 +32,19 @@ import { resolve } from "node:path";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { LocusDetailResponse, MapProjection, Representation } from "@/api/types";
+import type {
+  AnnotationEntry,
+  FunctionResponse,
+  GeneOntologyNamespace,
+  LocusDetailResponse,
+  MapProjection,
+  Representation,
+} from "@/api/types";
 import { SLOT_COUNT } from "@/lib/slotSpaces";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
+import FunctionTab from "@/components/function/FunctionTab.vue";
 import NeighbourhoodMapCard from "@/components/map/NeighbourhoodMapCard.vue";
 import EmbeddingGeometryCard from "@/components/locusCard/EmbeddingGeometryCard.vue";
 import LocusHeadline from "@/components/locusCard/LocusHeadline.vue";
@@ -60,7 +68,17 @@ const FIXTURE = resolve(process.cwd(), "tests/fixtures/api_locus_responses.json"
 
 interface Recorded {
   readonly recorded_from: string;
-  readonly loci: Readonly<Record<string, { readonly label: string; readonly response: LocusDetailResponse }>>;
+  readonly loci: Readonly<
+    Record<
+      string,
+      {
+        readonly label: string;
+        readonly response: LocusDetailResponse;
+        /** ⭐ The Function tab's own endpoint, recorded for the SAME locus in the same pass. */
+        readonly function: FunctionResponse;
+      }
+    >
+  >;
   /**
    * ⭐ The species response, recorded in the same pass. The catalogue map's **viewport** comes from
    * this endpoint and its **positions** from the other, so the pair is the only thing that can show
@@ -70,7 +88,9 @@ interface Recorded {
 }
 
 const recorded: Recorded = JSON.parse(readFileSync(FIXTURE, "utf8")) as Recorded;
-const CASES = ["ordinary", "over_cap", "no_window"] as const;
+// ⭐ `function_rich` carries EC *and* KEGG *and* all three GO namespaces — the parts a typical
+// locus does not exercise at all. It is in the generic loops too, so every shape assertion gains it.
+const CASES = ["ordinary", "over_cap", "no_window", "function_rich"] as const;
 
 beforeEach(() => setActivePinia(createPinia()));
 
@@ -695,6 +715,125 @@ describe("⭐ the catalogue map, across TWO endpoints, on real bytes", () => {
         .attributes("href");
       expect(href).toContain(`/map/${representation}/scatter.png`);
       expect(href).toContain(projectionFor(representation).scatter_sprite!.content_digest);
+    }
+  });
+});
+
+describe("⭐ the Function tab, on real bytes from its own endpoint", () => {
+  const NAMESPACES = [
+    "molecular_function",
+    "biological_process",
+    "cellular_component",
+  ] as const satisfies readonly GeneOntologyNamespace[];
+  const LADDER = ["no_coverage", "single", "same_domains", "nested", "overlapping", "disjoint"];
+
+  function functionFor(kind: (typeof CASES)[number]): FunctionResponse {
+    return recorded.loci[kind]!.function;
+  }
+
+  it("⛔⛔ names each GO namespace the way the COVERAGE block does — the API spoke two dialects", () => {
+    // Found by building this tab: `gene_ontology_namespace` came back as the stored 0/1/2 while
+    // `coverage.go_annotated_gene_count` was keyed by name, in the same response. A client grouping
+    // entries by an integer renders three GO cards with EMPTY term lists under coverage lines that
+    // promise otherwise — and no existing test could see it, because nothing read the field.
+    let seen = 0;
+    for (const kind of CASES) {
+      const block = functionFor(kind);
+      expect(Object.keys(block.coverage.go_annotated_gene_count).sort()).toEqual([...NAMESPACES].sort());
+      for (const entry of block.annotations.gene_ontology_slim ?? []) {
+        expect(NAMESPACES).toContain(entry.gene_ontology_namespace);
+        seen += 1;
+      }
+    }
+    expect(seen).toBeGreaterThan(0);
+  });
+
+  it("⛔ every GO verdict is on the six-value LADDER, not a yes/no", () => {
+    // The TypeScript type said `"agree" | "disagree" | "no_coverage"` until this tab was built.
+    let seen = 0;
+    for (const kind of CASES) {
+      for (const namespace of NAMESPACES) {
+        const verdict = functionFor(kind).go_verdicts[namespace];
+        if (verdict === null) continue;
+        expect(LADDER).toContain(verdict);
+        seen += 1;
+      }
+    }
+    expect(seen).toBe(CASES.length * NAMESPACES.length);
+  });
+
+  it("⛔ no coverage count can exceed the locus, and each matches the locus response", () => {
+    // Two endpoints describing one locus. Nothing but the pair can show them disagreeing.
+    for (const kind of CASES) {
+      const block = functionFor(kind);
+      const size = block.coverage.gene_count;
+      expect(size).toBe(recorded.loci[kind]!.response.locus.gene_count);
+      for (const count of [
+        block.coverage.cog_annotated_gene_count,
+        block.coverage.ec_annotated_gene_count,
+        block.coverage.kegg_annotated_gene_count,
+        ...NAMESPACES.map((namespace) => block.coverage.go_annotated_gene_count[namespace]),
+      ]) {
+        expect(count).toBeGreaterThanOrEqual(0);
+        expect(count).toBeLessThanOrEqual(size);
+      }
+    }
+  });
+
+  it("⛔ a verdict of `no_coverage` is exactly where the namespace has no annotated genes", () => {
+    // ⚠ The two are computed independently — one is a stored verdict, the other a stored count — so
+    // this is a real cross-check rather than a restatement. A namespace with coverage and a
+    // `no_coverage` verdict would put a chipless card over a populated table.
+    let checked = 0;
+    for (const kind of CASES) {
+      const block = functionFor(kind);
+      for (const namespace of NAMESPACES) {
+        const annotated = block.coverage.go_annotated_gene_count[namespace];
+        if (block.go_verdicts[namespace] === "no_coverage") expect(annotated).toBeLessThan(2);
+        else expect(annotated).toBeGreaterThanOrEqual(2);
+        checked += 1;
+      }
+    }
+    expect(checked).toBe(CASES.length * NAMESPACES.length);
+  });
+
+  it("⛔ a KEGG row is present and NEVER named", () => {
+    // KEGG's terms permit linking, not redistribution. The server sends `name: null` for every KO
+    // row, and the page must have nothing to print even if it wanted to.
+    const kegg = CASES.flatMap((kind) => functionFor(kind).annotations.kegg_orthology ?? []);
+    expect(kegg.length).toBeGreaterThan(0);
+    for (const entry of kegg) expect(entry.name).toBeNull();
+  });
+
+  it("renders the rich locus with all three namespaces, EC and KEGG", () => {
+    const block = functionFor("function_rich");
+    const tab = mount(FunctionTab, {
+      props: {
+        displayName: recorded.loci.function_rich!.response.locus.display_name,
+        locusLabel: recorded.loci.function_rich!.label,
+        block,
+        status: "ready" as const,
+      },
+    });
+    const headings = tab.findAll(".sub-head").map((node) => node.text());
+    expect(headings).toContain("GO — molecular function");
+    expect(headings).toContain("GO — biological process");
+    expect(headings).toContain("GO — cellular component");
+    expect(headings).toContain("EC and KEGG");
+    // ⛔ and the GO tables are POPULATED — the whole point of the dialect bug above
+    const populated = tab.findAll(".card").filter((card) => card.find("tbody tr").exists());
+    expect(populated.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("⚠ every GO row carries an accession AND a readable class name", () => {
+    // `GO:0016020` alone is unreadable; "membrane" alone is unlookupable.
+    const entries = CASES.flatMap(
+      (kind) => (functionFor(kind).annotations.gene_ontology_slim ?? []) as readonly AnnotationEntry[],
+    );
+    expect(entries.length).toBeGreaterThan(0);
+    for (const entry of entries) {
+      expect(entry.term).toMatch(/^GO:\d{7}$/);
+      expect(entry.name).not.toBeNull();
     }
   });
 });

@@ -39,7 +39,26 @@ export type GeneOntologyNamespace =
  * ⛔ `no_coverage` is a VALUE, not an absence. Fewer than two annotated members is neither
  * agreement nor disagreement, and counting it as either invents a finding.
  */
-export type GoVerdict = "agree" | "disagree" | "no_coverage";
+/**
+ * ⛔⛔ **The Pfam ladder, not a yes/no** — and this type said `"agree" | "disagree" | "no_coverage"`
+ * until the function tab was built against it.
+ *
+ * The server stores and sends `GeneOntologyAgreementVerdict`, six values, because GO agreement means
+ * the same thing Pfam agreement does and one vocabulary serves both. Nothing caught the error: no
+ * component read `go_verdicts` until now, and when one did every chip would have rendered blank —
+ * `VERDICTS["single"]` is `undefined` in a table keyed on `"agree"` — with the page showing a locus
+ * whose members agree as a locus with no verdict at all.
+ *
+ * ⚠ `no_coverage` is a VALUE, never a null: fewer than two annotated members is neither agreement
+ * nor disagreement and must not be counted as either.
+ */
+export type GoVerdict =
+  | "no_coverage"
+  | "single"
+  | "same_domains"
+  | "nested"
+  | "overlapping"
+  | "disjoint";
 
 export interface AnnotationEntry {
   readonly rank: number;

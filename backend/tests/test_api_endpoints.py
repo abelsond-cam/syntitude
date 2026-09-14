@@ -831,3 +831,68 @@ def test_the_publish_gate_NAMES_the_sprite_checks_and_they_pass(application):
     assert "both catalogue scatter sprites are present" in passed
     for representation in ("esm", "bacformer"):
         assert f"the {representation} sprite accounts for every locus" in passed
+
+
+# ── the function block ─────────────────────────────────────────────────────────────────────────
+def test_a_GO_entry_names_its_namespace_the_way_the_COVERAGE_block_does(client):
+    """⛔⛔ **One response must not speak two dialects.**
+
+    `gene_ontology_namespace` is stored as 0/1/2 so one list can serve all three namespaces, and it
+    came back that way — while `coverage.go_annotated_gene_count` in the very same response was
+    keyed by NAME. A client grouping entries by an integer renders three GO cards with empty term
+    lists under coverage lines that promise otherwise, and no test could see it because nothing read
+    the field until the tab was built.
+    """
+    from syntitude_backend.models.enumerations import GENE_ONTOLOGY_NAMESPACE_NAMES
+
+    seen = 0
+    for label in ("2811", "17315", "17373"):
+        payload = client.get(f"/api/v1/species/ecoli/loci/{label}/function").get_json()
+        assert sorted(payload["coverage"]["go_annotated_gene_count"]) == sorted(
+            GENE_ONTOLOGY_NAMESPACE_NAMES
+        )
+        for entry in payload["annotations"].get("gene_ontology_slim", []):
+            assert entry["gene_ontology_namespace"] in GENE_ONTOLOGY_NAMESPACE_NAMES
+            seen += 1
+    assert seen > 0, "no GO entries were examined, so this proves nothing"
+
+
+def test_the_namespace_ORDER_is_the_one_the_data_itself_identifies(application):
+    """⚠ A transposed table would file every molecular function under cellular component.
+
+    Nothing about the page would look wrong. So the ordering is checked against the CONTENT: each
+    namespace carries its own root term as a slim class, literally named `molecular_function`,
+    `biological_process` and `cellular_component`.
+    """
+    from sqlalchemy.orm import Session as OrmSession
+
+    from syntitude_backend.models.enumerations import (
+        GENE_ONTOLOGY_NAMESPACE_NAMES,
+        AnnotationKind,
+        gene_ontology_namespace_name,
+    )
+    from syntitude_backend.models.locus_annotation import LocusAnnotationEntry
+
+    engine = application.extensions["syntitude_database"].engine
+    with OrmSession(engine) as session:
+        for index, name in enumerate(GENE_ONTOLOGY_NAMESPACE_NAMES):
+            found = session.execute(
+                select(func.count())
+                .select_from(LocusAnnotationEntry)
+                .where(
+                    LocusAnnotationEntry.annotation_kind == AnnotationKind.GENE_ONTOLOGY_SLIM,
+                    LocusAnnotationEntry.gene_ontology_namespace == index,
+                    LocusAnnotationEntry.term_name == name,
+                )
+            ).scalar_one()
+            assert found > 0, f"namespace {index} carries no term named {name!r}"
+            assert gene_ontology_namespace_name(index) == name
+
+
+def test_an_unmapped_namespace_index_RAISES_rather_than_inventing_a_name(application):
+    """⛔ A fourth namespace is a data error, and must not serialise as a plausible third."""
+    from syntitude_backend.models.enumerations import gene_ontology_namespace_name
+
+    assert gene_ontology_namespace_name(None) is None
+    with pytest.raises(ValueError, match="index 3"):
+        gene_ontology_namespace_name(3)

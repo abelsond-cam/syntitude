@@ -1713,6 +1713,76 @@
       "uniref50_accession": "UniRef50_Q9KVU3"
      }
     ]
+   },
+   "function": {
+    "annotations": {
+     "cog_orthogroup": [
+      {
+       "gene_count": 103,
+       "name": "Peptide deformylase",
+       "rank": 0,
+       "term": "COG0242"
+      }
+     ],
+     "ec_number": [
+      {
+       "gene_count": 103,
+       "name": null,
+       "rank": 0,
+       "term": "3.5.1.88"
+      }
+     ],
+     "gene_ontology_slim": [
+      {
+       "gene_count": 103,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "hydrolase activity",
+       "rank": 0,
+       "term": "GO:0016787"
+      },
+      {
+       "gene_count": 103,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "metal ion binding",
+       "rank": 1,
+       "term": "GO:0046872"
+      },
+      {
+       "gene_count": 103,
+       "gene_ontology_namespace": "biological_process",
+       "name": "translation",
+       "rank": 0,
+       "term": "GO:0006412"
+      },
+      {
+       "gene_count": 103,
+       "gene_ontology_namespace": "biological_process",
+       "name": "metabolic process",
+       "rank": 1,
+       "term": "GO:0008152"
+      }
+     ]
+    },
+    "coverage": {
+     "cog_annotated_gene_count": 103,
+     "cog_distinct_id_count": 1,
+     "ec_annotated_gene_count": 103,
+     "gene_count": 103,
+     "go_annotated_gene_count": {
+      "biological_process": 103,
+      "cellular_component": 0,
+      "molecular_function": 103
+     },
+     "kegg_annotated_gene_count": 0,
+     "modal_cog_categories": [
+      "J"
+     ]
+    },
+    "go_verdicts": {
+     "biological_process": "single",
+     "cellular_component": "no_coverage",
+     "molecular_function": "single"
+    }
    }
   },
   "over_cap": {
@@ -4973,6 +5043,75 @@
       "uniref50_accession": "UniRef50_Q664A4"
      }
     ]
+   },
+   "function": {
+    "annotations": {
+     "cog_orthogroup": [
+      {
+       "gene_count": 111,
+       "name": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
+       "rank": 0,
+       "term": "COG2003"
+      }
+     ],
+     "gene_ontology_slim": [
+      {
+       "gene_count": 30,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "nucleic acid binding",
+       "rank": 0,
+       "term": "GO:0003676"
+      },
+      {
+       "gene_count": 18,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "peptidase activity",
+       "rank": 1,
+       "term": "GO:0008233"
+      },
+      {
+       "gene_count": 18,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "metal ion binding",
+       "rank": 2,
+       "term": "GO:0046872"
+      },
+      {
+       "gene_count": 30,
+       "gene_ontology_namespace": "biological_process",
+       "name": "DNA metabolic process",
+       "rank": 0,
+       "term": "GO:0006259"
+      },
+      {
+       "gene_count": 18,
+       "gene_ontology_namespace": "biological_process",
+       "name": "proteolysis",
+       "rank": 1,
+       "term": "GO:0006508"
+      }
+     ]
+    },
+    "coverage": {
+     "cog_annotated_gene_count": 111,
+     "cog_distinct_id_count": 1,
+     "ec_annotated_gene_count": 0,
+     "gene_count": 143,
+     "go_annotated_gene_count": {
+      "biological_process": 30,
+      "cellular_component": 0,
+      "molecular_function": 30
+     },
+     "kegg_annotated_gene_count": 0,
+     "modal_cog_categories": [
+      "L"
+     ]
+    },
+    "go_verdicts": {
+     "biological_process": "nested",
+     "cellular_component": "no_coverage",
+     "molecular_function": "nested"
+    }
    }
   },
   "no_window": {
@@ -8329,6 +8468,2421 @@
       "uniref50_accession": "UniRef50_C7EZD9"
      }
     ]
+   },
+   "function": {
+    "annotations": {
+     "cog_orthogroup": [
+      {
+       "gene_count": 76,
+       "name": "Transposase (or an inactivated derivative), DDE domain",
+       "rank": 0,
+       "term": "COG3316"
+      }
+     ],
+     "gene_ontology_slim": [
+      {
+       "gene_count": 76,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "transposase activity",
+       "rank": 0,
+       "term": "GO:0004803"
+      }
+     ]
+    },
+    "coverage": {
+     "cog_annotated_gene_count": 76,
+     "cog_distinct_id_count": 1,
+     "ec_annotated_gene_count": 0,
+     "gene_count": 76,
+     "go_annotated_gene_count": {
+      "biological_process": 0,
+      "cellular_component": 0,
+      "molecular_function": 76
+     },
+     "kegg_annotated_gene_count": 0,
+     "modal_cog_categories": [
+      "X"
+     ]
+    },
+    "go_verdicts": {
+     "biological_process": "no_coverage",
+     "cellular_component": "no_coverage",
+     "molecular_function": "single"
+    }
+   }
+  },
+  "function_rich": {
+   "label": "17373",
+   "response": {
+    "anchor": {
+     "arrangement_ranks": [],
+     "is_anchored": false
+    },
+    "annotations": {
+     "gene_symbol": [
+      {
+       "gene_count": 106,
+       "name": null,
+       "rank": 0,
+       "term": "glnS"
+      }
+     ],
+     "pfam_architecture": [
+      {
+       "gene_count": 106,
+       "name": null,
+       "rank": 0,
+       "term": "PF00749,PF03950,PF20974"
+      }
+     ],
+     "protein_product": [
+      {
+       "gene_count": 106,
+       "name": null,
+       "rank": 0,
+       "term": "glutamine--tRNA ligase"
+      }
+     ]
+    },
+    "arrangements": {
+     "arrangements_not_listed": 1,
+     "listed": [
+      {
+       "gene_count": 35,
+       "genome_count": 35,
+       "is_recorded_reverse_complement": false,
+       "rank": 0,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "4609",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4610",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4611",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "4612",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4613",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "542",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "543",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1360",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "291",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1361",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 33,
+       "genome_count": 33,
+       "is_recorded_reverse_complement": false,
+       "rank": 1,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "1356",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "1357",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1358",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "1359",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4970",
+         "same_strand": false,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "542",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "543",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1360",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "291",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1361",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 20,
+       "genome_count": 20,
+       "is_recorded_reverse_complement": false,
+       "rank": 2,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "1355",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "1356",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1357",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "1358",
+         "same_strand": false,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1359",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "542",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "543",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1360",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "291",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1361",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 8,
+       "genome_count": 8,
+       "is_recorded_reverse_complement": false,
+       "rank": 3,
+       "slots": [
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "542",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "543",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1360",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "291",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1361",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 4,
+       "genome_count": 4,
+       "is_recorded_reverse_complement": false,
+       "rank": 4,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "6663",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "6588",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5412",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6662",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6661",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7309",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "7308",
+         "same_strand": false,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6660",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6659",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "6658",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 2,
+       "genome_count": 2,
+       "is_recorded_reverse_complement": false,
+       "rank": 5,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "1356",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "1357",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1358",
+         "same_strand": false,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "1359",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "17480",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "542",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "543",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "1360",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "291",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "1361",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 2,
+       "genome_count": 2,
+       "is_recorded_reverse_complement": false,
+       "rank": 6,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "6663",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "6588",
+         "same_strand": true,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "5412",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6662",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6661",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "5850",
+         "same_strand": false,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "6660",
+         "same_strand": false,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "6659",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "6658",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": null,
+         "locus": "6657",
+         "same_strand": false,
+         "signed_offset": 5
+        }
+       ]
+      },
+      {
+       "gene_count": 1,
+       "genome_count": 1,
+       "is_recorded_reverse_complement": false,
+       "rank": 7,
+       "slots": [
+        {
+         "absence_reason": null,
+         "locus": "4609",
+         "same_strand": false,
+         "signed_offset": -5
+        },
+        {
+         "absence_reason": null,
+         "locus": "4610",
+         "same_strand": false,
+         "signed_offset": -4
+        },
+        {
+         "absence_reason": null,
+         "locus": "4611",
+         "same_strand": true,
+         "signed_offset": -3
+        },
+        {
+         "absence_reason": null,
+         "locus": "4612",
+         "same_strand": true,
+         "signed_offset": -2
+        },
+        {
+         "absence_reason": null,
+         "locus": "4613",
+         "same_strand": true,
+         "signed_offset": -1
+        },
+        {
+         "absence_reason": null,
+         "locus": "542",
+         "same_strand": true,
+         "signed_offset": 1
+        },
+        {
+         "absence_reason": null,
+         "locus": "17517",
+         "same_strand": true,
+         "signed_offset": 2
+        },
+        {
+         "absence_reason": null,
+         "locus": "10884",
+         "same_strand": false,
+         "signed_offset": 3
+        },
+        {
+         "absence_reason": null,
+         "locus": "4039",
+         "same_strand": false,
+         "signed_offset": 4
+        },
+        {
+         "absence_reason": "contig_end",
+         "locus": null,
+         "same_strand": null,
+         "signed_offset": 5
+        }
+       ]
+      }
+     ],
+     "members_in_arrangements_not_listed": 1,
+     "members_without_a_neighbourhood": 0,
+     "membership_is_complete": true,
+     "total": 9
+    },
+    "intergenic_gaps": [
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "1359",
+       "17373"
+      ],
+      "length_variance_score": 0.0853932584269663,
+      "maximum_signed_length_nt": 267,
+      "median_signed_length_nt": 267,
+      "minimum_signed_length_nt": 202,
+      "modal_length_nt": 267,
+      "observed_genome_count": 20,
+      "quartile1_signed_length_nt": 202,
+      "quartile3_signed_length_nt": 267
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17373",
+       "542"
+      ],
+      "length_variance_score": 0.11374149659863945,
+      "maximum_signed_length_nt": 579,
+      "median_signed_length_nt": 445,
+      "minimum_signed_length_nt": 440,
+      "modal_length_nt": 441,
+      "observed_genome_count": 100,
+      "quartile1_signed_length_nt": 441,
+      "quartile3_signed_length_nt": 576
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17373",
+       "4613"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 219,
+      "median_signed_length_nt": 219,
+      "minimum_signed_length_nt": 219,
+      "modal_length_nt": 219,
+      "observed_genome_count": 36,
+      "quartile1_signed_length_nt": 219,
+      "quartile3_signed_length_nt": 219
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17373",
+       "4970"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 110,
+      "median_signed_length_nt": 110,
+      "minimum_signed_length_nt": 110,
+      "modal_length_nt": 110,
+      "observed_genome_count": 33,
+      "quartile1_signed_length_nt": 110,
+      "quartile3_signed_length_nt": 110
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17373",
+       "17480"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 232,
+      "median_signed_length_nt": 232,
+      "minimum_signed_length_nt": 232,
+      "modal_length_nt": 232,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 232,
+      "quartile3_signed_length_nt": 232
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": false,
+      "flanking_loci": [
+       "17373",
+       "6661"
+      ],
+      "length_variance_score": 0.0005330490405117271,
+      "maximum_signed_length_nt": 269,
+      "median_signed_length_nt": 268,
+      "minimum_signed_length_nt": 268,
+      "modal_length_nt": 268,
+      "observed_genome_count": 7,
+      "quartile1_signed_length_nt": 268,
+      "quartile3_signed_length_nt": 268
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17373",
+       "7309"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 48,
+      "median_signed_length_nt": 48,
+      "minimum_signed_length_nt": 48,
+      "modal_length_nt": 48,
+      "observed_genome_count": 4,
+      "quartile1_signed_length_nt": 48,
+      "quartile3_signed_length_nt": 48
+     },
+     {
+      "distinct_named_feature_count": 0,
+      "every_genome_agrees": true,
+      "flanking_loci": [
+       "17373",
+       "5850"
+      ],
+      "length_variance_score": 0.0,
+      "maximum_signed_length_nt": 48,
+      "median_signed_length_nt": 48,
+      "minimum_signed_length_nt": 48,
+      "modal_length_nt": 48,
+      "observed_genome_count": 2,
+      "quartile1_signed_length_nt": 48,
+      "quartile3_signed_length_nt": 48
+     }
+    ],
+    "locus": {
+     "bakta_gene_symbol": "glnS",
+     "best_product": "glutamine--tRNA ligase",
+     "catalogue_ordinal": 17373,
+     "display_name": "glnS",
+     "display_name_source": "bakta_symbol",
+     "display_name_source_accession": null,
+     "evidence": {
+      "collapse_bucket": "mmseq@0.98",
+      "collapse_tier": "mmseq@0.98",
+      "resolved_threshold": 0.98,
+      "resolved_threshold_is_capped_at_50_members": true,
+      "syntenic_a5": 0.5938
+     },
+     "gene_count": 106,
+     "gene_length_interquartile_range_nt": 0,
+     "genome_count": 100,
+     "geometry": {
+      "bacformer": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.3911,
+         0.3854,
+         0.3729,
+         0.3598,
+         0.3429
+        ],
+        [
+         0.3911,
+         1.0,
+         0.2982,
+         0.3306,
+         0.2527,
+         0.1878
+        ],
+        [
+         0.3854,
+         0.2982,
+         1.0,
+         0.2822,
+         0.2691,
+         0.1307
+        ],
+        [
+         0.3729,
+         0.3306,
+         0.2822,
+         1.0,
+         0.2734,
+         0.1213
+        ],
+        [
+         0.3598,
+         0.2527,
+         0.2691,
+         0.2734,
+         1.0,
+         0.2109
+        ],
+        [
+         0.3429,
+         0.1878,
+         0.1307,
+         0.1213,
+         0.2109,
+         1.0
+        ]
+       ],
+       "map_position": [
+        11646,
+        26033
+       ],
+       "nearest_locus_ordinals": [
+        1065,
+        2404,
+        2515,
+        16536,
+        10005
+       ],
+       "nearest_medoid_distance": 0.6089,
+       "separation_percentile": 0.7329587705527555,
+       "within_medoid_distance": 0.1163
+      },
+      "esm": {
+       "cosine_matrix": [
+        [
+         1.0,
+         0.968,
+         0.968,
+         0.9646,
+         0.9635,
+         0.9618
+        ],
+        [
+         0.968,
+         1.0,
+         0.9732,
+         0.969,
+         0.9571,
+         0.9745
+        ],
+        [
+         0.968,
+         0.9732,
+         1.0,
+         0.9793,
+         0.9627,
+         0.9752
+        ],
+        [
+         0.9646,
+         0.969,
+         0.9793,
+         1.0,
+         0.9538,
+         0.9697
+        ],
+        [
+         0.9635,
+         0.9571,
+         0.9627,
+         0.9538,
+         1.0,
+         0.9535
+        ],
+        [
+         0.9618,
+         0.9745,
+         0.9752,
+         0.9697,
+         0.9535,
+         1.0
+        ]
+       ],
+       "map_position": [
+        3584,
+        -9133
+       ],
+       "nearest_locus_ordinals": [
+        1023,
+        477,
+        1582,
+        1711,
+        893
+       ],
+       "nearest_medoid_distance": 0.032,
+       "separation_percentile": 0.5710154507146988,
+       "within_medoid_distance": 6.58e-05
+      }
+     },
+     "interest_score": 5718140.0106,
+     "label": "17373",
+     "median_gene_length_nt": 1665,
+     "named_gene_count": 106,
+     "pfam": {
+      "annotated_gene_count": 106,
+      "architecture_count": 1,
+      "concordance_class": "single"
+     },
+     "prevalence_band": "core",
+     "uniref50": {
+      "coverage": 1.0,
+      "family_count": 3,
+      "impurity": 0.4245,
+      "labelled_gene_count": 106,
+      "major_family_count": 2
+     }
+    },
+    "neighbour_display_rows": [
+     {
+      "best_product": "glutamine--tRNA ligase",
+      "catalogue_ordinal": 10005,
+      "display_name": "glnS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 2,
+      "label": "10005",
+      "map_position": {
+       "bacformer": [
+        13806,
+        15699
+       ],
+       "esm": [
+        6233,
+        -6439
+       ]
+      },
+      "median_gene_length_nt": 774,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.1899,
+       "esm": 0.004966
+      }
+     },
+     {
+      "best_product": "aspartate--tRNA ligase",
+      "catalogue_ordinal": 1023,
+      "display_name": "aspS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1023",
+      "map_position": {
+       "bacformer": [
+        12915,
+        26984
+       ],
+       "esm": [
+        3458,
+        -9333
+       ]
+      },
+      "median_gene_length_nt": 1773,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.04197,
+       "esm": 0.0001465
+      }
+     },
+     {
+      "best_product": "asparagine--tRNA ligase",
+      "catalogue_ordinal": 1065,
+      "display_name": "asnS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1065",
+      "map_position": {
+       "bacformer": [
+        11400,
+        25683
+       ],
+       "esm": [
+        3493,
+        -9305
+       ]
+      },
+      "median_gene_length_nt": 1401,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02997,
+       "esm": 1.192e-07
+      }
+     },
+     {
+      "best_product": "IS5 family transposase",
+      "catalogue_ordinal": 10884,
+      "display_name": "locus 10884",
+      "display_name_source": "label",
+      "genome_count": 2,
+      "label": "10884",
+      "map_position": {
+       "bacformer": [
+        -866,
+        13354
+       ],
+       "esm": [
+        3486,
+        654
+       ]
+      },
+      "median_gene_length_nt": 499,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.101,
+       "esm": 0.005767
+      }
+     },
+     {
+      "best_product": "ribonucleotide monophosphatase NagD",
+      "catalogue_ordinal": 1355,
+      "display_name": "nagD",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1355",
+      "map_position": {
+       "bacformer": [
+        21176,
+        12533
+       ],
+       "esm": [
+        8785,
+        -6347
+       ]
+      },
+      "median_gene_length_nt": 753,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02685,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "DNA-binding transcriptional regulator NagC",
+      "catalogue_ordinal": 1356,
+      "display_name": "nagC",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1356",
+      "map_position": {
+       "bacformer": [
+        21431,
+        11995
+       ],
+       "esm": [
+        11494,
+        -6492
+       ]
+      },
+      "median_gene_length_nt": 1221,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.04005,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "N-acetylglucosamine-6-phosphate deacetylase",
+      "catalogue_ordinal": 1357,
+      "display_name": "nagA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1357",
+      "map_position": {
+       "bacformer": [
+        21292,
+        12166
+       ],
+       "esm": [
+        7125,
+        -7084
+       ]
+      },
+      "median_gene_length_nt": 1149,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.04574,
+       "esm": 0.0001465
+      }
+     },
+     {
+      "best_product": "glucosamine-6-phosphate deaminase",
+      "catalogue_ordinal": 1358,
+      "display_name": "nagB",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1358",
+      "map_position": {
+       "bacformer": [
+        20823,
+        12279
+       ],
+       "esm": [
+        3450,
+        -8810
+       ]
+      },
+      "median_gene_length_nt": 801,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.08258,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "PTS N-acetyl glucosamine transporter subunit IIABC",
+      "catalogue_ordinal": 1359,
+      "display_name": "nagE",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1359",
+      "map_position": {
+       "bacformer": [
+        21616,
+        11399
+       ],
+       "esm": [
+        -6469,
+        -2294
+       ]
+      },
+      "median_gene_length_nt": 1947,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.1672,
+       "esm": 6.735e-05
+      }
+     },
+     {
+      "best_product": "ferric iron uptake transcriptional regulator",
+      "catalogue_ordinal": 1360,
+      "display_name": "fur",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1360",
+      "map_position": {
+       "bacformer": [
+        13953,
+        21283
+       ],
+       "esm": [
+        4957,
+        -9433
+       ]
+      },
+      "median_gene_length_nt": 447,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.04814,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "flavodoxin FldA",
+      "catalogue_ordinal": 1361,
+      "display_name": "fldA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1361",
+      "map_position": {
+       "bacformer": [
+        15787,
+        23616
+       ],
+       "esm": [
+        8171,
+        -5777
+       ]
+      },
+      "median_gene_length_nt": 531,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02835,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "valine--tRNA ligase",
+      "catalogue_ordinal": 1582,
+      "display_name": "valS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1582",
+      "map_position": {
+       "bacformer": [
+        11850,
+        26767
+       ],
+       "esm": [
+        3288,
+        -9810
+       ]
+      },
+      "median_gene_length_nt": 2856,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02774,
+       "esm": 5.949e-05
+      }
+     },
+     {
+      "best_product": "2,3-bisphosphoglycerate-dependent phosphoglycerate mutase",
+      "catalogue_ordinal": 16536,
+      "display_name": "locus 16536",
+      "display_name_source": "label",
+      "genome_count": 1,
+      "label": "16536",
+      "map_position": {
+       "bacformer": [
+        8909,
+        27049
+       ],
+       "esm": [
+        2681,
+        -9853
+       ]
+      },
+      "median_gene_length_nt": 765,
+      "prevalence_band": "rare",
+      "within_medoid_distance": {
+       "bacformer": null,
+       "esm": null
+      }
+     },
+     {
+      "best_product": "mannonate dehydratase",
+      "catalogue_ordinal": 1711,
+      "display_name": "uxuA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1711",
+      "map_position": {
+       "bacformer": [
+        16896,
+        15197
+       ],
+       "esm": [
+        4103,
+        -8359
+       ]
+      },
+      "median_gene_length_nt": 1185,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.04342,
+       "esm": 4.107e-05
+      }
+     },
+     {
+      "best_product": "glutamine--tRNA ligase",
+      "catalogue_ordinal": 17373,
+      "display_name": "glnS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "17373",
+      "map_position": {
+       "bacformer": [
+        11646,
+        26033
+       ],
+       "esm": [
+        3584,
+        -9133
+       ]
+      },
+      "median_gene_length_nt": 1665,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.1163,
+       "esm": 6.58e-05
+      }
+     },
+     {
+      "best_product": "IS200/IS605 family IS200C transposase",
+      "catalogue_ordinal": 17480,
+      "display_name": "tnp",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 54,
+      "label": "17480",
+      "map_position": {
+       "bacformer": [
+        2874,
+        18742
+       ],
+       "esm": [
+        3321,
+        614
+       ]
+      },
+      "median_gene_length_nt": 459,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.1239,
+       "esm": 0.006109
+      }
+     },
+     {
+      "best_product": "Transposase",
+      "catalogue_ordinal": 17517,
+      "display_name": "locus 17517",
+      "display_name_source": "label",
+      "genome_count": 52,
+      "label": "17517",
+      "map_position": {
+       "bacformer": [
+        14975,
+        -14548
+       ],
+       "esm": [
+        -3158,
+        20448
+       ]
+      },
+      "median_gene_length_nt": 48,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.5598,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "thymidylate synthase",
+      "catalogue_ordinal": 2404,
+      "display_name": "thyA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "2404",
+      "map_position": {
+       "bacformer": [
+        11693,
+        25439
+       ],
+       "esm": [
+        3258,
+        -9414
+       ]
+      },
+      "median_gene_length_nt": 795,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.01004,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "oligoribonuclease",
+      "catalogue_ordinal": 2515,
+      "display_name": "orn",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "2515",
+      "map_position": {
+       "bacformer": [
+        11758,
+        25996
+       ],
+       "esm": [
+        3258,
+        -10077
+       ]
+      },
+      "median_gene_length_nt": 546,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02542,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "fur leader peptide",
+      "catalogue_ordinal": 291,
+      "display_name": "uof",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "291",
+      "map_position": {
+       "bacformer": [
+        14045,
+        20863
+       ],
+       "esm": [
+        -185,
+        22462
+       ]
+      },
+      "median_gene_length_nt": 87,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02863,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "extended-spectrum class A beta-lactamase CTX-M-15",
+      "catalogue_ordinal": 4039,
+      "display_name": "blaCTX-M-15",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 50,
+      "label": "4039",
+      "map_position": {
+       "bacformer": [
+        7654,
+        17675
+       ],
+       "esm": [
+        10534,
+        -13472
+       ]
+      },
+      "median_gene_length_nt": 876,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.1342,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "Dihydrodipicolinate synthase",
+      "catalogue_ordinal": 4609,
+      "display_name": "locus 4609",
+      "display_name_source": "label",
+      "genome_count": 36,
+      "label": "4609",
+      "map_position": {
+       "bacformer": [
+        21642,
+        12719
+       ],
+       "esm": [
+        7874,
+        -6838
+       ]
+      },
+      "median_gene_length_nt": 888,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.007553,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "Iron-containing alcohol dehydrogenase",
+      "catalogue_ordinal": 4610,
+      "display_name": "locus 4610",
+      "display_name_source": "label",
+      "genome_count": 36,
+      "label": "4610",
+      "map_position": {
+       "bacformer": [
+        22014,
+        12771
+       ],
+       "esm": [
+        9474,
+        -7670
+       ]
+      },
+      "median_gene_length_nt": 1158,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.006928,
+       "esm": 5.96e-08
+      }
+     },
+     {
+      "best_product": "YgbK domain protein",
+      "catalogue_ordinal": 4611,
+      "display_name": "ygbK",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 36,
+      "label": "4611",
+      "map_position": {
+       "bacformer": [
+        21766,
+        13087
+       ],
+       "esm": [
+        9150,
+        -7942
+       ]
+      },
+      "median_gene_length_nt": 1236,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.005167,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "D-threonate 4-phosphate dehydrogenase",
+      "catalogue_ordinal": 4612,
+      "display_name": "pdxA",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 36,
+      "label": "4612",
+      "map_position": {
+       "bacformer": [
+        21770,
+        13200
+       ],
+       "esm": [
+        6324,
+        -8506
+       ]
+      },
+      "median_gene_length_nt": 987,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.008538,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "DeoR family transcriptional regulator",
+      "catalogue_ordinal": 4613,
+      "display_name": "deoR",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 36,
+      "label": "4613",
+      "map_position": {
+       "bacformer": [
+        20855,
+        13109
+       ],
+       "esm": [
+        10502,
+        -7743
+       ]
+      },
+      "median_gene_length_nt": 762,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.006322,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "leucine--tRNA ligase",
+      "catalogue_ordinal": 477,
+      "display_name": "leuS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "477",
+      "map_position": {
+       "bacformer": [
+        12133,
+        26912
+       ],
+       "esm": [
+        3565,
+        -8869
+       ]
+      },
+      "median_gene_length_nt": 2583,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02807,
+       "esm": 1.341e-05
+      }
+     },
+     {
+      "best_product": "hypothetical protein",
+      "catalogue_ordinal": 4970,
+      "display_name": "locus 4970",
+      "display_name_source": "label",
+      "genome_count": 33,
+      "label": "4970",
+      "map_position": {
+       "bacformer": [
+        21141,
+        11888
+       ],
+       "esm": [
+        -1062,
+        22069
+       ]
+      },
+      "median_gene_length_nt": 123,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.01518,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "StbB",
+      "catalogue_ordinal": 5412,
+      "display_name": "stbB",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 22,
+      "label": "5412",
+      "map_position": {
+       "bacformer": [
+        -6865,
+        -5100
+       ],
+       "esm": [
+        8826,
+        2327
+       ]
+      },
+      "median_gene_length_nt": 423,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.3484,
+       "esm": 9.799e-05
+      }
+     },
+     {
+      "best_product": "chitoporin",
+      "catalogue_ordinal": 542,
+      "display_name": "chiP",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "542",
+      "map_position": {
+       "bacformer": [
+        17881,
+        6898
+       ],
+       "esm": [
+        12420,
+        -22171
+       ]
+      },
+      "median_gene_length_nt": 1407,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.06627,
+       "esm": 3.189e-05
+      }
+     },
+     {
+      "best_product": "Uncharacterized lipoprotein ChiQ",
+      "catalogue_ordinal": 543,
+      "display_name": "chiQ",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "543",
+      "map_position": {
+       "bacformer": [
+        14917,
+        21492
+       ],
+       "esm": [
+        14504,
+        -12387
+       ]
+      },
+      "median_gene_length_nt": 327,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.05044,
+       "esm": 0.0006335
+      }
+     },
+     {
+      "best_product": "Dam family site-specific DNA-(Adenine-N6)-methyltransferase",
+      "catalogue_ordinal": 5850,
+      "display_name": "Dam",
+      "display_name_source": "product",
+      "genome_count": 16,
+      "label": "5850",
+      "map_position": {
+       "bacformer": [
+        -4493,
+        3735
+       ],
+       "esm": [
+        9730,
+        -1631
+       ]
+      },
+      "median_gene_length_nt": 2589,
+      "prevalence_band": "shell",
+      "within_medoid_distance": {
+       "bacformer": 0.1729,
+       "esm": 0.006746
+      }
+     },
+     {
+      "best_product": "Plasmid segregation protein",
+      "catalogue_ordinal": 6588,
+      "display_name": "locus 6588",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6588",
+      "map_position": {
+       "bacformer": [
+        -7208,
+        -4865
+       ],
+       "esm": [
+        10495,
+        -1344
+       ]
+      },
+      "median_gene_length_nt": 957,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.02879,
+       "esm": 0.0001169
+      }
+     },
+     {
+      "best_product": "Baseplate",
+      "catalogue_ordinal": 6657,
+      "display_name": "locus 6657",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6657",
+      "map_position": {
+       "bacformer": [
+        -8474,
+        -12482
+       ],
+       "esm": [
+        9532,
+        5651
+       ]
+      },
+      "median_gene_length_nt": 768,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.01958,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "Tail length tape measure protein",
+      "catalogue_ordinal": 6658,
+      "display_name": "locus 6658",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6658",
+      "map_position": {
+       "bacformer": [
+        -8488,
+        -12556
+       ],
+       "esm": [
+        9368,
+        5731
+       ]
+      },
+      "median_gene_length_nt": 981,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.03135,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "Baseplate protein",
+      "catalogue_ordinal": 6659,
+      "display_name": "locus 6659",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6659",
+      "map_position": {
+       "bacformer": [
+        -8591,
+        -12892
+       ],
+       "esm": [
+        6886,
+        4115
+       ]
+      },
+      "median_gene_length_nt": 654,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.04442,
+       "esm": 0.0005746
+      }
+     },
+     {
+      "best_product": "recombination-associated protein RdgC",
+      "catalogue_ordinal": 6660,
+      "display_name": "rdgC",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 11,
+      "label": "6660",
+      "map_position": {
+       "bacformer": [
+        418,
+        578
+       ],
+       "esm": [
+        7379,
+        -4021
+       ]
+      },
+      "median_gene_length_nt": 906,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.0856,
+       "esm": 0.001654
+      }
+     },
+     {
+      "best_product": "CopG family transcriptional regulator",
+      "catalogue_ordinal": 6661,
+      "display_name": "copG",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 11,
+      "label": "6661",
+      "map_position": {
+       "bacformer": [
+        -7886,
+        -5330
+       ],
+       "esm": [
+        8012,
+        2180
+       ]
+      },
+      "median_gene_length_nt": 288,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.05068,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "AAA family ATPase",
+      "catalogue_ordinal": 6662,
+      "display_name": "locus 6662",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6662",
+      "map_position": {
+       "bacformer": [
+        -7764,
+        -5760
+       ],
+       "esm": [
+        6172,
+        -6614
+       ]
+      },
+      "median_gene_length_nt": 642,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.03836,
+       "esm": 0.0
+      }
+     },
+     {
+      "best_product": "Alanine racemase",
+      "catalogue_ordinal": 6663,
+      "display_name": "locus 6663",
+      "display_name_source": "label",
+      "genome_count": 11,
+      "label": "6663",
+      "map_position": {
+       "bacformer": [
+        -19234,
+        -11171
+       ],
+       "esm": [
+        5602,
+        388
+       ]
+      },
+      "median_gene_length_nt": 285,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.02384,
+       "esm": 0.0003105
+      }
+     },
+     {
+      "best_product": "DNA cytosine methyltransferase",
+      "catalogue_ordinal": 7308,
+      "display_name": "locus 7308",
+      "display_name_source": "label",
+      "genome_count": 8,
+      "label": "7308",
+      "map_position": {
+       "bacformer": [
+        -4867,
+        3007
+       ],
+       "esm": [
+        9387,
+        -1216
+       ]
+      },
+      "median_gene_length_nt": 681,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.04121,
+       "esm": 0.001404
+      }
+     },
+     {
+      "best_product": "Site-specific DNA-methyltransferase (adenine-specific)",
+      "catalogue_ordinal": 7309,
+      "display_name": "locus 7309",
+      "display_name_source": "label",
+      "genome_count": 8,
+      "label": "7309",
+      "map_position": {
+       "bacformer": [
+        -4619,
+        3025
+       ],
+       "esm": [
+        10940,
+        -1421
+       ]
+      },
+      "median_gene_length_nt": 906,
+      "prevalence_band": "cloud",
+      "within_medoid_distance": {
+       "bacformer": 0.0724,
+       "esm": 0.0004606
+      }
+     },
+     {
+      "best_product": "isoleucine--tRNA ligase",
+      "catalogue_ordinal": 893,
+      "display_name": "ileS",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "893",
+      "map_position": {
+       "bacformer": [
+        14704,
+        27950
+       ],
+       "esm": [
+        3706,
+        -8972
+       ]
+      },
+      "median_gene_length_nt": 2817,
+      "prevalence_band": "core",
+      "within_medoid_distance": {
+       "bacformer": 0.02578,
+       "esm": 5.96e-05
+      }
+     }
+    ],
+    "offsets": [
+     {
+      "members_without_an_observation": 8,
+      "observed_member_count": 98,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 36,
+        "locus": "4609",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 35,
+        "locus": "1356",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 20,
+        "locus": "1355",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 7,
+        "locus": "6663",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": -5
+     },
+     {
+      "members_without_an_observation": 8,
+      "observed_member_count": 98,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 36,
+        "locus": "4610",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 35,
+        "locus": "1357",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 20,
+        "locus": "1356",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 7,
+        "locus": "6588",
+        "rank": 3,
+        "same_strand_gene_count": 7
+       }
+      ],
+      "signed_offset": -4
+     },
+     {
+      "members_without_an_observation": 8,
+      "observed_member_count": 98,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 36,
+        "locus": "4611",
+        "rank": 0,
+        "same_strand_gene_count": 36
+       },
+       {
+        "gene_count": 35,
+        "locus": "1358",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 20,
+        "locus": "1357",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 7,
+        "locus": "5412",
+        "rank": 3,
+        "same_strand_gene_count": 7
+       }
+      ],
+      "signed_offset": -3
+     },
+     {
+      "members_without_an_observation": 8,
+      "observed_member_count": 98,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 36,
+        "locus": "4612",
+        "rank": 0,
+        "same_strand_gene_count": 36
+       },
+       {
+        "gene_count": 35,
+        "locus": "1359",
+        "rank": 1,
+        "same_strand_gene_count": 35
+       },
+       {
+        "gene_count": 20,
+        "locus": "1358",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 7,
+        "locus": "6662",
+        "rank": 3,
+        "same_strand_gene_count": 7
+       }
+      ],
+      "signed_offset": -2
+     },
+     {
+      "members_without_an_observation": 8,
+      "observed_member_count": 98,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 36,
+        "locus": "4613",
+        "rank": 0,
+        "same_strand_gene_count": 36
+       },
+       {
+        "gene_count": 33,
+        "locus": "4970",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 20,
+        "locus": "1359",
+        "rank": 2,
+        "same_strand_gene_count": 20
+       },
+       {
+        "gene_count": 7,
+        "locus": "6661",
+        "rank": 3,
+        "same_strand_gene_count": 7
+       },
+       {
+        "gene_count": 2,
+        "locus": "17480",
+        "rank": 4,
+        "same_strand_gene_count": 2
+       }
+      ],
+      "signed_offset": -1
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 106,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 100,
+        "locus": "542",
+        "rank": 0,
+        "same_strand_gene_count": 100
+       },
+       {
+        "gene_count": 4,
+        "locus": "7309",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "5850",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 1
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 106,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 99,
+        "locus": "543",
+        "rank": 0,
+        "same_strand_gene_count": 99
+       },
+       {
+        "gene_count": 4,
+        "locus": "7308",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "6660",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "17517",
+        "rank": 3,
+        "same_strand_gene_count": 1
+       }
+      ],
+      "signed_offset": 2
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 106,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 99,
+        "locus": "1360",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 4,
+        "locus": "6660",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "6659",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "10884",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 3
+     },
+     {
+      "members_without_an_observation": 0,
+      "observed_member_count": 106,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 99,
+        "locus": "291",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 4,
+        "locus": "6659",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "6658",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 1,
+        "locus": "4039",
+        "rank": 3,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 4
+     },
+     {
+      "members_without_an_observation": 1,
+      "observed_member_count": 105,
+      "observed_not_listed": 0,
+      "occupants": [
+       {
+        "gene_count": 99,
+        "locus": "1361",
+        "rank": 0,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 4,
+        "locus": "6658",
+        "rank": 1,
+        "same_strand_gene_count": 0
+       },
+       {
+        "gene_count": 2,
+        "locus": "6657",
+        "rank": 2,
+        "same_strand_gene_count": 0
+       }
+      ],
+      "signed_offset": 5
+     }
+    ],
+    "pfam_reference": {
+     "PF00749": {
+      "clan_accession": "CL0039",
+      "clan_name": "HUP",
+      "description": "tRNA synthetases class I (E and Q), catalytic domain",
+      "interpro_accession": "IPR020058",
+      "interpro_name": "Glutamyl/glutaminyl-tRNA synthetase, class Ib, catalytic domain",
+      "short_name": "tRNA-synt_1c"
+     },
+     "PF03950": {
+      "clan_accession": "CL0733",
+      "clan_name": "Ribosomal_L25",
+      "description": "tRNA synthetases class I (E and Q), anti-codon binding domain",
+      "interpro_accession": "IPR020059",
+      "interpro_name": "Glutamyl/glutaminyl-tRNA synthetase, class Ib, anti-codon binding domain",
+      "short_name": "tRNA-synt_1c_C"
+     },
+     "PF20974": {
+      "clan_accession": "CL0733",
+      "clan_name": "Ribosomal_L25",
+      "description": "tRNA synthetases class I (E and Q), anti-codon binding domain",
+      "interpro_accession": "IPR049437",
+      "interpro_name": "tRNA synthetases class I (E and Q), anti-codon binding domain",
+      "short_name": "tRNA-synt_1c_C2"
+     }
+    },
+    "resolved_neighbour_count": 43,
+    "uniref50_families": [
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 61,
+      "modal_architecture": "PF00749,PF03950,PF20974",
+      "modal_product": "glutamine--tRNA ligase",
+      "modal_symbol": "glnS",
+      "pfam_annotated_gene_count": 61,
+      "rank": 0,
+      "uniref50_accession": "UniRef50_B7N9S6"
+     },
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 42,
+      "modal_architecture": "PF00749,PF03950,PF20974",
+      "modal_product": "glutamine--tRNA ligase",
+      "modal_symbol": "glnS",
+      "pfam_annotated_gene_count": 42,
+      "rank": 1,
+      "uniref50_accession": "UniRef50_Q8X9H8"
+     },
+     {
+      "distinct_symbol_count": 1,
+      "gene_count": 3,
+      "modal_architecture": "PF00749,PF03950,PF20974",
+      "modal_product": "glutamine--tRNA ligase",
+      "modal_symbol": "glnS",
+      "pfam_annotated_gene_count": 3,
+      "rank": 2,
+      "uniref50_accession": "UniRef50_Q8Z8F8"
+     }
+    ]
+   },
+   "function": {
+    "annotations": {
+     "cog_orthogroup": [
+      {
+       "gene_count": 106,
+       "name": "Glutamyl- or glutaminyl-tRNA synthetase",
+       "rank": 0,
+       "term": "COG0008"
+      }
+     ],
+     "ec_number": [
+      {
+       "gene_count": 106,
+       "name": null,
+       "rank": 0,
+       "term": "6.1.1.18"
+      }
+     ],
+     "gene_ontology_slim": [
+      {
+       "gene_count": 106,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "ligase activity",
+       "rank": 0,
+       "term": "GO:0016874"
+      },
+      {
+       "gene_count": 89,
+       "gene_ontology_namespace": "molecular_function",
+       "name": "ion binding",
+       "rank": 1,
+       "term": "GO:0043167"
+      },
+      {
+       "gene_count": 106,
+       "gene_ontology_namespace": "biological_process",
+       "name": "translation",
+       "rank": 0,
+       "term": "GO:0006412"
+      },
+      {
+       "gene_count": 106,
+       "gene_ontology_namespace": "cellular_component",
+       "name": "cytoplasm",
+       "rank": 0,
+       "term": "GO:0005737"
+      }
+     ],
+     "kegg_orthology": [
+      {
+       "gene_count": 53,
+       "name": null,
+       "rank": 0,
+       "term": "K01886"
+      }
+     ]
+    },
+    "coverage": {
+     "cog_annotated_gene_count": 106,
+     "cog_distinct_id_count": 1,
+     "ec_annotated_gene_count": 106,
+     "gene_count": 106,
+     "go_annotated_gene_count": {
+      "biological_process": 106,
+      "cellular_component": 106,
+      "molecular_function": 106
+     },
+     "kegg_annotated_gene_count": 53,
+     "modal_cog_categories": [
+      "J"
+     ]
+    },
+    "go_verdicts": {
+     "biological_process": "single",
+     "cellular_component": "single",
+     "molecular_function": "nested"
+    }
    }
   }
  },
