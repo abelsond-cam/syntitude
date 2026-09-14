@@ -41,6 +41,56 @@ species = client.get("/api/v1/species/ecoli")
 assert species.status_code == 200, species.status_code
 out["species"] = species.get_json()
 
+# ⭐ The Sequence tab, for a MINUS-strand gene — the case where the flank orientation can be wrong
+# and still look entirely plausible. Plus a genome that has no gene at that locus, because "no gene
+# here" is an ANSWER and must be a recorded shape rather than an assumption.
+from syntitude_backend.models.gene import Gene, GeneLocusMembership  # noqa: E402
+from syntitude_backend.models.genome import Genome  # noqa: E402
+
+with Session(engine) as session:
+    minus = session.execute(
+        select(Genome.sample_id, Locus.node_label)
+        .select_from(Gene)
+        .join(
+            GeneLocusMembership,
+            (GeneLocusMembership.genome_id == Gene.genome_id)
+            & (GeneLocusMembership.flat_index == Gene.flat_index),
+        )
+        .join(Genome, Genome.genome_id == Gene.genome_id)
+        .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
+        .where(
+            GeneLocusMembership.pangenome_id == 1,
+            Gene.strand == "-",
+            Gene.start_position > 500,
+            Gene.length_nt > 900,
+        )
+        .order_by(Gene.genome_id, Gene.flat_index)
+        .limit(1)
+    ).one()
+    absent_genome = session.execute(
+        select(Genome.sample_id).where(
+            Genome.genome_id.not_in(
+                select(GeneLocusMembership.genome_id)
+                .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
+                .where(Locus.node_label == minus.node_label, Locus.pangenome_id == 1)
+            )
+        ).limit(1)
+    ).scalar_one()
+
+out["sequences"] = {}
+for name, sample in (("minus_strand", minus.sample_id), ("no_gene_here", absent_genome)):
+    reply = client.get(
+        f"/api/v1/species/ecoli/genomes/{sample}/loci/{minus.node_label}/sequence"
+    )
+    assert reply.status_code == 200, (name, reply.status_code)
+    out["sequences"][name] = {
+        "sample_id": sample,
+        "locus_label": minus.node_label,
+        "response": reply.get_json(),
+    }
+    print(f"  sequence   {name:<14s} {sample} @ {minus.node_label} -> "
+          f"{len(reply.get_json()['genes'])} gene(s)")
+
 # ⭐ And the sprite BYTES, so the front-end suite can close the loop the backend closes on its own
 # side: take the coordinate the real component renders, and read the pixel under it in the real
 # picture. Without this the two projections are verified independently and never against each other.

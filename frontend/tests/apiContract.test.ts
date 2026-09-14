@@ -36,6 +36,7 @@ import type {
   AnnotationEntry,
   FunctionResponse,
   GeneOntologyNamespace,
+  GeneSequenceResponse,
   LocusDetailResponse,
   MapProjection,
   Representation,
@@ -45,6 +46,7 @@ import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
 import FunctionTab from "@/components/function/FunctionTab.vue";
+import SequenceTab from "@/components/sequence/SequenceTab.vue";
 import NeighbourhoodMapCard from "@/components/map/NeighbourhoodMapCard.vue";
 import EmbeddingGeometryCard from "@/components/locusCard/EmbeddingGeometryCard.vue";
 import LocusHeadline from "@/components/locusCard/LocusHeadline.vue";
@@ -76,6 +78,17 @@ interface Recorded {
         readonly response: LocusDetailResponse;
         /** ⭐ The Function tab's own endpoint, recorded for the SAME locus in the same pass. */
         readonly function: FunctionResponse;
+      }
+    >
+  >;
+  /** ⭐ The Sequence tab's own endpoint: a minus-strand gene, and a genome with no gene here. */
+  readonly sequences: Readonly<
+    Record<
+      string,
+      {
+        readonly sample_id: string;
+        readonly locus_label: string;
+        readonly response: GeneSequenceResponse;
       }
     >
   >;
@@ -834,6 +847,88 @@ describe("⭐ the Function tab, on real bytes from its own endpoint", () => {
     for (const entry of entries) {
       expect(entry.term).toMatch(/^GO:\d{7}$/);
       expect(entry.name).not.toBeNull();
+    }
+  });
+});
+
+describe("⭐ the Sequence tab, on real bases from a real GFF", () => {
+  const minus = recorded.sequences.minus_strand!;
+  const absent = recorded.sequences.no_gene_here!;
+
+  function mountSequence(record: typeof minus) {
+    return mount(SequenceTab, {
+      props: {
+        displayName: "x",
+        locusLabel: record.locus_label,
+        sampleId: record.sample_id,
+        response: record.response,
+        status: "ready" as const,
+      },
+    });
+  }
+
+  it("⛔⛔ a MINUS-strand gene's upstream flank comes from the HIGHER coordinates", () => {
+    // The bug of record, on real bases. `load_meta_flanks` orients on strand and `app.js:4376-4386`
+    // states the convention; slicing `start - flank` unconditionally returns the DOWNSTREAM flank
+    // for about half of all genes and renders as a perfectly plausible 100 bases of DNA.
+    const gene = minus.response.genes[0]!;
+    expect(gene.strand).toBe("-");
+    expect(gene.upstream_flank_span![0]).toBeGreaterThan(gene.end_position);
+    expect(gene.downstream_flank_span![1]).toBeLessThan(gene.start_position);
+  });
+
+  it("⚠ and the page SAYS the flanks were reverse-complemented", () => {
+    // Mislabelling a correct sequence is worse than showing the wrong one: the reader acts on it.
+    const provenances = mountSequence(minus)
+      .findAll(".seq-prov")
+      .map((node) => node.text());
+    expect(provenances[0]).toContain("reverse-complemented");
+  });
+
+  it("⛔ the protein is what the span implies, stop codon included", () => {
+    const gene = minus.response.genes[0]!;
+    expect(gene.coding_sequence.length).toBe(gene.end_position - gene.start_position + 1);
+    expect(gene.coding_sequence.length).toBe(gene.length_nt);
+    // The span INCLUDES the stop codon, so the protein is `length / 3 - 1` residues.
+    expect(gene.protein_sequence.length).toBe(gene.length_nt / 3 - 1);
+    expect(gene.protein_sequence).not.toContain("*");
+  });
+
+  it("⭐ the sliced GC reproduces the column ingest wrote", () => {
+    // Two computations of one number, from the same coordinates at different times.
+    const gene = minus.response.genes[0]!;
+    expect(gene.gc_percent).toBeCloseTo(gene.stored_gc_percent!, 9);
+  });
+
+  it("⛔ the bases are DNA and nothing else", () => {
+    const gene = minus.response.genes[0]!;
+    for (const sequence of [
+      gene.coding_sequence,
+      gene.upstream_flank_sequence,
+      gene.downstream_flank_sequence,
+    ]) {
+      expect(sequence).toMatch(/^[ACGTN]*$/);
+    }
+    expect(gene.protein_sequence).toMatch(/^[ACDEFGHIKLMNPQRSTVWY*]+$/);
+  });
+
+  it("⛔⛔ a genome with NO gene here renders as an answer, not as a failure", () => {
+    expect(absent.response.genes).toEqual([]);
+    const tab = mountSequence(absent);
+    expect(tab.text()).toContain("has no gene at this locus");
+    expect(tab.find(".pop-error").exists()).toBe(false);
+  });
+
+  it("⚠ a flank span describes exactly the string that came with it", () => {
+    for (const record of [minus]) {
+      for (const gene of record.response.genes) {
+        if (gene.upstream_flank_span !== null) {
+          const [from, to] = gene.upstream_flank_span;
+          expect(to - from + 1).toBe(gene.upstream_flank_sequence.length);
+        } else {
+          expect(gene.upstream_flank_sequence).toBe("");
+        }
+      }
     }
   });
 });

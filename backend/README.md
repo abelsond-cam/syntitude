@@ -127,6 +127,7 @@ refuses to move the pointer if any fails.
 | `GET …/loci/{label}/arrangements` | `focalCard`'s full scroller, paged |
 | `GET …/loci/{label}/function` | `renderFunction`, on tab open |
 | `GET /api/v1/species/{key}/search` | `search()` and the 3.0 MB `HAY` |
+| `GET …/genomes/{bs}/loci/{label}/sequence` | ⭐ `withSeq` + `decodeNseq` + `genesAtLocus` + `translate` |
 | `GET /api/v1/species/{key}/map/{rep}/scatter.png` | ⭐ `drawGlobal`'s catalogue dust — the one non-JSON response |
 
 Measured on the loaded *E. coli* catalogue: the landing locus is **11.8 kB in 36 ms**, and a locus
@@ -163,8 +164,25 @@ resolve to a different run and load a catalogue that is wrong about which model 
 triples are checked in at `syntitude_backend/ingest/published_catalogues.py`, with a test that both
 resolve against the store.
 
+⭐ **The Sequence tab reads the original GFF, and `.nseq` is retired rather than ported.** That
+custom 2-bit-packed format existed for one reason: GitHub Pages applies `Range` to the *compressed*
+stream, so byte offsets return plausible wrong bytes with a 206 and no error — the browser therefore
+had to fetch whole files and decode DNA itself. A server has no such constraint. It slices the file
+Bakta wrote (~5 kB out, where the page pulled 1.3 MB in), and the endpoint needs `SYNTITUDE_ROOT_GFF`.
+
+⛔ **Flanks are in the GENE's reading direction, not the contig's.** On a minus-strand gene the
+upstream flank sits at HIGHER contig coordinates and is reverse-complemented with it. Slicing
+`start - flank` unconditionally returns the *downstream* flank for about half of all genes and
+renders as a perfectly plausible 100 bases of DNA, so `test_gene_sequence_endpoint.py` goes back to
+the contig and reads the bases itself.
+
+⚠ **Three answers, and none of them may look like another:** `genes: []` with a 200 is *this genome
+has no gene at this locus* (an answer); a 503 with a named reason is *the bases could not be read*;
+a 404 is *no such genome or locus*.
+
 | variable | meaning |
 |---|---|
+| `SYNTITUDE_ROOT_GFF` | the annotation store — **required by the sequence endpoint**, which is the only one that opens a file |
 | `SYNTITUDE_NUNA_DATA_ROOT` | the local artifact mirror (default `~/developer/nuna/data`) |
 | `SYNTITUDE_FULL_COHORT=1` | run the alignment gate over all 280 genomes (~85 s) instead of 30 |
 

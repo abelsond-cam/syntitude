@@ -17,12 +17,20 @@ pangenome or the locus was missing, and never returns an empty body with a 200.
 from __future__ import annotations
 
 from flask import Blueprint, current_app, jsonify, request
+from sqlalchemy import select
 
 from syntitude_backend.models.enumerations import EmbeddingRepresentation
+from syntitude_backend.models.genome import Genome
+from syntitude_backend.models.locus import Locus
 from syntitude_backend.serialisers.locus_serialiser import (
     serialise_annotation_entry,
     serialise_arrangement,
+    serialise_gene_sequence,
     serialise_locus_detail,
+)
+from syntitude_backend.services.gene_sequence_service import (
+    SequenceUnavailable,
+    load_gene_sequences,
 )
 from syntitude_backend.services.locus_detail_service import (
     LocusNotFound,
@@ -365,6 +373,80 @@ def get_locus_function(species_key: str, locus_label: str):
 
 def _verdict_value(verdict):
     return verdict.value if verdict is not None else None
+
+
+@species_blueprint.get("/species/<species_key>/genomes/<sample_id>/loci/<path:locus_label>/sequence")
+def get_gene_sequence(species_key: str, sample_id: str, locus_label: str):
+    """⭐ The Sequence tab — a gene's DNA, its flanks and its protein, sliced from the original GFF.
+
+    ⚠ **~5 kB out, where the published page pulled 1.3 MB in.** It had to: GitHub Pages applies
+    `Range` to the compressed stream, so the browser fetched whole `.nseq` files and decoded DNA
+    itself. A server slices the file Bakta wrote, and the custom format is retired rather than ported.
+
+    ⛔ **Three different answers, and they must never look alike.** A genome with no gene at this
+    locus is an ANSWER (`genes: []`); a gene whose bases could not be read is a FAILURE with a named
+    reason; a locus or genome that does not exist is a 404. The published page's own rule, at
+    `app.js:4604`: *"a sequence panel that fails silently is one a reader will read as 'this genome
+    has nothing here', which is a different claim and a false one."*
+    """
+    with _session() as session:
+        try:
+            pangenome = _resolve_pangenome(session, species_key)
+        except SpeciesNotPublished as error:
+            return _not_found(str(error))
+
+        genome_id = session.execute(
+            select(Genome.genome_id).where(Genome.sample_id == sample_id)
+        ).scalar_one_or_none()
+        if genome_id is None:
+            return _not_found(f"no genome {sample_id!r}")
+        locus_id = session.execute(
+            select(Locus.locus_id).where(
+                Locus.pangenome_id == pangenome.pangenome_id, Locus.node_label == locus_label
+            )
+        ).scalar_one_or_none()
+        if locus_id is None:
+            return _not_found(f"no locus {locus_label!r} in {species_key}")
+
+        configuration = current_app.config["SYNTITUDE"]
+        try:
+            gff_root = configuration.artifact_roots["gff"]
+        except KeyError:
+            # ⚠ A configuration failure, named as one. "Not configured" and "the file is missing"
+            # are indistinguishable in a 404, and only one of them is ours to fix.
+            return (
+                jsonify(
+                    {
+                        "error": "sequence_unavailable",
+                        "detail": "this server has no annotation store configured, so no sequence "
+                        "can be read (set SYNTITUDE_ROOT_GFF)",
+                    }
+                ),
+                503,
+            )
+
+        try:
+            rows = load_gene_sequences(
+                session,
+                pangenome_id=pangenome.pangenome_id,
+                node_label=locus_label,
+                sample_id=sample_id,
+                gff_root=gff_root,
+            )
+        except SequenceUnavailable as error:
+            # ⛔ 503, not 404 and not an empty list: the gene is there and we could not read it.
+            return jsonify({"error": "sequence_unavailable", "detail": str(error)}), 503
+
+        return _immutable(
+            {
+                "genome": {"sample_id": sample_id},
+                "locus": {"label": locus_label},
+                # ⭐ A LIST, because rho > 1 puts one genome in a locus twice — and an empty one is
+                # the answer "this genome has no gene here", not a failure.
+                "genes": [serialise_gene_sequence(row) for row in rows],
+            },
+            pangenome.pangenome_id,
+        )
 
 
 @species_blueprint.get("/species/<species_key>/search")

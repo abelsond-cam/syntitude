@@ -468,3 +468,66 @@ export interface SearchResponse {
   readonly truncated: boolean;
   readonly hits: readonly SearchHit[];
 }
+
+/**
+ * One gene copy's bases — the Sequence tab's payload.
+ *
+ * ⭐ **~5 kB out, where the published page pulled 1.3 MB in.** It had no choice: GitHub Pages
+ * applies `Range` to the *compressed* stream, so byte offsets return plausible wrong bytes with a
+ * 206 and no error, and the browser had to fetch whole `.nseq` files and decode DNA itself. A server
+ * slices the file Bakta wrote, so that custom format is retired rather than ported.
+ */
+export interface GeneSequence {
+  /** ⭐ ρ > 1 puts one genome in a locus twice, so a copy is `n of m` and the page says so. */
+  readonly copy_ordinal: number;
+  readonly copy_count: number;
+  readonly flat_index: number;
+  /**
+   * ⛔ The contig's own NAME, never `contig_index + 1` — the index enumerates contigs that HAVE a
+   * CDS. Measured: the derived name is wrong on 7,696 of 26,878 contigs (28.6 %) and right on the
+   * rest, so a page deriving it looks correct seven times in ten and names a real contig the gene is
+   * not on for the other three.
+   */
+  readonly contig_name: string;
+  readonly seqid: string;
+  /** 1-based inclusive, and the end INCLUDES the stop codon. */
+  readonly start_position: number;
+  readonly end_position: number;
+  readonly strand: "+" | "-";
+  /** ⚠ Whether a strand parquet existed at all. A forced `+` must never read as an observation. */
+  readonly strand_is_observed: boolean;
+  readonly gff_phase: number;
+  readonly is_five_prime_partial: boolean;
+  readonly length_nt: number;
+  readonly protein_length_aa: number | null;
+  readonly gene_symbol: string | null;
+  readonly product: string | null;
+  /** ⚠ Genome-private (`AAOCBP_22210`) and never a gene NAME. */
+  readonly locus_tag: string | null;
+  readonly coding_sequence: string;
+  readonly protein_sequence: string;
+  /**
+   * ⛔ In the GENE's reading direction, not the contig's. On a minus-strand gene the upstream flank
+   * sits at HIGHER contig coordinates and is reverse-complemented with it.
+   */
+  readonly upstream_flank_sequence: string;
+  readonly downstream_flank_sequence: string;
+  readonly upstream_flank_is_truncated_by_contig_end: boolean;
+  readonly downstream_flank_is_truncated_by_contig_end: boolean;
+  /** Contig coordinates the flank came from, 1-based inclusive. `null` where the flank is empty. */
+  readonly upstream_flank_span: readonly [number, number] | null;
+  readonly downstream_flank_span: readonly [number, number] | null;
+  readonly gc_percent: number;
+  /** What ingest wrote from the same coordinates — sent so the two can be seen to agree. */
+  readonly stored_gc_percent: number | null;
+}
+
+export interface GeneSequenceResponse {
+  readonly genome: { readonly sample_id: string };
+  readonly locus: { readonly label: string };
+  /**
+   * ⛔ An EMPTY list is the answer *"this genome has no gene at this locus"*, not a failure. A
+   * request that failed is a `Failure`, and the two must never render alike.
+   */
+  readonly genes: readonly GeneSequence[];
+}

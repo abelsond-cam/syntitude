@@ -12,6 +12,7 @@ import type { Result } from "./result";
 import type {
   ArrangementPageResponse,
   FunctionResponse,
+  GeneSequenceResponse,
   LocusDetailResponse,
   Representation,
   SearchResponse,
@@ -86,6 +87,25 @@ export function fetchLocusFunction(
 ): Promise<Result<FunctionResponse>> {
   return requestJson<FunctionResponse>(
     `species/${encodeURIComponent(speciesKey)}/loci/${labelSegment(locusLabel)}/function`,
+    signal ? { signal } : {},
+  );
+}
+
+/**
+ * The Sequence tab — one genome's gene(s) at one locus, sliced from the original GFF on the server.
+ *
+ * ⚠ Fetched on tab open and per genome, never on a walk: it is the only endpoint here that opens a
+ * file, and nobody wants a genome's bases on every one of forty steps.
+ */
+export function fetchGeneSequence(
+  speciesKey: string,
+  sampleId: string,
+  locusLabel: string,
+  signal?: AbortSignal,
+): Promise<Result<GeneSequenceResponse>> {
+  return requestJson<GeneSequenceResponse>(
+    `species/${encodeURIComponent(speciesKey)}/genomes/${encodeURIComponent(sampleId)}/loci/` +
+      `${labelSegment(locusLabel)}/sequence`,
     signal ? { signal } : {},
   );
 }

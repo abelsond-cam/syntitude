@@ -365,3 +365,62 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
             for row in sorted(neighbours.all_rows(), key=lambda row: row.node_label)
         ],
     }
+
+
+def serialise_gene_sequence(row) -> dict:
+    """One gene copy for the Sequence tab — where it is, what it reads, and what is missing.
+
+    ⭐ **The stored values travel beside the sliced ones.** `gc_percent` and `protein_length_aa` are
+    columns, written at ingest from the same coordinates; sending both lets a reader (and a test)
+    see them agree rather than taking one on trust. They are separate fields for that reason and
+    must not be collapsed into one.
+
+    ⛔ **Truncation is reported per flank, not implied by a short string.** These are draft
+    assemblies — mean contig 14.4 kb, about 14 genes — so a gene within 100 bp of a contig end is
+    common rather than exotic, and a flank that is short without saying so reads as a complete one.
+    """
+    sequence = row.sequence
+    return {
+        # ⭐ `n of m` — rho > 1 puts one genome in a locus twice, and that is something to show
+        # rather than something to average away.
+        "copy_ordinal": row.copy_ordinal,
+        "copy_count": row.copy_count,
+        "flat_index": row.flat_index,
+        # ⛔ The contig's NAME, never `contig_index + 1`: the index enumerates contigs that HAVE a
+        # CDS, so index 269 is `contig00324` on SAMEA103923484.
+        "contig_name": row.contig_name,
+        "seqid": row.seqid,
+        "start_position": row.start_position,
+        "end_position": row.end_position,
+        "strand": row.strand,
+        # ⚠ Whether a strand parquet existed at all. A forced `+` must never read as an observation.
+        "strand_is_observed": row.strand_is_observed,
+        "gff_phase": row.gff_phase,
+        "is_five_prime_partial": row.is_five_prime_partial,
+        # Inclusive of the stop codon, so the protein is `length_nt / 3 - 1` residues.
+        "length_nt": row.length_nt,
+        "protein_length_aa": row.stored_protein_length_aa,
+        "gene_symbol": row.bakta_gene_symbol,
+        "product": row.bakta_product,
+        # ⚠ Genome-private (`AAOCBP_22210`) and never a gene NAME.
+        "locus_tag": row.locus_tag,
+        "coding_sequence": sequence.coding_sequence,
+        "protein_sequence": sequence.protein_sequence,
+        # ⛔ In the GENE's reading direction, not the contig's. On a minus-strand gene the upstream
+        # flank sits at HIGHER contig coordinates and is reverse-complemented with it. Slicing
+        # `start - flank` unconditionally returns the DOWNSTREAM flank for about half of all genes
+        # and looks entirely plausible on screen.
+        "upstream_flank_sequence": sequence.upstream_flank_sequence,
+        "downstream_flank_sequence": sequence.downstream_flank_sequence,
+        "upstream_flank_is_truncated_by_contig_end": sequence.upstream_flank_is_truncated_by_contig_end,
+        "downstream_flank_is_truncated_by_contig_end": sequence.downstream_flank_is_truncated_by_contig_end,
+        # ⭐ Where each flank CAME FROM, in contig coordinates — so the page can say "contig
+        # 1,388–1,487, reverse-complemented" without re-implementing the strand rule to work out
+        # which end it was. `null` where the flank is empty.
+        "upstream_flank_span": list(sequence.upstream_flank_span) if sequence.upstream_flank_span else None,
+        "downstream_flank_span": (
+            list(sequence.downstream_flank_span) if sequence.downstream_flank_span else None
+        ),
+        "gc_percent": sequence.gc_percent,
+        "stored_gc_percent": row.stored_gc_percent,
+    }

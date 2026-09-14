@@ -70,6 +70,12 @@ class GeneSequenceView:
     gc_percent: float
     upstream_flank_is_truncated_by_contig_end: bool
     downstream_flank_is_truncated_by_contig_end: bool
+    #: ⭐ Where each flank came from, in CONTIG coordinates — 1-based inclusive, `None` where the
+    #: flank is empty. Returned rather than left for the client to derive: the client would have to
+    #: re-implement the strand rule to know which end a flank came from, and that rule is the exact
+    #: thing this module exists to hold in one place.
+    upstream_flank_span: tuple[int, int] | None
+    downstream_flank_span: tuple[int, int] | None
 
 
 def read_gene_sequence(
@@ -108,14 +114,19 @@ def read_gene_sequence(
     low_is_truncated = (start_position - flank_length) < 1
     high_is_truncated = (end_position + flank_length) > contig_length
 
+    low_coordinates = (low_from, low_to) if low_span else None
+    high_coordinates = (high_from, high_to) if high_span else None
+
     if is_minus:
         coding = reverse_complement(body)
         upstream, downstream = reverse_complement(high_span), reverse_complement(low_span)
         upstream_truncated, downstream_truncated = high_is_truncated, low_is_truncated
+        upstream_span, downstream_span = high_coordinates, low_coordinates
     else:
         coding = body
         upstream, downstream = low_span, high_span
         upstream_truncated, downstream_truncated = low_is_truncated, high_is_truncated
+        upstream_span, downstream_span = low_coordinates, high_coordinates
 
     return GeneSequenceView(
         coding_sequence=coding,
@@ -125,4 +136,6 @@ def read_gene_sequence(
         gc_percent=gc_percent(coding),
         upstream_flank_is_truncated_by_contig_end=upstream_truncated,
         downstream_flank_is_truncated_by_contig_end=downstream_truncated,
+        upstream_flank_span=upstream_span,
+        downstream_flank_span=downstream_span,
     )
