@@ -40,6 +40,17 @@ out = {"recorded_from": "the API test client", "loci": {}}
 species = client.get("/api/v1/species/ecoli")
 assert species.status_code == 200, species.status_code
 out["species"] = species.get_json()
+
+# ⭐ And the sprite BYTES, so the front-end suite can close the loop the backend closes on its own
+# side: take the coordinate the real component renders, and read the pixel under it in the real
+# picture. Without this the two projections are verified independently and never against each other.
+FIXTURES = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "tests" / "fixtures"
+for representation in ("bacformer", "esm"):
+    sprite = client.get(f"/api/v1/species/ecoli/map/{representation}/scatter.png")
+    assert sprite.status_code == 200, (representation, sprite.status_code)
+    target = FIXTURES / f"catalogue_scatter_ecoli_{representation}.png"
+    target.write_bytes(sprite.data)
+    print(f"  sprite     {representation:<10s} {len(sprite.data):,} B -> {target.name}")
 for name, label in (("ordinary", ordinary), ("over_cap", over_cap), ("no_window", no_window)):
     response = client.get(f"/api/v1/species/ecoli/loci/{label}")
     assert response.status_code == 200, (name, label, response.status_code)
