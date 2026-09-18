@@ -33,6 +33,7 @@ from syntitude_backend.services.gene_sequence_service import (
     SequenceUnavailable,
     load_gene_sequences,
 )
+from syntitude_backend.services.genome_listing_service import clamp_genome_limit, list_genomes
 from syntitude_backend.services.locus_detail_service import (
     LocusNotFound,
     load_arrangement_page,
@@ -529,6 +530,58 @@ def get_search(species_key: str):
                         "rank_band": hit.rank_band,
                     }
                     for hit in result.hits
+                ],
+            },
+            pangenome.pangenome_id,
+        )
+
+
+@species_blueprint.get("/species/<species_key>/genomes")
+def get_genomes(species_key: str):
+    """The anchor control's list — `meta.genomes` + `anchorSearch` + `GENOME_N`, as one query.
+
+    `q` is a case-insensitive literal substring of the accession (empty matches every genome) and
+    `limit` defaults to 100, held to [1, 1000]. ⭐ Two statements whatever either asks for: one to
+    resolve the species, one for the genomes — their counts are READ from what ingest stored, never
+    aggregated here.
+
+    ⚠ **The ETag stays `"{pangenome_id}"` although `q` and `limit` change the body.** An entity tag
+    distinguishes representations of ONE resource (RFC 9110 §8.8.3), and the query string is part of
+    the target URI — so `?q=SAMEA2` and `?q=SAMEA3` are two resources, each cached and revalidated
+    under its own URI, and for any one URI the body changes only when the pangenome does. Folding `q`
+    into the tag would add nothing a cache uses; a cache keyed on the path alone would be broken by
+    `max-age` long before any ETag was consulted. `/search` relies on the same reading.
+    """
+    with _session() as session:
+        try:
+            pangenome = _resolve_pangenome(session, species_key)
+        except SpeciesNotPublished as error:
+            return _not_found(str(error))
+        listing = list_genomes(
+            session,
+            pangenome,
+            query=request.args.get("q", default="", type=str),
+            limit=clamp_genome_limit(request.args.get("limit", type=int)),
+        )
+        return _immutable(
+            {
+                "species_key": species_key,
+                "query": listing.query,
+                "genome_count": listing.genome_count,
+                # ⛔ Before the limit. A list cut at the limit must not read as the whole answer.
+                "matched_genome_count": listing.matched_genome_count,
+                "truncated": listing.truncated,
+                "genomes": [
+                    {
+                        "sample_id": genome.sample_id,
+                        "collection_genome_ordinal": genome.collection_genome_ordinal,
+                        # ⛔ TWO counts, and they are different facts: loci where the genome has a
+                        # gene, and loci where it sits in an arrangement — the second is what the
+                        # published dropdown printed. They differ for every probe genome.
+                        "locus_count": genome.locus_count,
+                        "arrangement_locus_count": genome.arrangement_locus_count,
+                    }
+                    for genome in listing.genomes
                 ],
             },
             pangenome.pangenome_id,
