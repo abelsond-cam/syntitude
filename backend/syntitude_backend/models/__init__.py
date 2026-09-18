@@ -37,6 +37,9 @@ from syntitude_backend.models.pangenome import (  # noqa: F401
     PangenomeInputEdge,
     PangenomeStep,
 )
+from syntitude_backend.models.pangenome_genome_locus_count import (  # noqa: F401
+    PangenomeGenomeLocusCount,
+)
 from syntitude_backend.models.pathogen_species import PathogenSpecies  # noqa: F401
 from syntitude_backend.models.reference_vocabulary import PfamFamily  # noqa: F401
 
@@ -65,6 +68,7 @@ __all__ = [
     "NunaModelStep",
     "Pangenome",
     "PangenomeEvaluation",
+    "PangenomeGenomeLocusCount",
     "PangenomeInputEdge",
     "PangenomeStep",
     "PathogenSpecies",

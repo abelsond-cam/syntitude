@@ -108,10 +108,11 @@ export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitu
 ```
 
 Then **publish** — a separate, explicit step, because the pointer is what the service reads and a
-load that is not published changes nothing a reader can see. `--publish` verifies eleven things about
+load that is not published changes nothing a reader can see. `--publish` verifies twelve things about
 the catalogue (locus count against the row count, the landing locus, both map representations, both
-**catalogue scatter sprites** and that each accounts for every locus, every locus named …) and
-refuses to move the pointer if any fails.
+**catalogue scatter sprites** and that each accounts for every locus, every locus named, **every
+collection genome has its per-genome locus count row** …) and refuses to move the pointer if any
+fails.
 
 ```bash
 .venv/bin/python -m syntitude_backend.ingest --stage pangenome --publish  ...  # as above
@@ -127,12 +128,21 @@ refuses to move the pointer if any fails.
 | `GET …/loci/{label}/arrangements` | `focalCard`'s full scroller, paged |
 | `GET …/loci/{label}/function` | `renderFunction`, on tab open |
 | `GET /api/v1/species/{key}/search` | `search()` and the 3.0 MB `HAY` |
+| `GET /api/v1/species/{key}/genomes` | `meta.genomes` + `anchorSearch` + `GENOME_N` — the anchor picker |
 | `GET …/genomes/{bs}/loci/{label}/sequence` | ⭐ `withSeq` + `decodeNseq` + `genesAtLocus` + `translate` |
 | `GET /api/v1/species/{key}/map/{rep}/scatter.png` | ⭐ `drawGlobal`'s catalogue dust — the one non-JSON response |
 
 Measured on the loaded *E. coli* catalogue: the landing locus is **11.8 kB in 36 ms**, and a locus
 view is **8 statements whether it resolves 2 neighbours or 49** — the property
 `tests/test_api_endpoints.py` asserts, rather than a recorded budget that could be re-baselined.
+
+⭐ **The anchor picker's counts are read, never aggregated per request.** Each genome carries TWO
+numbers, and they are different facts: `locus_count` (loci where it has a gene) and
+`arrangement_locus_count` (loci where it sits in an arrangement — exactly what the published dropdown
+printed). A gene alone on its contig reaches no window, so the two differ for every probe genome
+(ecoli: up to 286 loci, median 17.5; kp: up to 45, median 14.5). Both are `COUNT(DISTINCT locus)`,
+written by the pangenome layer into `pangenome_genome_locus_count`; the aggregate behind them is ~412 M
+membership rows at the design target, so a keystroke costs two statements instead.
 
 ⭐ **The scatter sprite is a picture because it is the one part of the map that is O(catalogue).**
 Everything else the map needs is a handful of numbers; the dust behind the six dots is 889,160
