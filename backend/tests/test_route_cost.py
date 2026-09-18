@@ -87,6 +87,28 @@ def test_the_residual_lists_are_two_statements(application):
 
 
 @pytest.mark.parametrize(
+    "query",
+    [{"limit": 1}, {"limit": 1000}, {"q": "samea22", "limit": 1000}, {"q": "NOT-A-GENOME"}],
+)
+def test_an_anchor_picker_KEYSTROKE_is_two_statements_whatever_the_limit(application, query):
+    """⛔ The per-genome counts are READ. Aggregated here they would be ~412 M rows per keystroke.
+
+    One statement for the genomes — their matched count rides on every row via a window, so it does
+    not grow with the limit, the collection or the query — plus the species resolution.
+    """
+    report = _measure(application, "/api/v1/species/ecoli/genomes", **query)
+    report.assert_at_most(1 + SPECIES_RESOLUTION, what="one anchor-picker keystroke, at the route")
+    # ⛔ And no aggregation over a membership table at all: the counts come from their own table.
+    assert not [
+        record.summary()
+        for record in report.statements
+        if "GROUP BY" in record.sql.upper()
+        or "gene_locus_membership" in record.sql
+        or "unnest" in record.sql.lower()
+    ]
+
+
+@pytest.mark.parametrize(
     "path",
     [
         "/api/v1/species/ecoli/loci/2811",
@@ -94,6 +116,7 @@ def test_the_residual_lists_are_two_statements(application):
         "/api/v1/species/ecoli/loci/2811/arrangements",
         "/api/v1/species/ecoli/search?q=ligase",
         "/api/v1/species/kp/audit/residual-loci",
+        "/api/v1/species/ecoli/genomes?q=samea22",
     ],
 )
 def test_ONLY_the_shell_aggregates_over_the_catalogue(application, path):

@@ -39,6 +39,7 @@ from syntitude_backend.ingest.derive_locus_ranking import (
     ranking,
     separation_index,
 )
+from syntitude_backend.ingest.ingest_genome_locus_counts import write_genome_locus_counts
 from syntitude_backend.ingest.render_catalogue_scatter_sprite import render_catalogue_scatter_sprite
 from syntitude_backend.ingest.staging_table_loader import copy_rows
 from syntitude_backend.models.enumerations import (
@@ -60,6 +61,7 @@ from syntitude_backend.models.locus_embedding_geometry import (
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
+from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
 
 #: `catalogue_map._COS` — the factor the 15 upper-triangle cosines are stored at.
 COSINE_SCALE_FACTOR = 10_000
@@ -81,6 +83,7 @@ class CatalogueLoadReport:
     offset_occupants: int = 0
     gene_memberships: int = 0
     genes_without_a_window: int = 0
+    genome_locus_counts: int = 0
     intergenic_gaps: int = 0
     intergenic_gap_features: int = 0
     map_projections: int = 0
@@ -104,6 +107,7 @@ class CatalogueLoadReport:
             f"  offset occupants        {self.offset_occupants:,}",
             f"  gene memberships        {self.gene_memberships:,}"
             + (f"  ({self.genes_without_a_window:,} with no window)" if self.genes_without_a_window else ""),
+            f"  genome locus counts     {self.genome_locus_counts:,} genomes",
             f"  intergenic gaps         {self.intergenic_gaps:,} "
             f"({self.intergenic_gap_features:,} named features)",
             f"  map projections         {self.map_projections} "
@@ -403,6 +407,7 @@ def _verdict(value) -> GeneOntologyAgreementVerdict | None:
 def _delete_pangenome_layer(session: Session, pangenome_id: int) -> None:
     """Every table scoped to this pangenome, in FK order. The blast radius is one catalogue."""
     for model, column in (
+        (PangenomeGenomeLocusCount, PangenomeGenomeLocusCount.pangenome_id),
         (GeneLocusMembership, GeneLocusMembership.pangenome_id),
         (IntergenicGapFeature, None),
         (IntergenicGap, IntergenicGap.pangenome_id),
@@ -477,6 +482,9 @@ def ingest_locus_catalogue(
         session, frames, pangenome_id, locus_id_by_label, arrangement_ids
     )
     report.gene_memberships, report.genes_without_a_window = memberships, without_window
+    # ⭐ AFTER both the arrangements and the memberships: it counts the rows just written, so the
+    # picker's "N loci" and the locus view cannot describe two different catalogues.
+    report.genome_locus_counts = write_genome_locus_counts(session, pangenome_id)
     report.intergenic_gaps, report.intergenic_gap_features = _load_intergenic_gaps(
         session, frames, pangenome_id, locus_id_by_label
     )
