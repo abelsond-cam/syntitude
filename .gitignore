@@ -17,3 +17,7 @@ frontend/dist/
 
 # macOS
 .DS_Store
+
+# Database dumps — ~100 MB each, and a snapshot of data that is rebuilt, not versioned
+*.dump
+deploy/dump/

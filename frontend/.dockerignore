@@ -1,0 +1,10 @@
+# ⛔ `node_modules` above all: a macOS install copied into a Linux build carries the wrong native
+# binaries for esbuild and rollup, and `npm ci` inside the image is what installs the right ones.
+node_modules
+dist
+*.tsbuildinfo
+coverage
+# The suites run in CI, not in the image, and their fixtures are most of this directory's bytes.
+tests
+Dockerfile
+.dockerignore
