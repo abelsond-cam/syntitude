@@ -49,6 +49,9 @@ class SearchHit:
 
     node_label: str
     display_name: str
+    #: ⭐ The page prints this under the name in every result row (`app.js::renderResults`): the locus
+    #: NUMBER never tells a reader whether a hit is the one they meant, and the product does.
+    best_product: str | None
     member_gene_count: int
     member_genome_count: int
     prevalence_band: str
@@ -118,6 +121,7 @@ def search_loci(
         select(
             Locus.node_label,
             Locus.display_name,
+            Locus.best_product,
             Locus.member_gene_count,
             Locus.member_genome_count,
             Locus.prevalence_band,
@@ -137,11 +141,12 @@ def search_loci(
         SearchHit(
             node_label=label,
             display_name=name,
+            best_product=product,
             member_gene_count=genes,
             member_genome_count=genomes,
             prevalence_band=band.value,
             rank_band=int(band_value),
         )
-        for label, name, genes, genomes, band, band_value in rows[:limit]
+        for label, name, product, genes, genomes, band, band_value in rows[:limit]
     ]
     return SearchResult(hits=hits, query=query, mode=mode, truncated=truncated)

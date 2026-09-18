@@ -61,6 +61,11 @@ class SpeciesCatalogue:
     model: NunaModel | None = None
     steps: list = field(default_factory=list)
     prevalence_census: dict = field(default_factory=dict)
+    #: ⭐ The SAME catalogue partitioned by GENE — member genes summed per band. The page prints both
+    #: (`app.js::renderPangenome`) because they answer different questions: a third of the loci are
+    #: singletons, while a typical genome carries about fifty singleton genes. Given only the locus
+    #: count a reader reasonably concludes the wrong thing about what is in a genome.
+    prevalence_gene_census: dict = field(default_factory=dict)
     audit_headline: dict = field(default_factory=dict)
     map_projections: list = field(default_factory=list)
     #: ⚠ Descriptors ONLY — never the bytes. The species response is JSON and the sprite is a
@@ -68,6 +73,9 @@ class SpeciesCatalogue:
     scatter_sprites: dict = field(default_factory=dict)
     landing_locus_label: str | None = None
     example_locus_labels: list = field(default_factory=list)
+    #: The example loci as the chips draw them — label, name and the UniRef50 families the chip
+    #: quotes (`render_page._examples`). A label alone would have to be resolved per chip.
+    example_locus_rows: list = field(default_factory=list)
 
 
 def list_published_species(session: Session) -> list[tuple[PathogenSpecies, Pangenome | None]]:
@@ -83,6 +91,31 @@ def list_published_species(session: Session) -> list[tuple[PathogenSpecies, Pang
         .order_by(PathogenSpecies.species_key)
     ).all()
     return [(species, pangenome) for species, pangenome in rows]
+
+
+def resolve_published_pangenome(session: Session, species_key: str) -> Pangenome:
+    """The pangenome a species serves — ONE statement, for every route that is not the shell.
+
+    ⛔⛔ **Not `load_species_catalogue(...).pangenome`.** That is the whole shell — the band census
+    (a GROUP BY over every locus of the species), the audit headline, the projections, the sprite
+    descriptors and the example chips — and every locus navigation, search keystroke and sequence
+    view paid for it just to learn one integer. The cost oracle measured the SERVICES and so could
+    not see it: at 17,531 loci it is a few milliseconds per click, at the 889,160-locus design target
+    it is an aggregation over the whole catalogue on the hot path.
+    """
+    row = session.execute(
+        select(PathogenSpecies.published_pangenome_id, Pangenome)
+        .outerjoin(Pangenome, Pangenome.pangenome_id == PathogenSpecies.published_pangenome_id)
+        .where(PathogenSpecies.species_key == species_key)
+    ).one_or_none()
+    if row is None:
+        raise SpeciesNotPublished(f"no species {species_key!r}")
+    if row.Pangenome is None:
+        raise SpeciesNotPublished(
+            f"{species_key!r} has no published pangenome. ⚠ That is a distinct state from 'no such "
+            "species', and the picker says so rather than omitting it."
+        )
+    return row.Pangenome
 
 
 def load_species_catalogue(session: Session, species_key: str) -> SpeciesCatalogue:
@@ -112,16 +145,20 @@ def load_species_catalogue(session: Session, species_key: str) -> SpeciesCatalog
 
     # ⚠ The census IS counted, because it is a distribution rather than a total and no column holds
     # it. One grouped statement over an index, not one per band.
+    # ⚠ The gene sums ride in the SAME grouped statement: a second one would be a second read of the
+    # same rows, and the cost oracle counts statements.
     counts = session.execute(
-        select(Locus.prevalence_band, func.count())
+        select(Locus.prevalence_band, func.count(), func.sum(Locus.member_gene_count))
         .where(Locus.pangenome_id == pangenome.pangenome_id)
         .group_by(Locus.prevalence_band)
     ).all()
-    catalogue.prevalence_census = {band.value: count for band, count in counts}
+    catalogue.prevalence_census = {band.value: count for band, count, _ in counts}
+    catalogue.prevalence_gene_census = {band.value: int(genes or 0) for band, _, genes in counts}
     for band in PrevalenceBand:
         # ⛔ A band with no loci is `0`, not absent: the page prints every band and an absent key
         # would render as a gap rather than as the measured zero it is.
         catalogue.prevalence_census.setdefault(band.value, 0)
+        catalogue.prevalence_gene_census.setdefault(band.value, 0)
 
     catalogue.audit_headline = {
         row.metric_name: row.numeric_value if row.numeric_value is not None else row.detail
@@ -142,17 +179,36 @@ def load_species_catalogue(session: Session, species_key: str) -> SpeciesCatalog
     catalogue.scatter_sprites = load_scatter_sprite_descriptors(session, pangenome.pangenome_id)
 
     wanted = [pangenome.landing_locus_id, *(pangenome.example_locus_ids or [])]
-    labels = {
-        locus_id: label
-        for locus_id, label in session.execute(
-            select(Locus.locus_id, Locus.node_label).where(
-                Locus.locus_id.in_([value for value in wanted if value is not None])
-            )
+    rows = {
+        row.locus_id: row
+        for row in session.execute(
+            select(
+                Locus.locus_id,
+                Locus.node_label,
+                Locus.display_name,
+                Locus.uniref50_family_count,
+                Locus.uniref50_major_family_count,
+            ).where(Locus.locus_id.in_([value for value in wanted if value is not None]))
         ).all()
     }
-    catalogue.landing_locus_label = labels.get(pangenome.landing_locus_id)
-    catalogue.example_locus_labels = [
-        labels[locus_id] for locus_id in (pangenome.example_locus_ids or []) if locus_id in labels
+    landing = rows.get(pangenome.landing_locus_id)
+    catalogue.landing_locus_label = landing.node_label if landing else None
+    examples = [rows[locus_id] for locus_id in (pangenome.example_locus_ids or []) if locus_id in rows]
+    catalogue.example_locus_labels = [row.node_label for row in examples]
+    catalogue.example_locus_rows = [
+        {
+            "label": row.node_label,
+            "display_name": row.display_name,
+            # ⚠ The MAJOR family count, as the chip always quoted (`nodes.n_u50_major` over `n_u50`):
+            # a locus with one real family and a scatter of one-member families is not the point
+            # the chip is making. Falls back to the full count where no major count was measured.
+            "uniref50_family_count": (
+                row.uniref50_major_family_count
+                if row.uniref50_major_family_count is not None
+                else row.uniref50_family_count
+            ),
+        }
+        for row in examples
     ]
     return catalogue
 

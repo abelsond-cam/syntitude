@@ -28,6 +28,7 @@ from syntitude_backend.serialisers.locus_serialiser import (
     serialise_gene_sequence,
     serialise_locus_detail,
 )
+from syntitude_backend.services.audit_residual_service import load_audit_residuals
 from syntitude_backend.services.gene_sequence_service import (
     SequenceUnavailable,
     load_gene_sequences,
@@ -44,6 +45,7 @@ from syntitude_backend.services.species_catalogue_service import (
     list_published_species,
     load_scatter_sprite,
     load_species_catalogue,
+    resolve_published_pangenome,
 )
 
 species_blueprint = Blueprint("species", __name__)
@@ -156,6 +158,9 @@ def get_species_catalogue(species_key: str):
                 ],
                 "provenance_rows": pangenome.provenance_rows or [],
                 "prevalence_census": catalogue.prevalence_census,
+                # ⭐ The same bands counted by GENE. Divided by `genome_count` this is the page's
+                # "per genome" line, and its three parts sum to the whole by construction.
+                "prevalence_gene_census": catalogue.prevalence_gene_census,
                 "audit_headline": catalogue.audit_headline,
                 "map_projections": [
                     {
@@ -187,14 +192,56 @@ def get_species_catalogue(species_key: str):
                 ],
                 "landing_locus": catalogue.landing_locus_label,
                 "example_loci": catalogue.example_locus_labels,
+                "example_locus_rows": catalogue.example_locus_rows,
+            },
+            pangenome.pangenome_id,
+        )
+
+
+@species_blueprint.get("/species/<species_key>/audit/residual-loci")
+def get_audit_residual_loci(species_key: str):
+    """Every locus grouped on context alone, and every Pfam conflict — two lists, each clickable.
+
+    Fetched when the footer's list is opened. ⚠ The two lists are NOT disjoint: a locus can be both,
+    and it then appears in both, exactly as the published footer listed it.
+    """
+    with _session() as session:
+        try:
+            pangenome = _resolve_pangenome(session, species_key)
+        except SpeciesNotPublished as error:
+            return _not_found(str(error))
+        residuals = load_audit_residuals(session, pangenome_id=pangenome.pangenome_id)
+
+        def rows(entries):
+            return [
+                {
+                    "label": entry.label,
+                    "display_name": entry.display_name,
+                    "prevalence_band": entry.prevalence_band,
+                    "gene_count": entry.gene_count,
+                    "uniref50_family_count": entry.uniref50_family_count,
+                    "pfam_architecture_count": entry.pfam_architecture_count,
+                    "syntenic_a5": entry.syntenic_a5,
+                    # ⚠ DISTANCES, as stored. The footer has always shown similarities; the client
+                    # converts, exactly as it does for the locus card, so there is one conversion.
+                    "esm_within_medoid_distance": entry.esm_within_medoid_distance,
+                    "esm_nearest_medoid_distance": entry.esm_nearest_medoid_distance,
+                }
+                for entry in entries
+            ]
+
+        return _immutable(
+            {
+                "grouped_on_context_alone": rows(residuals.grouped_on_context_alone),
+                "pfam_conflicts": rows(residuals.pfam_conflicts),
             },
             pangenome.pangenome_id,
         )
 
 
 def _resolve_pangenome(session, species_key: str):
-    catalogue = load_species_catalogue(session, species_key)
-    return catalogue.pangenome
+    # ⛔ One statement. See `resolve_published_pangenome` for what this used to cost every route.
+    return resolve_published_pangenome(session, species_key)
 
 
 @species_blueprint.get("/species/<species_key>/map/<representation>/scatter.png")
@@ -475,6 +522,7 @@ def get_search(species_key: str):
                     {
                         "label": hit.node_label,
                         "display_name": hit.display_name,
+                        "best_product": hit.best_product,
                         "gene_count": hit.member_gene_count,
                         "genome_count": hit.member_genome_count,
                         "prevalence_band": hit.prevalence_band,
