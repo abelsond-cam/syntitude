@@ -39,6 +39,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   AnnotationEntry,
   AuditResidualsResponse,
+  GenomeListResponse,
   SearchResponse,
   SpeciesCatalogueResponse,
   FunctionResponse,
@@ -117,6 +118,8 @@ interface Recorded {
   readonly residuals: AuditResidualsResponse;
   /** One real search, so the rows the dropdown draws are real rows. */
   readonly search: { readonly ligase: SearchResponse };
+  /** The anchor picker's list, cut at 5 so the `truncated` path is real bytes too. */
+  readonly genomes: GenomeListResponse;
 }
 
 // ⭐ `function_rich` carries EC *and* KEGG *and* all three GO namespaces — the parts a typical
@@ -1007,6 +1010,22 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
       }
       // A mid-string product match is the point of substring search; the fixture must exercise it.
       expect(hits.some((hit) => (hit.best_product ?? "").toLowerCase().includes("ligase"))).toBe(true);
+    });
+
+    it("⛔ the anchor list is cut honestly, and a genome's arranged loci never exceed its loci", () => {
+      const list = recorded.genomes;
+      expect(list.genomes).toHaveLength(5);
+      expect(list.truncated).toBe(true);
+      expect(list.matched_genome_count).toBe(list.genome_count);
+      expect(list.genome_count).toBe(recorded.species.pangenome.genome_count);
+      for (const genome of list.genomes) {
+        // Loci where it sits in a recorded neighbourhood are a SUBSET of loci where it has a gene.
+        expect(genome.arrangement_locus_count).toBeLessThanOrEqual(genome.locus_count);
+        // …and per LOCUS: a genome at ρ > 1 counted per gene would exceed the catalogue.
+        expect(genome.locus_count).toBeLessThanOrEqual(recorded.species.pangenome.locus_count);
+      }
+      const ordinals = list.genomes.map((genome) => genome.collection_genome_ordinal);
+      expect(ordinals).toEqual([...ordinals].sort((a, b) => a - b));
     });
 
     it("⚠ a residual row's family and architecture counts are counts or null, never -1", () => {

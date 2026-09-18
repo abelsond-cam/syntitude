@@ -163,6 +163,8 @@ def record_species(client, session: Session, species_key: str) -> dict:
         response = get(f"/api/v1/species/{species_key}/genomes/{sample}/loci/{label}/sequence").get_json()
         out["sequences"][name] = {"sample_id": sample, "locus_label": label, "response": response}
     out["residuals"] = get(f"/api/v1/species/{species_key}/audit/residual-loci").get_json()
+    # The anchor picker's list, cut short on purpose so the `truncated` path is recorded too.
+    out["genomes"] = get(f"/api/v1/species/{species_key}/genomes", limit=5).get_json()
     out["search"] = {"ligase": get(f"/api/v1/species/{species_key}/search", q="ligase", limit=40).get_json()}
 
     # ⭐ The sprite BYTES, so the front-end suite can read the pixel under the coordinate the real

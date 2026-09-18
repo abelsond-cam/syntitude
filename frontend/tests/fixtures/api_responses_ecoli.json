@@ -1,4 +1,43 @@
 {
+ "genomes": {
+  "genome_count": 100,
+  "genomes": [
+   {
+    "arrangement_locus_count": 4830,
+    "collection_genome_ordinal": 0,
+    "locus_count": 4866,
+    "sample_id": "SAMEA103923484"
+   },
+   {
+    "arrangement_locus_count": 5052,
+    "collection_genome_ordinal": 1,
+    "locus_count": 5088,
+    "sample_id": "SAMEA2204280"
+   },
+   {
+    "arrangement_locus_count": 4874,
+    "collection_genome_ordinal": 2,
+    "locus_count": 4898,
+    "sample_id": "SAMEA2204304"
+   },
+   {
+    "arrangement_locus_count": 4996,
+    "collection_genome_ordinal": 3,
+    "locus_count": 5025,
+    "sample_id": "SAMEA2204339"
+   },
+   {
+    "arrangement_locus_count": 4974,
+    "collection_genome_ordinal": 4,
+    "locus_count": 4996,
+    "sample_id": "SAMEA2204487"
+   }
+  ],
+  "matched_genome_count": 100,
+  "query": "",
+  "species_key": "ecoli",
+  "truncated": true
+ },
  "loci": {
   "function_rich": {
    "function": {

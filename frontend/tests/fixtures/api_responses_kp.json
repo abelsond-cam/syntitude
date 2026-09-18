@@ -1,4 +1,43 @@
 {
+ "genomes": {
+  "genome_count": 100,
+  "genomes": [
+   {
+    "arrangement_locus_count": 5297,
+    "collection_genome_ordinal": 0,
+    "locus_count": 5322,
+    "sample_id": "SAMN03892119"
+   },
+   {
+    "arrangement_locus_count": 5259,
+    "collection_genome_ordinal": 1,
+    "locus_count": 5272,
+    "sample_id": "SAMN03892120"
+   },
+   {
+    "arrangement_locus_count": 5306,
+    "collection_genome_ordinal": 2,
+    "locus_count": 5326,
+    "sample_id": "SAMN03892126"
+   },
+   {
+    "arrangement_locus_count": 5389,
+    "collection_genome_ordinal": 3,
+    "locus_count": 5411,
+    "sample_id": "SAMN04014844"
+   },
+   {
+    "arrangement_locus_count": 5337,
+    "collection_genome_ordinal": 4,
+    "locus_count": 5352,
+    "sample_id": "SAMN04014845"
+   }
+  ],
+  "matched_genome_count": 100,
+  "query": "",
+  "species_key": "kp",
+  "truncated": true
+ },
  "loci": {
   "function_rich": {
    "function": {
