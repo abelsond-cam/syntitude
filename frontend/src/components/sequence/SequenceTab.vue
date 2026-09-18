@@ -41,7 +41,8 @@ const hasGenes = computed(() => genes.value.length > 0);
 </script>
 
 <template>
-  <div class="wrap">
+  <!-- ⚠ No `.wrap` of its own: the page's view panel already is one, and a second nests the gutter. -->
+  <div>
     <div class="func-head">
       <h2>Sequence</h2>
       <span class="lid">{{ displayName }} ·{{ locusLabel }}</span>
@@ -54,8 +55,8 @@ const hasGenes = computed(() => genes.value.length > 0);
     </p>
 
     <template v-else>
-      <p class="muted seq-genome">
-        {{ sampleId }}<template v-if="hasGenes"> · {{ pluralise(genes.length, "copy", "copies") }}
+      <p class="seq-head">
+        <b>{{ sampleId }}</b><template v-if="hasGenes"> · {{ pluralise(genes.length, "copy", "copies") }}
         at this locus</template>
       </p>
 

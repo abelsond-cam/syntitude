@@ -68,7 +68,8 @@ def _a_gene(session, *, strand: str):
         .select_from(Gene)
         .join(
             GeneLocusMembership,
-            (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index),
+            (GeneLocusMembership.genome_id == Gene.genome_id)
+            & (GeneLocusMembership.flat_index == Gene.flat_index),
         )
         .join(Genome, Genome.genome_id == Gene.genome_id)
         .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
@@ -148,7 +149,8 @@ def test_the_sliced_sequence_REPRODUCES_the_columns_ingest_wrote(engine, gff_roo
             .select_from(Gene)
             .join(
                 GeneLocusMembership,
-                (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index),
+                (GeneLocusMembership.genome_id == Gene.genome_id)
+                & (GeneLocusMembership.flat_index == Gene.flat_index),
             )
             .join(Genome, Genome.genome_id == Gene.genome_id)
             .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
@@ -240,7 +242,8 @@ def test_the_contig_is_named_by_its_NAME_and_not_by_its_index(client, engine):
             .select_from(Gene)
             .join(
                 GeneLocusMembership,
-                (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index),
+                (GeneLocusMembership.genome_id == Gene.genome_id)
+                & (GeneLocusMembership.flat_index == Gene.flat_index),
             )
             .join(Genome, Genome.genome_id == Gene.genome_id)
             .join(
@@ -302,7 +305,8 @@ def test_a_flank_that_RUNS_OFF_the_contig_says_so(client, engine, gff_root):
             .select_from(Gene)
             .join(
                 GeneLocusMembership,
-                (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index),
+                (GeneLocusMembership.genome_id == Gene.genome_id)
+                & (GeneLocusMembership.flat_index == Gene.flat_index),
             )
             .join(Genome, Genome.genome_id == Gene.genome_id)
             .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)

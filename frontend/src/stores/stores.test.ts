@@ -530,3 +530,107 @@ describe("⭐ the neighbourhood map's state is the READER's, not the locus's", (
     expect(map.zoom).toBe("near");
   });
 });
+
+describe("⭐ anchoring the locus already on screen", () => {
+  it("re-asks for the SAME route with the anchor, and leaves the trail alone", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    fetchLocus.mockResolvedValueOnce(success(locusDetail()));
+    await navigation.navigateTo("1", REVERSED);
+    fetchLocus.mockResolvedValueOnce(
+      success(locusDetail({ anchor: { is_anchored: true, arrangement_ranks: [] } })),
+    );
+    useAnchorGenomeStore().setAnchor("SAMEA1");
+    await nextTick();
+    await Promise.resolve();
+    expect(fetchLocus).toHaveBeenLastCalledWith("ecoli", "1", expect.objectContaining({ anchorSampleId: "SAMEA1" }));
+    // ⛔ Same place, same way round: an anchor is not a step along the trail.
+    expect(navigation.route).toEqual({ label: "1", direction: REVERSED });
+    expect(navigation.trail).toEqual(["1"]);
+  });
+
+  it("⛔ re-derives the drawn arrangement even though the LABEL did not change", async () => {
+    // Keyed on the label alone, the default was never re-derived here and the track kept drawing
+    // rank 0 while the anchor block said the reader's genome sat in rank 1.
+    const navigation = useLocusNavigationStore();
+    const track = useTrackDisplayStore();
+    navigation.setSpecies("ecoli");
+    const two = [arrangement({ rank: 0 }), arrangement({ rank: 1 })];
+    fetchLocus.mockResolvedValueOnce(
+      success(locusDetail({ arrangements: { ...locusDetail().arrangements, listed: two, total: 2 } })),
+    );
+    await navigation.navigateTo("1");
+    await nextTick();
+    expect(track.selectedArrangementIndex).toBe(0);
+
+    fetchLocus.mockResolvedValueOnce(
+      success(
+        locusDetail({
+          arrangements: { ...locusDetail().arrangements, listed: two, total: 2 },
+          anchor: { is_anchored: true, arrangement_ranks: [1] },
+        }),
+      ),
+    );
+    useAnchorGenomeStore().setAnchor("SAMEA1");
+    await nextTick();
+    await Promise.resolve();
+    await nextTick();
+    expect(track.selectedArrangementIndex).toBe(1);
+  });
+});
+
+describe("⛔ a hash is resolved against the SERVER, whole string first", () => {
+  it("reads a trailing `r` as the direction only when the whole string is NOT a locus", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    fetchLocus.mockResolvedValueOnce(failure("not_found", "no locus '12r'", 404));
+    fetchLocus.mockResolvedValueOnce(success(locusDetail({ locus: { label: "12" } as never })));
+    expect(await navigation.openHash("#12r")).toBe(true);
+    expect(navigation.route).toEqual({ label: "12", direction: REVERSED });
+    expect(fetchLocus.mock.calls.map((call) => call[1])).toEqual(["12r", "12"]);
+  });
+
+  it("⭐ keeps a locus whose label genuinely ends in `r` — and fetches it only once", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    fetchLocus.mockResolvedValueOnce(success(locusDetail({ locus: { label: "fur" } as never })));
+    expect(await navigation.openHash("#fur")).toBe(true);
+    expect(navigation.route).toEqual({ label: "fur", direction: FORWARD });
+    // The probe's answer was cached, so the navigation that followed made no second request.
+    expect(fetchLocus).toHaveBeenCalledTimes(1);
+  });
+
+  it("⚠ does NOT read the `r` as a direction when the probe merely failed to arrive", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    fetchLocus.mockResolvedValueOnce(failure("network", "offline"));
+    fetchLocus.mockResolvedValueOnce(failure("network", "offline"));
+    await navigation.openHash("#12r");
+    // A network failure is reported as itself, on the locus the hash actually names.
+    expect(navigation.route).toEqual({ label: "12r", direction: FORWARD });
+    expect(navigation.view.status).toBe("failed");
+  });
+
+  it("returns false for an empty or malformed hash, so the caller can land somewhere", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    expect(await navigation.openHash("")).toBe(false);
+    expect(await navigation.openHash("#%")).toBe(false);
+    expect(fetchLocus).not.toHaveBeenCalled();
+  });
+});
+
+describe("the breadcrumb's names", () => {
+  it("remembers the name of every locus it DREW, and forgets them with the species", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    fetchLocus.mockResolvedValueOnce(
+      success(locusDetail({ locus: { label: "7", display_name: "wzi" } as never })),
+    );
+    await navigation.navigateTo("7");
+    await nextTick();
+    expect(navigation.displayNames.get("7")).toBe("wzi");
+    navigation.setSpecies("kp");
+    expect(navigation.displayNames.size).toBe(0);
+  });
+});

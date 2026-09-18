@@ -78,17 +78,23 @@ describe("⭐ this is the control that PICKS an arrangement", () => {
     expect(empty.find(".arr-notes").exists()).toBe(false);
   });
 
-  it("⛔ puts the row and the notes at the ROOT, with nothing wrapping them", () => {
-    // `app.css:720` places `.arr-notes` at `grid-row: 3` of the page grid. A wrapping <div> would
-    // make them a grid of one and silently drop that placement — and the option row must stay its
-    // own grid row so the anchor control beside it can sit centred on the buttons.
+  it("⛔ puts the SWITCH and the notes at the ROOT, with nothing wrapping them", () => {
+    // `app.css` places `.arr-switch` at column 2 / row 2 and `.arr-notes` at row 3 of the page grid.
+    // A wrapping <div> would make them a grid of one and silently drop both placements.
     const switcher = mountSwitcher();
-    const row = switcher.find(".arr-row").element;
+    const host = switcher.find(".arr-switch").element;
     const notes = switcher.find(".arr-notes").element;
-    expect(notes.parentElement).toBe(row.parentElement);
+    expect(notes.parentElement).toBe(host.parentElement);
     // …and that shared parent belongs to the harness, not to this component: an empty class name
     // is the mount host. Any class here would be a wrapper this component rendered.
-    expect(row.parentElement?.className).toBe("");
+    expect(host.parentElement?.className).toBe("");
+  });
+
+  it("⛔ and the ROW sits inside the switch, where the grid places it", () => {
+    // Nothing places `.arr-row` in the grid itself. At the root it auto-flowed into the 260 px anchor
+    // gutter and the buttons stacked down the left of the page — found only by rendering the page.
+    const switcher = mountSwitcher();
+    expect(switcher.find(".arr-row").element.parentElement?.classList.contains("arr-switch")).toBe(true);
   });
 });
 

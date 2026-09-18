@@ -79,14 +79,29 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
    * their popover.
    */
   watch(
-    () => drawable.value?.locus.label ?? null,
-    (label, previousLabel) => {
-      if (label === previousLabel) return;
+    () => drawnKey(drawable.value),
+    (key, previousKey) => {
+      if (key === previousKey) return;
       selectedArrangementIndex.value = defaultArrangementIndex(drawable.value);
       openPopoverSlot.value = null;
       isFocalPopoverOpen.value = false;
     },
   );
+
+  /**
+   * The locus drawn, AND what its anchor block says.
+   *
+   * ⛔ The label alone is not enough once the anchor can change in place. Anchoring a genome on the
+   * locus already on screen re-fetches the SAME label with a different `anchor` block, and keyed on
+   * the label the default was never re-derived — the track kept drawing rank 1 while the switcher
+   * said the reader's genome was elsewhere. `app.js::setAnchor` re-derives `arrIdx` for exactly this
+   * reason. Walk direction is still NOT part of the key: flipping the frame is the same locus.
+   */
+  function drawnKey(detail: LocusDetailResponse | null): string | null {
+    if (detail === null) return null;
+    const anchorBlock = detail.anchor.is_anchored ? detail.anchor.arrangement_ranks.join(",") : "-";
+    return `${detail.locus.label}|${anchorBlock}`;
+  }
 
   /**
    * The anchored genome's arrangement if it carries one, else rank 1.

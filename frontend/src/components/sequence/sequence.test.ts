@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { GeneSequence, GeneSequenceResponse } from "@/api/types";
 
+import CopySequenceButton from "./CopySequenceButton.vue";
 import GeneSequenceCard from "./GeneSequenceCard.vue";
 import SequenceBlock from "./SequenceBlock.vue";
 import SequenceTab from "./SequenceTab.vue";
@@ -260,11 +261,38 @@ describe("⚠ copying says whether it worked", () => {
 
   it("⭐ offers the gene WITH its flanks, labelled as not the coding sequence alone", async () => {
     // It is the block a guide designer usually wants and the one most easily mistaken for the gene.
+    // A copy button and its arithmetic (`app.js::seqGene`), not a fourth block of bases already on
+    // screen above it.
     const card = mount(GeneSequenceCard, { props: { gene: gene(), flankLength: 100 } });
-    const combined = card.findAllComponents(SequenceBlock).at(-1)!;
-    expect(combined.props("sequence")).toBe(
-      "G".repeat(100) + gene().coding_sequence + "C".repeat(100),
+    const both = card.find(".seq-both");
+    const copy = both.findComponent(CopySequenceButton);
+    expect(copy.props("text")).toBe("G".repeat(100) + gene().coding_sequence + "C".repeat(100));
+    expect(copy.props("what")).toContain("not the coding sequence alone");
+    expect(copy.text()).toBe("copy gene + 100 bp each side");
+    expect(both.find(".seq-both-note").text()).toContain(
+      `${(200 + gene().coding_sequence.length).toLocaleString()} bases: 100 + ${gene().coding_sequence.length} + 100.`,
     );
-    expect(combined.props("provenance")).toContain("not the coding sequence alone");
+    // ⛔ and the four blocks are the four things, not five.
+    expect(card.findAllComponents(SequenceBlock)).toHaveLength(4);
+  });
+
+  it("⭐ numbers each block from 1 WITHIN itself, sixty to a line, and copies the bases alone", () => {
+    const block = mount(SequenceBlock, {
+      props: { kind: "cds", heading: "h", provenance: "p", sequence: "A".repeat(125), what: "w" },
+    });
+    // `textContent`, not `.text()`: the latter trims, and the leading pad IS the alignment.
+    const lines = (block.find(".seq-pre").element.textContent ?? "").split("\n");
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toBe(`  1  ${"A".repeat(60)}`);
+    expect(lines[2]).toBe(`121  ${"A".repeat(5)}`);
+    expect(block.findComponent(CopySequenceButton).props("text")).toBe("A".repeat(125));
+  });
+
+  it("⚠ an empty flank is a FACT about the assembly, and says so", () => {
+    const block = mount(SequenceBlock, {
+      props: { kind: "up", heading: "h", provenance: "", sequence: "", what: "w" },
+    });
+    expect(block.find(".seq-none").text()).toBe("None in the assembly.");
+    expect(block.find(".seq-copy").exists()).toBe(false);
   });
 });

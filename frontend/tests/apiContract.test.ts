@@ -880,7 +880,7 @@ describe("⭐ the Sequence tab, on real bases from a real GFF", () => {
   it("⚠ and the page SAYS the flanks were reverse-complemented", () => {
     // Mislabelling a correct sequence is worse than showing the wrong one: the reader acts on it.
     const provenances = mountSequence(minus)
-      .findAll(".seq-prov")
+      .findAll(".seq-note")
       .map((node) => node.text());
     expect(provenances[0]).toContain("reverse-complemented");
   });

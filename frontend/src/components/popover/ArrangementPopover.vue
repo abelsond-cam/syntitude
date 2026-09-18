@@ -47,7 +47,7 @@ const props = defineProps<{
   loadFailureDetail?: string | null;
 }>();
 
-const emit = defineEmits<{ loadMore: [] }>();
+const emit = defineEmits<{ loadMore: []; close: [] }>();
 
 const size = computed(() => props.locus.gene_count);
 
@@ -126,7 +126,9 @@ const tail = computed(() => {
 </script>
 
 <template>
-  <div class="pop-card focal-card">
+  <div class="card pop-card focal-card">
+    <!-- `card` gives the panel its ground: without it the popover is transparent over the track. -->
+    <button type="button" class="pop-close" title="Close (Esc)" aria-label="Close position detail" @click="emit('close')">×</button>
     <h2>A0 · this locus</h2>
     <p class="pop-meta">
       {{ size }} member genes · {{ pluralise(total, "neighbourhood") }}

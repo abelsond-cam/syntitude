@@ -11,7 +11,9 @@ import { API_BASE_URL, requestJson } from "./request";
 import type { Result } from "./result";
 import type {
   ArrangementPageResponse,
+  AuditResidualsResponse,
   FunctionResponse,
+  GenomeListResponse,
   GeneSequenceResponse,
   LocusDetailResponse,
   Representation,
@@ -145,4 +147,31 @@ export function searchLoci(
     query: { q: query, limit: options.limit },
     ...(options.signal ? { signal: options.signal } : {}),
   });
+}
+
+/**
+ * The genomes an anchor can name, filtered server-side — the published page held all of them in
+ * `meta.genomes` and filtered in the browser, which at 80,000 genomes is an array nobody should ship.
+ * Case-insensitive substring on the sample id, the same semantics as `app.js::anchorSearch`.
+ */
+export function fetchGenomes(
+  speciesKey: string,
+  query: string,
+  options: { limit?: number; signal?: AbortSignal } = {},
+): Promise<Result<GenomeListResponse>> {
+  return requestJson<GenomeListResponse>(`species/${encodeURIComponent(speciesKey)}/genomes`, {
+    query: { q: query, limit: options.limit },
+    ...(options.signal ? { signal: options.signal } : {}),
+  });
+}
+
+/** The footer's two residual lists — fetched when the reader opens one, never with the page. */
+export function fetchAuditResiduals(
+  speciesKey: string,
+  signal?: AbortSignal,
+): Promise<Result<AuditResidualsResponse>> {
+  return requestJson<AuditResidualsResponse>(
+    `species/${encodeURIComponent(speciesKey)}/audit/residual-loci`,
+    signal ? { signal } : {},
+  );
 }

@@ -37,7 +37,7 @@ const props = defineProps<{
   topNeighbourCount: number | null;
 }>();
 
-const emit = defineEmits<{ walk: [locus: string, direction: WalkDirection] }>();
+const emit = defineEmits<{ walk: [locus: string, direction: WalkDirection]; close: [] }>();
 
 const heading = computed(
   () => `${offsetLabel(props.labelledOffset)} · ${props.labelledOffset < 0 ? "upstream" : "downstream"}`,
@@ -61,7 +61,10 @@ const rows = computed(() =>
       // ⚠ The locus id is shown beside the name because 1,364 display names in these catalogues are
       // carried by more than one locus — two blocks reading the same name may not be the same node.
       name: row?.display_name ?? occupant.locus ?? "—",
-      product: row?.display_name_source ?? null,
+      // ⛔ The PRODUCT (`app.js` offset card: `bestProduct`). This read `display_name_source` — the
+      // name's provenance enum — so every row printed `bakta_symbol` where the product belongs, and
+      // the fixture had put product strings in that field, so the test agreed with the bug.
+      product: row?.best_product ?? null,
       geneCount: occupant.gene_count,
       share: observed.value > 0 ? occupant.gene_count / observed.value : 0,
       shownSameStrand,
@@ -91,7 +94,9 @@ const tail = computed(() => {
 </script>
 
 <template>
-  <div class="pop-card position-card">
+  <div class="card pop-card position-card">
+    <!-- `card` gives the panel its ground: without it the popover is transparent over the track. -->
+    <button type="button" class="pop-close" title="Close (Esc)" aria-label="Close position detail" @click="emit('close')">×</button>
     <h2>{{ heading }}</h2>
     <p class="pop-meta">
       {{ observed }} of {{ focalGeneCount }} member genes<template v-if="isDrawnMirrored">

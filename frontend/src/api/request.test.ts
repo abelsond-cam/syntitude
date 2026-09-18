@@ -79,6 +79,24 @@ describe("requestJson names every failure mode rather than collapsing them", () 
     if (!result.ok) expect(result.kind).toBe("malformed");
   });
 
+  it("⚠ an HTML ERROR page is its STATUS, not a parse error — a missing route reads as a 404", async () => {
+    // Flask answers an unknown route with an HTML 404. Reported as `malformed`, a reader saw
+    // "Unexpected token '<'" in the anchor list and nothing said it was a 404 at all.
+    globalThis.fetch = vi.fn(async () => ({
+      ok: false,
+      status: 404,
+      json: async () => {
+        throw new SyntaxError("Unexpected token '<', \"<!doctype \"... is not valid JSON");
+      },
+    })) as unknown as typeof fetch;
+    const result = await requestJson("thing");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.kind).toBe("not_found");
+      expect(result.detail).toBe("the server answered 404");
+    }
+  });
+
   it("puts query parameters on the URL and omits the undefined ones", async () => {
     const stub = respondWith(200, {});
     globalThis.fetch = stub;

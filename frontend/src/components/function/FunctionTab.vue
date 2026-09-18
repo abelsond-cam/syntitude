@@ -74,7 +74,8 @@ const noGeneOntologySentence = computed(() =>
 </script>
 
 <template>
-  <div class="wrap">
+  <!-- ⚠ No `.wrap` of its own: the page's view panel already is one, and a second nests the gutter. -->
+  <div>
     <div class="func-head">
       <h2>Function</h2>
       <span class="lid">{{ displayName }} ·{{ locusLabel }}</span>

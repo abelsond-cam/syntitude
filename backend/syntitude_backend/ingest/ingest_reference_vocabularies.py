@@ -49,7 +49,7 @@ class VocabularyReport:
     unmapped_fields: tuple[str, ...] = ()
 
     def render(self) -> str:
-        """One line for the CLI's reconciliation output."""
+        """One line for the ingest report, naming any Pfam field the vendored table did not map."""
         line = (
             f"pfam reference: {self.pfam_families_read:,} families read, "
             f"{self.pfam_families_in_table:,} in the table"

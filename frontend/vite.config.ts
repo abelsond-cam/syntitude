@@ -20,6 +20,14 @@ export default defineConfig(({ mode }) => ({
   // proxy does not exist. Spread rather than `proxy: undefined`, which `exactOptionalPropertyTypes`
   // rightly refuses: an absent key and a key holding `undefined` are different things.
   ...(mode === "development"
-    ? { server: { proxy: { "/api": { target: "http://localhost:5000", changeOrigin: true } } } }
+    ? {
+        server: {
+          proxy: {
+            // ⚠ 5001, not Flask's usual 5000: on macOS the AirPlay receiver owns 5000 and answers a
+            // proxied request with a 403 that looks exactly like the API refusing it.
+            "/api": { target: process.env.SYNTITUDE_DEV_API_TARGET ?? "http://localhost:5001", changeOrigin: true },
+          },
+        },
+      }
     : {}),
 }));

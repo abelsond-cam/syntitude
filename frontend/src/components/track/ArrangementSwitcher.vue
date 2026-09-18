@@ -16,12 +16,19 @@
  * buttons, so they must be the first thing under it; a paragraph above would push them a line
  * further from the locus they belong to and break that line (David, 2026-08-23/25).
  *
- * ⛔ **Two ROOT elements, and no wrapper around them.** `.arr-row` and `.arr-notes` are siblings in
- * the page's grid — `app.css:720` places the notes at `grid-row: 3` and `grid-column: 1 / -1` — so a
- * wrapping `<div>` would make them a grid of one and silently drop that placement. The split is
- * structural, not cosmetic: the option row is a grid row of its own so the anchor control beside it
- * can sit vertically centred ON the buttons, and anything appended into the row's box would grow it
- * and pull that control off centre again (`app.js:1780-1782`).
+ * ⛔ **Two ROOT elements, and no wrapper around them.** `#arrangements.arr-switch` and `.arr-notes` are
+ * siblings in the page's grid: `app.css` places the switch at column 2, row 2 — between the anchor
+ * control's gutter and the key's — and the notes at `grid-row: 3`, `grid-column: 1 / -1`. A wrapping
+ * `<div>` would make them a grid of one and silently drop both placements. The split is structural,
+ * not cosmetic: the option row is a grid row of its own so the anchor control beside it can sit
+ * vertically centred ON the buttons, and anything appended into the row's box would grow it and pull
+ * that control off centre again (`app.js:1780-1782`).
+ *
+ * ⚠ **The row lives INSIDE `.arr-switch`**, exactly as the published page built it
+ * (`app.js:1783`, `host.appendChild(row)`). An earlier version put `.arr-row` at the root on its own;
+ * nothing places `.arr-row` in the grid, so it auto-flowed into the 260 px anchor gutter and the
+ * buttons stacked into a column down the left of the page — plausible, and wrong, and invisible to
+ * every test until the page was rendered beside the published one.
  */
 import { computed } from "vue";
 
@@ -111,6 +118,8 @@ const anchorLine = computed(() => {
 <template>
   <!-- ⛔ Two roots, deliberately — see the header. Never wrap these in an element. -->
   <template v-if="arrangements.length > 0">
+    <!-- `.arr-switch:empty` hides itself, so a single-arrangement locus leaves no gap here. -->
+    <div id="arrangements" class="arr-switch">
     <div v-if="!isSingleArrangement" class="arr-row" role="group" aria-label="neighbourhood">
       <button
         v-for="option in options"
@@ -138,6 +147,7 @@ const anchorLine = computed(() => {
         </div>
         <div class="arr-diff">{{ option.difference }}</div>
       </button>
+    </div>
     </div>
 
     <!-- Below the row, in its own grid row, so nothing here can move the buttons. -->

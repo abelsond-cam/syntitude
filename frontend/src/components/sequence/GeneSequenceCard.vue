@@ -15,6 +15,7 @@ import { computed } from "vue";
 
 import type { GeneSequence } from "@/api/types";
 
+import CopySequenceButton from "./CopySequenceButton.vue";
 import SequenceBlock from "./SequenceBlock.vue";
 
 const props = defineProps<{ gene: GeneSequence; flankLength: number }>();
@@ -85,6 +86,11 @@ const edgeSentence = computed(() => {
   );
 });
 
+/** The three blocks joined in READING order — the gene's, which on a minus strand is not the contig's. */
+const joined = computed(
+  () => props.gene.upstream_flank_sequence + props.gene.coding_sequence + props.gene.downstream_flank_sequence,
+);
+
 const codingProvenance = computed(
   () =>
     `Contig ${props.gene.start_position.toLocaleString()}–${props.gene.end_position.toLocaleString()}` +
@@ -98,11 +104,13 @@ const codingProvenance = computed(
       Copy {{ gene.copy_ordinal }} of {{ gene.copy_count }} at this locus
     </h3>
 
+    <!-- HTML5 lets a <div> group a dt/dd pair inside a <dl>, which is what lets the stats lay out as
+         a strip of cards rather than two columns running down the page. -->
     <dl class="seq-stats">
-      <template v-for="row in stats" :key="`${row.key}-${row.value}`">
+      <div v-for="row in stats" :key="`${row.key}-${row.value}`" class="seq-stat">
         <dt>{{ row.key }}</dt>
         <dd>{{ row.value }}</dd>
-      </template>
+      </div>
     </dl>
 
     <!-- ⛔ The one sentence this panel exists to make unmissable. -->
@@ -144,15 +152,18 @@ const codingProvenance = computed(
     />
 
     <!-- ⚠ The combined copy is offered and LABELLED as not the coding sequence alone, because it is
-         the one a guide designer usually wants and the one most easily mistaken for the gene. -->
+         the one a guide designer usually wants and the one most easily mistaken for the gene. A copy
+         button and its arithmetic, not a fourth block: the bases are already on screen above. -->
     <p class="seq-both">
-      <SequenceBlock
-        kind="cds"
-        :heading="`Gene + ${flankLength} bp each side`"
-        provenance="The three blocks above, joined in reading order — not the coding sequence alone."
-        :sequence="gene.upstream_flank_sequence + gene.coding_sequence + gene.downstream_flank_sequence"
-        :what="`the gene with its flanks, which is not the coding sequence alone`"
+      <CopySequenceButton
+        :label="`copy gene + ${flankLength} bp each side`"
+        what="the gene with its flanks, which is not the coding sequence alone"
+        :text="joined"
       />
+      <span class="seq-both-note">
+        {{ joined.length.toLocaleString() }} bases: {{ gene.upstream_flank_sequence.length }} +
+        {{ gene.coding_sequence.length }} + {{ gene.downstream_flank_sequence.length }}.
+      </span>
     </p>
   </div>
 </template>

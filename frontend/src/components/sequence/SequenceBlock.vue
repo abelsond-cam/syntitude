@@ -7,11 +7,14 @@
  * that it is coding is a wasted experiment — so "100 bases upstream" is never shown without
  * "— not the gene" attached to it.
  *
- * ⚠ **A copy that fails must say so.** Clipboard access can be refused (an insecure origin, a
- * permissions policy, a browser that has never implemented it), and a button that silently does
- * nothing sends a reader to the bench with an empty clipboard and no idea.
+ * ⭐ **Numbered from 1 WITHIN the block, sixty to a line** (`app.js::seqPre`), with the true contig
+ * span in the note above it. One signed ruler running across all three blocks would put a "−100"
+ * gutter on the upstream flank, which invites exactly the reading — that the flank is part of the
+ * gene — this panel exists to prevent. The copy button copies the bases alone, never the numbers.
  */
-import { ref } from "vue";
+import { computed } from "vue";
+
+import CopySequenceButton from "./CopySequenceButton.vue";
 
 const props = defineProps<{
   kind: "up" | "cds" | "down" | "aa";
@@ -19,40 +22,39 @@ const props = defineProps<{
   /** Where it came from — contig coordinates, or how it was produced. */
   provenance: string;
   sequence: string;
-  /** Named in the copy button's title, so a reader knows what landed on their clipboard. */
+  /** Named in the copy button, so a reader knows what landed on their clipboard. */
   what: string;
 }>();
 
-const copyState = ref<"idle" | "copied" | "failed">("idle");
+/** Bases per line. */
+const LINE = 60;
 
-async function copy(): Promise<void> {
-  try {
-    // ⚠ Optional-chained: `navigator.clipboard` is undefined on an insecure origin and in jsdom,
-    // and a bare property access there throws rather than returning undefined.
-    const clipboard = navigator.clipboard;
-    if (clipboard === undefined) throw new Error("no clipboard");
-    await clipboard.writeText(props.sequence);
-    copyState.value = "copied";
-  } catch {
-    copyState.value = "failed";
+/**
+ * ⚠ Computed here rather than with a CSS counter: a `<pre>` is what a reader selects and pastes, and
+ * the numbers have to be in the text they select or the columns stop lining up in their editor.
+ */
+const numbered = computed(() => {
+  const sequence = props.sequence;
+  const width = String(sequence.length).length;
+  const lines: string[] = [];
+  for (let start = 0; start < sequence.length; start += LINE) {
+    lines.push(`${String(start + 1).padStart(width, " ")}  ${sequence.slice(start, start + LINE)}`);
   }
-}
+  return lines.join("\n");
+});
 </script>
 
 <template>
-  <div class="seq-block" :class="`seq-${kind}`">
-    <div class="seq-head">
+  <div class="seq-block" :class="kind">
+    <div class="seq-bh">
       <h4>{{ heading }}</h4>
-      <button
-        type="button"
-        class="seq-copy"
-        :title="`copy ${what}`"
-        @click="copy"
-      >{{ copyState === "copied" ? "copied" : copyState === "failed" ? "copy failed" : "copy" }}</button>
+      <CopySequenceButton v-if="sequence" label="copy" :what="what" :text="sequence" />
     </div>
-    <p v-if="provenance" class="seq-prov">{{ provenance }}</p>
+    <p v-if="provenance" class="seq-note">{{ provenance }}</p>
     <!-- ⚠ `<pre>` and not a `<div>`: the sequence is read a base at a time and must not reflow into
          a shape that makes two adjacent bases look like one. -->
-    <pre class="seq-bases">{{ sequence }}</pre>
+    <pre v-if="sequence" class="seq-pre">{{ numbered }}</pre>
+    <!-- An empty flank is a FACT about the assembly — the contig ends there — not a missing value. -->
+    <p v-else class="seq-none">None in the assembly.</p>
   </div>
 </template>
