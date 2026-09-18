@@ -1,0 +1,67 @@
+# The web front: the built app, and the API proxied under the SAME base.
+#
+# Rendered once, at image build, by `frontend/Dockerfile`: `@PUBLIC_BASE@` becomes the
+# `VITE_PUBLIC_BASE` build arg (`/` or e.g. `/syntitude/`, always slash-bounded). The base is
+# compiled into the bundle's asset URLs, so it is fixed for an image — and rendering this file from
+# the same argument is what keeps the server's paths and the bundle's paths from disagreeing.
+
+# ⚠ Re-resolve `api` at request time. A plain `proxy_pass http://api:8000` resolves the name ONCE at
+# start-up, so recreating the api container (a new image, a `docker compose up -d`) gives it a new
+# address and every API call 502s until nginx is restarted too. 127.0.0.11 is Docker's own DNS.
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+upstream syntitude_api {
+    zone syntitude_api 64k;
+    server api:8000 resolve;
+}
+
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    server_tokens off;
+
+    # ⚠ Relative redirects. nginx otherwise writes its OWN host and port into `Location`, which behind
+    # the institution's reverse proxy is an address no browser can reach.
+    absolute_redirect off;
+
+    # JSON is most of the bytes: a locus response is text, highly repetitive, and not compressed by
+    # Flask. `gzip_proxied any` because a request that arrives through the institution's proxy carries
+    # a `Via` header, and nginx's default is to not compress those at all.
+    gzip on;
+    gzip_proxied any;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types application/json application/javascript text/css image/svg+xml;
+
+    # ── the API ──────────────────────────────────────────────────────────────────────────────────
+    # `@PUBLIC_BASE@api/…` → `/api/…` on the api service. Request and response headers pass through
+    # untouched, so the API's own `ETag` / `If-None-Match` / `Cache-Control` still work end to end —
+    # nothing here caches, because every response already says how long it may be cached for.
+    location @PUBLIC_BASE@api/ {
+        proxy_pass http://syntitude_api/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # ── the app ──────────────────────────────────────────────────────────────────────────────────
+    # Vite fingerprints everything under `assets/`, so a file there can never change under its name.
+    location @PUBLIC_BASE@assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # ⚠ NO fallback to `index.html`. The app routes by `#` (the published page's hash, which saved
+    # links depend on), so no path inside the base is a route — and a fallback would only turn a
+    # missing asset into a 200 of HTML, which the browser reports as a MIME error about something else.
+    location @PUBLIC_BASE@ {
+        index index.html;
+        try_files $uri $uri/ =404;
+        # ⛔ `index.html` must be revalidated every time: it names the fingerprinted bundle, and a copy
+        # cached across a deploy points at bundle files the new image no longer contains — a blank page.
+        add_header Cache-Control "no-cache";
+    }
+}

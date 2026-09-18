@@ -1,0 +1,112 @@
+# Syntitude — the read-only locus browser as three containers on one host.
+#
+#   db    postgres:16, restored from a `pg_dump -Fc` on first start (or empty — see below)
+#   api   gunicorn over the Flask app; reads the database and, for sequences, the GFF tree
+#   web   nginx: the built Vue app, with the API proxied under the same base
+#
+# Only `web` publishes a port. Everything is configured from `.env` (copy `.env.example`); the
+# running and restore instructions are in README.md, "Running with Docker Compose".
+#
+# ⛔ The `.env` names are deliberately NOT the containers' own variable names. Compose lets the
+# invoking shell OVERRIDE `.env`, and the Mac development setup (backend/README.md) sets
+# `SYNTITUDE_DATABASE_URL=…@localhost…` and `SYNTITUDE_ROOT_GFF=~/…` in the shell — so a compose file
+# that read those names would hand the api container a database on its own loopback and a path from
+# another machine. The container-side values are built here, from `SYNTITUDE_DB_*` and `SYNTITUDE_HOST_*`.
+
+name: syntitude
+
+# ⚠ Bounded logs. Docker's default json-file log never rotates, and gunicorn and nginx both log
+# every request: on a VM left running for months that is a full disk, which takes the database down.
+x-logging: &bounded-logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    logging: *bounded-logs
+    environment:
+      POSTGRES_USER: ${SYNTITUDE_DB_USER:-syntitude}
+      POSTGRES_PASSWORD: ${SYNTITUDE_DB_PASSWORD:?set SYNTITUDE_DB_PASSWORD in .env (see .env.example)}
+      POSTGRES_DB: ${SYNTITUDE_DB_NAME:-syntitude}
+      SYNTITUDE_RESTORE_JOBS: ${SYNTITUDE_RESTORE_JOBS:-4}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro
+      # A DIRECTORY holding `syntitude.dump`, not the file itself: binding a file that does not
+      # exist makes Docker create a DIRECTORY of that name on the host, right where the dump goes.
+      - ${SYNTITUDE_HOST_DUMP_DIR:-./deploy/dump}:/restore:ro
+    # Docker's default /dev/shm is 64 MB; a parallel hash join outgrows it and fails the QUERY with
+    # "could not resize shared memory segment" — a 500 on one endpoint, not a crash anyone sees.
+    shm_size: 256m
+    healthcheck:
+      # ⛔ Two conditions, each closing a way to serve a database with tables missing:
+      #  - over TCP, not the socket: while the first-start restore runs, the image's temporary server
+      #    listens on the socket ONLY, so a socket probe reports "ready" mid-restore;
+      #  - no restore-failure marker (see deploy/postgres/initdb/): after a failed restore the
+      #    container restarts, skips the restore, and would otherwise come up healthy and empty.
+      test: ["CMD-SHELL", "test ! -e \"$${PGDATA}/SYNTITUDE_RESTORE_FAILED\" && pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      # ⚠ Must outlast the restore, or the db is marked unhealthy and `up` gives up on the api (run
+      # `docker compose up -d` again once it finishes). Sized for today's dump — 105 MB, restored in
+      # ~8 s — with a wide margin; the 80,000-genome catalogues of S4 will need it revisited.
+      start_period: 10m
+      start_interval: 5s
+
+  api:
+    build:
+      context: ./backend
+    image: syntitude-api:local
+    restart: unless-stopped
+    logging: *bounded-logs
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SYNTITUDE_DATABASE_URL: postgresql+psycopg://${SYNTITUDE_DB_USER:-syntitude}:${SYNTITUDE_DB_PASSWORD}@db:5432/${SYNTITUDE_DB_NAME:-syntitude}
+      SYNTITUDE_PROFILE: production
+      # Set only when a GFF tree was given. Left empty, the sequence endpoint answers with its named
+      # 503 ("no annotation store configured") and every other endpoint is unaffected.
+      SYNTITUDE_ROOT_GFF: ${SYNTITUDE_HOST_GFF_DIR:+/srv/syntitude/gff}
+      WEB_CONCURRENCY: ${SYNTITUDE_API_WORKERS:-4}
+    volumes:
+      # Read-only: the service never writes, and a bind mount is the one way it could write to the host.
+      - ${SYNTITUDE_HOST_GFF_DIR:-./deploy/no_annotation_store}:/srv/syntitude/gff:ro
+    healthcheck:
+      # `/health` answers 503 when the database is unreachable, which `urlopen` raises on.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=4)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+      start_interval: 2s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_PUBLIC_BASE: ${SYNTITUDE_PUBLIC_BASE:-/}
+        VITE_API_BASE_URL: ${SYNTITUDE_API_BASE_URL:-}
+    image: syntitude-web:local
+    restart: unless-stopped
+    logging: *bounded-logs
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${SYNTITUDE_HTTP_BIND:-127.0.0.1}:${SYNTITUDE_HTTP_PORT:-8080}:80"
+    healthcheck:
+      # The image records the base it was built for, so this probes the path it actually serves.
+      test: ["CMD-SHELL", "wget -q -O /dev/null \"http://127.0.0.1$${SYNTITUDE_PUBLIC_BASE}\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_interval: 2s
+
+volumes:
+  pgdata:
