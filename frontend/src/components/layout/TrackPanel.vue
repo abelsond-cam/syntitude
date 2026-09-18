@@ -36,6 +36,8 @@ import { useTrackDisplayStore } from "@/stores/trackDisplayStore";
 const props = defineProps<{
   speciesKey: string | null;
   collectionGenomeCount: number;
+  /** Where to send a reader whose address named no locus — offered, never taken for them. */
+  landingLocus: string | null;
 }>();
 
 const navigation = useLocusNavigationStore();
@@ -186,15 +188,31 @@ function jump(locus: string): void {
         />
       </div>
 
-      <!-- ⛔ A failure is SAID, beside whatever is still drawn — never an empty track. -->
+      <!-- ⛔ A failure is SAID, beside whatever is still drawn — never an empty track.
+           ⚠ A missing locus is named in the reader's terms, not the server's: its 404 sentence is written
+           for whoever is debugging a label, not for someone who followed an old link. And the published
+           page's answer — silently opening the landing locus instead — is not repeated: a reader who
+           asked for one locus and got another, with nothing said, has been told something false. The
+           landing locus is OFFERED instead. -->
       <div v-if="failure !== null" class="pop-error track-error" role="alert">
-        <span>
-          {{ failure.kind === "not_found" ? "No such locus in this catalogue" : "The locus did not load" }}
-          — {{ failure.detail }}.
+        <span v-if="failure.kind === 'not_found'">
+          There is no locus “{{ navigation.route?.label }}” in this catalogue.
+          <template v-if="drawable !== null">The track below is still the previous locus.</template>
+        </span>
+        <span v-else>
+          The locus did not load — {{ failure.detail.replace(/\.$/, "") }}.
           <template v-if="drawable !== null">The track below is still the previous locus.</template>
         </span>
         <button v-if="failure.kind !== 'not_found'" type="button" class="pop-retry" @click="navigation.retry()">
           Try again
+        </button>
+        <button
+          v-else-if="drawable === null && landingLocus !== null"
+          type="button"
+          class="pop-retry"
+          @click="jump(landingLocus)"
+        >
+          Open this catalogue's starting locus
         </button>
       </div>
 

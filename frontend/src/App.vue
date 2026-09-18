@@ -130,7 +130,11 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
   </section>
 
   <template v-if="current !== null">
-    <TrackPanel :species-key="speciesKey" :collection-genome-count="current.pangenome.genome_count" />
+    <TrackPanel
+      :species-key="speciesKey"
+      :collection-genome-count="current.pangenome.genome_count"
+      :landing-locus="current.landing_locus"
+    />
 
     <!-- Four views of one locus. They sit OUTSIDE the track panel because the track is common to all
          four — you navigate on it whichever view you are reading. -->

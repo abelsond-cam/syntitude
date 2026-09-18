@@ -15,12 +15,15 @@ import PangenomeCensus from "@/components/census/PangenomeCensus.vue";
 import AuditResidualLists from "@/components/footer/AuditResidualLists.vue";
 import LocusTrail from "@/components/navigation/LocusTrail.vue";
 import LocusSearchBox from "@/components/search/LocusSearchBox.vue";
+import TrackPanel from "@/components/layout/TrackPanel.vue";
 import { useAnchorGenomeStore } from "@/stores/anchorGenomeStore";
+import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 const searchLoci = vi.hoisted(() => vi.fn());
 const fetchGenomes = vi.hoisted(() => vi.fn());
 const fetchAuditResiduals = vi.hoisted(() => vi.fn());
-vi.mock("@/api/client", () => ({ searchLoci, fetchGenomes, fetchAuditResiduals }));
+const fetchLocus = vi.hoisted(() => vi.fn());
+vi.mock("@/api/client", () => ({ searchLoci, fetchGenomes, fetchAuditResiduals, fetchLocus }));
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -189,5 +192,22 @@ describe("⛔ the residual lists — two, never one, and fetched only when opene
     expect(row.find(".goto-ev").text()).toBe("shell · 32 genes · 3 UniRef50 · A5 0.35 · ESM 0.98/0.98");
     await row.trigger("click");
     expect(lists.emitted("go")).toEqual([["4976"]]);
+  });
+});
+
+describe("⛔ a locus the address names but the catalogue does not have", () => {
+  it("is named in the reader's terms, and the starting locus is OFFERED, not substituted", async () => {
+    const navigation = useLocusNavigationStore();
+    navigation.setSpecies("ecoli");
+    fetchLocus.mockResolvedValueOnce(failure("not_found", "no locus '999999' in pangenome 1. ⚠ Node labels are TEXT", 404));
+    await navigation.navigateTo("999999");
+    const panel = mount(TrackPanel, { props: { speciesKey: "ecoli", collectionGenomeCount: 100, landingLocus: "2811" } });
+    const notice = panel.find(".track-error").text();
+    expect(notice).toContain("There is no locus “999999” in this catalogue.");
+    // The server's sentence is for whoever debugs a label, not for a reader following an old link.
+    expect(notice).not.toContain("pangenome 1");
+    fetchLocus.mockResolvedValueOnce(failure("network", "offline"));
+    await panel.find(".track-error button").trigger("click");
+    expect(fetchLocus).toHaveBeenLastCalledWith("ecoli", "2811", expect.anything());
   });
 });
