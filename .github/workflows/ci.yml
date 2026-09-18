@@ -1,0 +1,135 @@
+# CI for the Syntitude service — the backend suite against a real Postgres, the front-end suite, and
+# the build.
+#
+# ⛔ READ THE JOB SUMMARY, NOT THE TICK. Most of the backend suite SKIPS here by design: the parity,
+# API-endpoint and ingest suites need the fully loaded database, the cluster-artifact mirror or
+# `nuna` (a private repo), and CI has none of them. The summary names every skipped module with its
+# reason. The parity suites run only on a machine holding the loaded database.
+
+name: ci
+
+# Every branch, not just `main`: the work happens on branches, and a workflow that only fires on
+# `main` tests nothing until the merge — which is too late to be the test.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        # The same major the server runs (`compose.yaml`). The official image ships contrib, so
+        # `CREATE EXTENSION pg_trgm` works.
+        image: postgres:16
+        env:
+          POSTGRES_USER: syntitude
+          POSTGRES_PASSWORD: syntitude
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U syntitude"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: syntitude
+      PGPASSWORD: syntitude
+      # Both probe databases are DROPPED and rebuilt by the suites, per module — each gets its own.
+      SYNTITUDE_PROBE_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_schema_probe_ci
+      SYNTITUDE_MIGRATION_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_migrate_probe_ci
+      # ⚠ Deliberately NOT set: SYNTITUDE_DATABASE_URL. CI has no loaded database, and pointing it at an
+      # empty one would turn every parity skip into a failure that says nothing about parity.
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          version: "0.11.8"
+          python-version: "3.13"
+
+      # From the lock, like the server image: `--locked` fails the job if `pyproject.toml` changed
+      # without `uv lock`. `ingest` + `test` so the ingest suites can at least collect — and NO `nuna`,
+      # which is private; the suites that need it skip and say so.
+      - name: Install backend[ingest,test] from the lock, without nuna
+        run: uv sync --locked --extra ingest --extra test
+
+      - name: Create the two probe databases
+        # ⛔ `pg_trgm` in the MIGRATION probe by hand: the migrations do not create it (it is a
+        # provisioning step in backend/README.md), so on a fresh database `alembic upgrade head` dies
+        # on `gin_trgm_ops`. The schema probe's fixture creates it itself.
+        run: |
+          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_schema_probe_ci'
+          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_migrate_probe_ci'
+          psql -d syntitude_migrate_probe_ci -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
+
+      - name: Lint
+        # Pinned: an unpinned ruff that learns a new rule turns this job red with no change to the code.
+        working-directory: .
+        run: uvx ruff@0.16.8 check backend/
+
+      - name: Test (skip reasons printed)
+        run: uv run --no-sync python -m pytest -rs -p no:cacheprovider --junitxml="$RUNNER_TEMP/backend-junit.xml"
+
+      - name: Job summary — what ran, and what skipped and why
+        # Written on failure too: a red run is exactly when the skips need reading beside the failures.
+        if: ${{ !cancelled() }}
+        working-directory: .
+        run: |
+          report="$RUNNER_TEMP/backend-junit.xml"
+          if [ -f "$report" ]; then
+            python3 .github/scripts/summarise_pytest_junit.py "$report" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Backend tests — NO REPORT: pytest never ran (see the failed step above)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      # Node 24 is the active LTS, and the one `frontend/Dockerfile` builds with. The lockfile is
+      # version 3, which any npm >= 7 accepts; local development runs Node 25.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Type-check
+        run: npx vue-tsc --noEmit
+
+      - name: Test
+        run: npx vitest run
+
+      # ⚠ Guarded, and the guard is temporary: `vite build` needs `frontend/index.html` and the app's
+      # entry point, which land with the app shell. Until then the build step is skipped AND SAYS SO
+      # in the summary, rather than failing on a file nobody has written yet.
+      - name: Build
+        if: ${{ hashFiles('frontend/index.html') != '' }}
+        run: npm run build
+
+      - name: Job summary — build skipped
+        if: ${{ hashFiles('frontend/index.html') == '' }}
+        run: |
+          echo "## Front end" >> "$GITHUB_STEP_SUMMARY"
+          echo "> ⚠ **\`npm run build\` was SKIPPED** — there is no \`frontend/index.html\` yet. Type-check and tests ran." >> "$GITHUB_STEP_SUMMARY"
