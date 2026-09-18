@@ -25,9 +25,9 @@ ARG VITE_PUBLIC_BASE=/
 ARG VITE_API_BASE_URL=
 
 # ⛔ Two ways an empty or malformed argument would build a bundle that loads and then fails quietly:
-#  - an EMPTY `VITE_API_BASE_URL` reaches the client as `""`, not as undefined, and `?? "/api/v1"`
-#    does not replace an empty string — every request becomes relative to whatever page is open.
-#    So it is never left empty: it is derived from the base instead.
+#  - an EMPTY `VITE_API_BASE_URL` reaches the client as `""`, not as undefined. The client now falls
+#    back on `""` too (`request.ts` uses `||`), but its fallback is the ORIGIN-root `/api/v1`, which is
+#    wrong under a subpath — so it is never left empty here: it is derived from the base instead.
 #  - a base without its slashes makes asset URLs that resolve against the wrong directory. So it is
 #    checked here and the build fails, naming the value.
 RUN set -eu; \

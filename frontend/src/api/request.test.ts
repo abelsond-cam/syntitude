@@ -27,6 +27,17 @@ describe("the base URL", () => {
     expect(API_BASE_URL).toBe("/api/v1");
   });
 
+  it("⚠ treats a SET-but-EMPTY base as unset, rather than sending requests to the origin root", async () => {
+    // `VITE_API_BASE_URL=` is how a Dockerfile ARG or a CI matrix "leaves it out". With `??` the empty
+    // string survived and every request went to `/species/…`.
+    vi.stubEnv("VITE_API_BASE_URL", "");
+    vi.resetModules();
+    const reloaded = await import("./request");
+    expect(reloaded.API_BASE_URL).toBe("/api/v1");
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
   it("joins without doubling or dropping a slash", () => {
     expect(apiUrl("species")).toBe("/api/v1/species");
     expect(apiUrl("/species")).toBe("/api/v1/species");

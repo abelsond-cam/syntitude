@@ -11,9 +11,18 @@ the **position they hold in the genome** rather than by the sequence identity th
 | `ecoli.html` | *Escherichia coli* — 17,531 loci, 489,146 genes, 100 genomes |
 | `kp.html` | *Klebsiella pneumoniae* — 15,670 loci, 532,851 genes, 100 genomes |
 
-## This repo holds output, not source
+## Two things live here now
 
-Nothing here is written by hand except `index.html`, `robots.txt` and this file. The species pages are
+1. **The static site** — the root: `index.html`, `ecoli.html`, `kp.html`, `data/`, `robots.txt`. This is
+   what GitHub Pages serves today, and it is **frozen**: it is the parity oracle for the rebuild and the
+   rollback if the rebuild is withdrawn.
+2. **The service rebuild** — `backend/` (Flask + SQLAlchemy over Postgres) and `frontend/` (Vue 3 +
+   Pinia + Vite), which ARE hand-written source. Design of record: `docs/design/serving_from_a_database.md`
+   in `nuna`; status: `PROJECT_STATE.md` there. Nothing in this repo carries a status block.
+
+## The static site holds output, not source
+
+Nothing at the root is written by hand except `index.html`, `robots.txt` and this file. The species pages are
 **rendered artifacts** — each is one self-contained HTML file carrying its whole catalogue, generated from a
 model's payload by `nuna.tl.locus_browser.render_page`. Do not edit them here; the edit would be silently
 overwritten by the next deploy and would not exist in the source repo. Change `nuna` and re-deploy:

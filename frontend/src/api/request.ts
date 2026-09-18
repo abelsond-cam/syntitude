@@ -19,8 +19,14 @@
 
 import { type Failure, type Result, failure, success } from "./result";
 
-/** ⛔ Same origin by default. A literal origin in source is what makes the next deploy a rewrite. */
-export const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
+/**
+ * ⛔ Same origin by default. A literal origin in source is what makes the next deploy a rewrite.
+ *
+ * ⚠ `||`, not `??`: a build run with `VITE_API_BASE_URL=` (set, but empty — the natural way to "leave
+ * it unset" in a Dockerfile ARG or a CI matrix) must fall back too. With `??` the empty string
+ * survived, every request went to `/species/…` at the origin root, and each one 404'd.
+ */
+export const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 /** Join the base with a path, tolerating a trailing slash on either side. */
 export function apiUrl(path: string): string {

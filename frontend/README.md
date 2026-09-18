@@ -24,6 +24,13 @@ from a different origin. Both come from build-time config so that neither is a c
 A literal `https://…` or `/syntitude/…` compiled into a component is exactly what makes the second
 deployment a rewrite instead of an environment variable.
 
+⚠ **Under a subpath, set BOTH.** `VITE_API_BASE_URL` defaults to the origin-absolute `/api/v1`, so a
+build with `VITE_PUBLIC_BASE=/syntitude/` and no API base would ask the origin root for its data. The
+Compose web image does this for you (`frontend/Dockerfile`: an empty `VITE_API_BASE_URL` becomes
+`${VITE_PUBLIC_BASE}api/v1`, and nginx proxies that prefix). An empty value falls back to the default
+(`request.ts` uses `||`), so leaving it blank is safe — but that default is the ORIGIN root, not the
+subpath.
+
 ## `lib/` is built first, and it is where the bugs of record live
 
 Pure functions, no DOM, no API, no store. Three modules, each one a rewrite risk named in the plan:
