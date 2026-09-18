@@ -48,6 +48,11 @@ jobs:
       # Both probe databases are DROPPED and rebuilt by the suites, per module — each gets its own.
       SYNTITUDE_PROBE_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_schema_probe_ci
       SYNTITUDE_MIGRATION_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_migrate_probe_ci
+      # ⛔ The health suite's own database. Unset, it defaults to `$USER@localhost/syntitude_dev` — which
+      # exists on the Mac, so the suite passes there and fails here with a 503 on a server it cannot
+      # reach. An EMPTY database is the right one: it is reachable, and unmigrated is the state whose
+      # `run alembic upgrade head` note that suite exists to check.
+      SYNTITUDE_TEST_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_unmigrated_ci
       # ⚠ Deliberately NOT set: SYNTITUDE_DATABASE_URL. CI has no loaded database, and pointing it at an
       # empty one would turn every parity skip into a failure that says nothing about parity.
     defaults:
@@ -67,7 +72,7 @@ jobs:
       - name: Install backend[ingest,test] from the lock, without nuna
         run: uv sync --locked --extra ingest --extra test
 
-      - name: Create the two probe databases
+      - name: Create the probe databases
         # ⛔ `pg_trgm` in the MIGRATION probe by hand: the migrations do not create it (it is a
         # provisioning step in backend/README.md), so on a fresh database `alembic upgrade head` dies
         # on `gin_trgm_ops`. The schema probe's fixture creates it itself.
@@ -75,6 +80,7 @@ jobs:
           psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_schema_probe_ci'
           psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_migrate_probe_ci'
           psql -d syntitude_migrate_probe_ci -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
+          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_unmigrated_ci'
 
       - name: Lint
         # Pinned: an unpinned ruff that learns a new rule turns this job red with no change to the code.
