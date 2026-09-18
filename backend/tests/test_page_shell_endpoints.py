@@ -187,3 +187,46 @@ def test_anchoring_a_genome_from_ANOTHER_catalogue_is_a_named_404(client):
     anchored = client.get("/api/v1/species/ecoli/loci/2811", query_string={"anchor": ecoli_genome["sample_id"]})
     assert anchored.status_code == 200
     assert anchored.get_json()["anchor"]["is_anchored"] is True
+
+
+# ── the popover's "outside the top N" ───────────────────────────────────────────────────────────
+@pytest.mark.parametrize("species_key", SPECIES_KEYS)
+def test_wherever_a_position_left_members_out_it_lists_the_SAME_top_N(client, application, species_key):
+    """⭐ The client DERIVES N from the list it was given (`TrackPanel`), because the export's
+    `top_neighbours` setting is not in the database. That is exact only if every cut position lists
+    the same number of occupants — pinned here over every position of both catalogues, not assumed.
+    """
+    from sqlalchemy import text
+
+    engine = application.extensions["syntitude_database"].engine
+    with Session(engine) as session:
+        pangenome_id = _pangenome_id(application, species_key)
+        rows = session.execute(
+            text(
+                """
+                with listed as (
+                  select o.locus_id, o.signed_offset, count(*) n, sum(o.member_gene_count) genes
+                  from locus_offset_occupant o join locus l on l.locus_id = o.locus_id
+                  where l.pangenome_id = :p group by 1, 2),
+                obs as (
+                  select l.locus_id, s.off, l.context_observed_member_counts[s.i] observed
+                  from locus l,
+                       (select i, (array[-5,-4,-3,-2,-1,1,2,3,4,5])[i] off from generate_series(1, 10) i) s
+                  where l.pangenome_id = :p)
+                select listed.n, count(*) from obs
+                join listed on listed.locus_id = obs.locus_id and listed.signed_offset = obs.off
+                where obs.observed > listed.genes group by 1
+                """
+            ),
+            {"p": pangenome_id},
+        ).all()
+    counts = dict(rows)
+    assert counts, "no position left anyone out — the derivation is untested on this catalogue"
+    assert len(counts) == 1, f"cut positions list different numbers of occupants: {counts}"
+    # ⚠ And it is the export's own setting as the published payload records it.
+    import json
+
+    from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR
+
+    published = json.loads((PUBLISHED_SITE_CATALOGUE_DIR / f"{species_key}.json").read_text())
+    assert next(iter(counts)) == published["meta"]["top_neighbours"]

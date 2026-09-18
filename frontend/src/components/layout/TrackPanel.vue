@@ -59,6 +59,12 @@ const {
 const isDimmed = computed(() => view.value.status === "refreshing" && view.value.isDimmed);
 const failure = computed(() => (view.value.status === "failed" ? view.value.failure : null));
 
+/*
+ * ⚠ `topNeighbourCount` is DERIVED, and exactly: the export keeps the top N occupants per position,
+ * so wherever something was left out (`observed_not_listed > 0`) the list that remains IS N long.
+ * The published page read N from `meta.top_neighbours`, an export setting the database does not
+ * hold; where nothing was cut there is no tail sentence to put N in.
+ */
 const neighboursByLabel = computed(() => {
   const index = new Map<string, NeighbourDisplayRow>();
   for (const row of drawable.value?.neighbour_display_rows ?? []) index.set(row.label, row);
@@ -235,7 +241,7 @@ function jump(locus: string): void {
             :drawn-locus="openPopoverDrawnLocus"
             :focal-gene-count="drawable.locus.gene_count"
             :neighbours-by-label="neighboursByLabel"
-            :top-neighbour-count="null"
+            :top-neighbour-count="openPopoverMarginal.observed_not_listed > 0 ? openPopoverMarginal.occupants.length : null"
             @walk="walk"
             @close="track.closePopover()"
           />
