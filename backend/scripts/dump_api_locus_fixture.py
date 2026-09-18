@@ -4,7 +4,9 @@ Three loci chosen for what they EXERCISE: one ordinary, one with members past th
 one whose members have no recorded neighbourhood. Run from `backend/` with SYNTITUDE_DATABASE_URL
 set and both catalogues loaded.
 """
-import json, pathlib
+import json
+import pathlib
+
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
