@@ -427,12 +427,29 @@ export interface SpeciesCatalogueResponse {
     readonly step_count: number | null;
   } | null;
   readonly steps: readonly ModelStep[];
-  readonly provenance_rows: readonly unknown[];
-  readonly prevalence_census: unknown;
-  readonly audit_headline: unknown;
+  /** The footer's `<dl>`, one `[label, value]` pair per row, printed verbatim (`render_page._provenance`). */
+  readonly provenance_rows: readonly (readonly [string, string])[];
+  /** Loci per band. ⛔ Every band is present — a band with no loci is a measured `0`, never absent. */
+  readonly prevalence_census: Readonly<Record<PrevalenceBand, number>>;
+  /**
+   * ⭐ The SAME catalogue partitioned by GENE. Divided by the genome count it is the census's
+   * "per genome" line — a different partition, not a restatement: a third of the loci are singletons
+   * while a typical genome carries about fifty singleton genes.
+   */
+  readonly prevalence_gene_census: Readonly<Record<PrevalenceBand, number>>;
+  /** Read verbatim from the audit summary at ingest. Keys absent from an older summary are absent here. */
+  readonly audit_headline: Readonly<Record<string, number | string | null>>;
   readonly map_projections: readonly MapProjection[];
   readonly landing_locus: string | null;
   readonly example_loci: readonly string[];
+  /** The example chips as drawn: name, and the UniRef50 families the chip quotes. */
+  readonly example_locus_rows: readonly ExampleLocusRow[];
+}
+
+export interface ExampleLocusRow {
+  readonly label: string;
+  readonly display_name: string;
+  readonly uniref50_family_count: number | null;
 }
 
 export interface SpeciesListResponse {
@@ -452,6 +469,8 @@ export interface SpeciesListResponse {
 export interface SearchHit {
   readonly label: string;
   readonly display_name: string;
+  /** What the page prints under the name — the number never tells a reader whether a hit is theirs. */
+  readonly best_product: string | null;
   readonly gene_count: number;
   readonly genome_count: number;
   readonly prevalence_band: PrevalenceBand;
@@ -530,4 +549,56 @@ export interface GeneSequenceResponse {
    * request that failed is a `Failure`, and the two must never render alike.
    */
   readonly genes: readonly GeneSequence[];
+}
+
+/**
+ * One genome the anchor control can offer.
+ *
+ * ⚠ **Two counts, because they are two facts.** `locus_count` is the loci where this genome has a
+ * gene; `arrangement_locus_count` is the loci where it appears in some recorded neighbourhood — the
+ * published page's `genomeCounts()`, which could only see the latter. They differ wherever a gene
+ * got no window. Both are per LOCUS: a genome at ρ > 1 is counted once, or the number would exceed
+ * the catalogue and mean nothing.
+ */
+export interface GenomeRow {
+  readonly sample_id: string;
+  readonly collection_genome_ordinal: number;
+  readonly locus_count: number;
+  readonly arrangement_locus_count: number;
+}
+
+/** `GET /species/{key}/genomes?q=` — replaces the resident `meta.genomes` + `anchorSearch`. */
+export interface GenomeListResponse {
+  readonly species_key: string;
+  readonly query: string;
+  readonly genome_count: number;
+  /** How many match `q` before the limit — so a truncated list can say how much it left out. */
+  readonly matched_genome_count: number;
+  readonly truncated: boolean;
+  readonly genomes: readonly GenomeRow[];
+}
+
+/** One row of the footer's residual lists — the evidence beside the name, to judge before clicking. */
+export interface ResidualLocusRow {
+  readonly label: string;
+  readonly display_name: string;
+  readonly prevalence_band: PrevalenceBand;
+  readonly gene_count: number;
+  readonly uniref50_family_count: number | null;
+  /** `null` where Pfam could not judge the locus — not "no architectures". */
+  readonly pfam_architecture_count: number | null;
+  readonly syntenic_a5: number | null;
+  /** ⚠ DISTANCES, as stored; the footer shows similarities and converts once. */
+  readonly esm_within_medoid_distance: number | null;
+  readonly esm_nearest_medoid_distance: number | null;
+}
+
+/**
+ * `GET /species/{key}/audit/residual-loci` — ⛔ TWO lists, never merged: grouped on context alone is
+ * a statement about the evidence, a Pfam conflict is evidence against the merge, and neither is a
+ * verdict. A locus can be in both, and then appears in both.
+ */
+export interface AuditResidualsResponse {
+  readonly grouped_on_context_alone: readonly ResidualLocusRow[];
+  readonly pfam_conflicts: readonly ResidualLocusRow[];
 }

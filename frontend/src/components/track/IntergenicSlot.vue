@@ -14,7 +14,7 @@
 import { computed } from "vue";
 
 import type { IntergenicGap } from "@/api/types";
-import { type GapAppearance, gapAppearance } from "@/lib/intergenicGaps";
+import { type GapAppearance, gapAppearance, varianceTint } from "@/lib/intergenicGaps";
 import { BP_PER_PX, JOINT_PX, MIN_BLOCK_PX } from "@/lib/trackGeometry";
 
 const props = defineProps<{ gap: IntergenicGap | undefined }>();
@@ -61,7 +61,7 @@ const tip = computed(() => {
       type="button"
       class="block"
       :class="[appearance.kind === 'seam' ? 'seam' : 'igr', { unmeasured: !isMeasured }]"
-      :style="isMeasured ? { '--v': variance!.toFixed(3) } : undefined"
+      :style="isMeasured ? { '--v': varianceTint(variance!).toFixed(3) } : undefined"
       :data-tip="tip"
       :aria-label="
         appearance.kind === 'seam'

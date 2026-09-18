@@ -8,7 +8,7 @@ Vue 3 + Pinia + Vite + TypeScript, over the read-only `/api/v1` contract. Design
 npm install
 npm test          # vitest
 npm run typecheck # vue-tsc --noEmit
-npm run dev       # vite, proxying /api to localhost:5000
+npm run dev       # vite, proxying /api to localhost:5001 (SYNTITUDE_DEV_API_TARGET overrides)
 ```
 
 ## ⛔ No absolute origin, and no hardcoded base path

@@ -103,6 +103,14 @@ describe("⛔ the inline width, which is the only version any test can see", () 
     expect(wrapper.find(".gsub").exists()).toBe(false);
   });
 
+  it("⛔ carries the neighbour's PRODUCT under its id, not its name a second time", () => {
+    // The name is already above the block; `app.js:1609` puts `bestProduct` in the block, and that
+    // is what tells a reader what the neighbour does.
+    const wrapper = mountSlot({ neighbour: { ...NEIGHBOUR, display_name: "yfcU", best_product: "fimbrial usher protein YfcU" } });
+    expect(wrapper.find(".gsub").text()).toBe("fimbrial usher protein YfcU");
+    expect(wrapper.find(".gname").text()).toBe("yfcU");
+  });
+
   it("⚠ and does NOT mark one of exactly 64 px, because the threshold is a strict less-than", () => {
     const wrapper = mountSlot({ neighbour: { ...NEIGHBOUR, median_gene_length_nt: NARROW_PX * 10 } });
     expect(wrapper.classes()).not.toContain("narrow");
@@ -226,6 +234,16 @@ describe("the intergenic block is TWO objects, not one", () => {
     expect(wrapper.find(".block").classes()).not.toContain("unmeasured");
     expect(wrapper.find(".block").attributes("style")).toContain("--v: 0.000");
     expect(wrapper.find(".block").attributes("data-tip")).toContain("identical in every genome");
+  });
+
+  it("⛔ tints through the page's display CURVE, not with the raw score", () => {
+    // `app.js:1406` sets `--v` to `gapVar(k)` = sqrt(score / 0.5). The raw score here is 0.125, which
+    // unmapped is a 12.5 % wash; through the curve it is 50 %. Passing the raw score leaves nine
+    // varying regions in ten looking identical to the ones that never vary.
+    const wrapper = mount(IntergenicSlot, {
+      props: { gap: gap({ length_variance_score: 0.125, every_genome_agrees: false }) },
+    });
+    expect(wrapper.find(".block").attributes("style")).toContain("--v: 0.500");
   });
 
   it("⛔ a NULL variance is not measured, and says so differently", () => {

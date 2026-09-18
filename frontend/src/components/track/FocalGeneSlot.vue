@@ -63,7 +63,8 @@ const accessibleName = computed(
       <span class="fill" />
       <template v-if="!fit.isNarrow">
         <span class="lid">·{{ locus.label }}</span>
-        <span class="gsub">{{ locus.best_product ?? "—" }}</span>
+        <!-- `app.js:1493`: the focal block says so when there is no product, rather than a dash. -->
+        <span class="gsub">{{ locus.best_product ?? "no product annotation" }}</span>
       </template>
     </button>
 

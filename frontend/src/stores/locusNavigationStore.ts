@@ -15,7 +15,7 @@
  */
 
 import { defineStore, storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 
 import { fetchLocus } from "@/api/client";
 import { LANES } from "@/api/request";
@@ -27,7 +27,7 @@ import {
   formatLocusHash,
   parseLocusHash,
 } from "@/lib/locusHashRoute";
-import { FORWARD, type WalkDirection } from "@/lib/walkDirection";
+import { FORWARD, REVERSED, type WalkDirection } from "@/lib/walkDirection";
 
 import { useAnchorGenomeStore } from "./anchorGenomeStore";
 import { locusCacheKey, useLocusDetailCacheStore } from "./locusDetailCacheStore";
@@ -64,6 +64,13 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   let dimTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
+   * Names of loci this session has DRAWN, for the breadcrumb. The trail stores labels — a label is
+   * the only durable identifier — and a crumb reading `·2811` tells a reader nothing, so each drawn
+   * locus leaves its name here. Only drawn loci: a trail entry is always one the reader has seen.
+   */
+  const displayNames = reactive(new Map<string, string>());
+
+  /**
    * The locus currently drawable, whatever the status. ⚠ Deliberately NOT called "the locus": a
    * component that renders this while `status === 'failed'` is showing the *previous* one, and the
    * error panel beside it is what makes that honest.
@@ -81,6 +88,25 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
 
   const hash = computed(() => (route.value ? formatLocusHash(route.value) : ""));
 
+  watch(
+    () => drawable.value?.locus ?? null,
+    (locus) => {
+      if (locus !== null) displayNames.set(locus.label, locus.display_name);
+    },
+  );
+
+  /**
+   * ⭐ An anchor change re-asks for the locus on screen. Given an anchor the API includes the
+   * arrangement that genome carries even past the display cap, so the response genuinely differs —
+   * which is also why the cache key includes the anchor. The published `setAnchor` re-derived and
+   * redrew in place; here that is one re-navigation to the same route, which leaves the trail alone
+   * because `advanceTrail` never pushes the label it already ends on.
+   */
+  watch(anchorSampleId, (next, previous) => {
+    if (next === previous || route.value === null || speciesKey.value === null) return;
+    void navigateTo(route.value.label, route.value.direction);
+  });
+
   function cancelDimTimer(): void {
     if (dimTimer !== null) {
       clearTimeout(dimTimer);
@@ -95,6 +121,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     speciesKey.value = nextSpeciesKey;
     route.value = null;
     trail.value = [];
+    displayNames.clear();
     view.value = { status: "idle" };
     cache.clear();
     anchor.clearAnchor();
@@ -183,6 +210,51 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     return true;
   }
 
+  /**
+   * Apply a URL hash against a catalogue the client does NOT hold — the server is the label set.
+   *
+   * ⛔ **The whole string is tried as a label first**, exactly as `parseLocusHash` does against a
+   * resident catalogue (`app.js:3765-3767`): a trailing `r` is the direction marker only if the whole
+   * string is NOT a locus and what remains IS. Stripping first would silently redirect a locus whose
+   * label genuinely ends in `r` to a different one, drawn backwards.
+   *
+   * ⚠ The probe costs a request only for a hash ending in `r`, and its answer is cached, so the
+   * navigation that follows is free. A 404 on the whole string is the only thing that licenses
+   * reading the `r` as a direction; a network failure does not, and is reported as itself.
+   *
+   * Returns `false` for an empty or malformed hash, so the caller can fall back to the landing locus.
+   */
+  async function openHash(rawHash: string): Promise<boolean> {
+    const species = speciesKey.value;
+    if (species === null) throw new Error("openHash before setSpecies");
+    let text: string;
+    try {
+      text = decodeURIComponent(rawHash.replace(/^#/, ""));
+    } catch {
+      return false;
+    }
+    if (!text) return false;
+    if (route.value?.label === text && route.value.direction === FORWARD) return true;
+
+    const stem = text.endsWith("r") ? text.slice(0, -1) : "";
+    if (stem) {
+      const key = locusCacheKey(species, text, anchorSampleId.value);
+      if (!cache.has(key)) {
+        const whole = await fetchLocus(species, text, {
+          ...(anchorSampleId.value ? { anchorSampleId: anchorSampleId.value } : {}),
+        });
+        if (whole.ok) cache.put(key, whole.value);
+        else if (whole.kind === "not_found") {
+          if (route.value?.label === stem && route.value.direction === REVERSED) return true;
+          await navigateTo(stem, REVERSED);
+          return true;
+        }
+      }
+    }
+    await navigateTo(text, FORWARD);
+    return true;
+  }
+
   /** Re-run the request for the locus already in `route`, after a failure. */
   async function retry(): Promise<void> {
     const current = route.value;
@@ -194,6 +266,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     speciesKey,
     route,
     trail,
+    displayNames,
     view,
     drawable,
     walkDirection,
@@ -202,6 +275,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     setWalkDirection,
     navigateTo,
     applyHash,
+    openHash,
     retry,
   };
 });

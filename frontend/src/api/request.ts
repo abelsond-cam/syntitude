@@ -66,6 +66,17 @@ export async function requestJson<T>(
     body = await response.json();
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") throw error;
+    // ⚠ A non-JSON ERROR page is the server answering with a status, not a contract breach: a route
+    // that does not exist gets the framework's HTML 404, and reporting that as "Unexpected token '<'"
+    // tells a reader nothing and hides that it was a 404 at all. Only a SUCCESS that is not JSON is
+    // `malformed`, because only that one is our bug.
+    if (!response.ok) {
+      return failure(
+        response.status === 404 ? "not_found" : "server",
+        `the server answered ${response.status}`,
+        response.status,
+      );
+    }
     return failure(
       "malformed",
       describe(error, "the server's answer was not JSON"),
