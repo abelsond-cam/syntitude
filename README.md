@@ -72,8 +72,21 @@ the invoking shell override `.env`, and the Mac development setup sets `SYNTITUD
 pg_dump -Fc -d syntitude_dev -f deploy/dump/syntitude.dump    # *.dump is gitignored
 ```
 
-**The restore drill.** A dump is restored only into an EMPTY volume — the postgres image's rule — so a new
-dump, or the drill itself, is:
+**The restore drill.** One command does it and checks the result:
+
+```bash
+deploy/restore_drill.sh --yes-delete-the-database
+```
+
+It refuses to start unless the dump is present (so it cannot delete a database it cannot replace), then
+deletes the volume, restores, times it, and checks the stack end to end **through the published port** —
+health, every published species' catalogue and landing locus, the catalogue sprite and its 304, the
+genome list, and a sequence read from the GFF tree — one PASS/FAIL line each, exit 0 only if all pass.
+It needs nothing on the host beyond Docker and curl. Measured on Docker Desktop (2026-09-18): **37 s**
+from an empty volume to all checks passing, 9 s of it the restore.
+
+By hand, since a dump is restored only into an EMPTY volume — the postgres image's rule — a new dump, or
+the drill itself, is:
 
 ```bash
 docker compose down -v                  # ⛔ -v deletes the database volume; that is the point
