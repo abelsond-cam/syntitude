@@ -55,3 +55,32 @@ gene symbol. Check it, do not assume it.
 2. **Never `v-if` on a number.** `v-if="varianceScore"` is false for a *measured zero*, and a
    measured zero is the majority case — white on the track has to mean "identical in every genome",
    never "small". Test `!== null` explicitly.
+
+## Looking at the page — `scripts/capture_page.mjs`
+
+⭐ **Render it and look.** jsdom computes no layout and loads no stylesheet, so a whole class of defect
+is invisible to every test here — and rendering the rebuilt page beside the frozen one found several:
+gaps missing from the track, a switcher stacked down the page gutter, an enum printed where a product
+belongs, and a fan the published page has never drawn. `scripts/capture_page.mjs` drives a headless
+Chrome over the DevTools protocol (Node ≥ 22, no dependencies), runs a list of steps — navigate, run
+JavaScript, emulate dark mode, screenshot a region — and prints the page's console errors and failed
+requests at the end.
+
+```bash
+# the API on :5001 and `npm run dev` on :5173, then:
+cat > /tmp/steps.json <<'JSON'
+[
+  { "url": "http://localhost:5173/?species=kp#1098", "settle": 3500 },
+  { "eval": "document.querySelectorAll('.slot.gap').length + ' intergenic regions drawn'" },
+  { "shot": "/tmp/kp-light.png", "h": 1300 },
+  { "media": "dark" },
+  { "shot": "/tmp/kp-dark.png", "h": 1300 },
+  { "shot": "/tmp/kp-phone.png", "w": 390, "h": 1800 }
+]
+JSON
+node scripts/capture_page.mjs /tmp/steps.json
+```
+
+The frozen page is the comparison: serve the repository root (`python3 -m http.server 8765` from it)
+and point the same steps at `http://localhost:8765/kp.html#1098`.
+

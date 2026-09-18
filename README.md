@@ -102,6 +102,22 @@ the prefix intact**. Nothing in the code names a base or an origin; see `fronten
 **New code.** `git pull && docker compose up -d --build` rebuilds the api and web images and leaves the
 database alone.
 
+**What this stack leaves to the host** — each checked in the drill, none decided here:
+
+- **Docker Engine 25 or later** (the healthchecks use `start_interval`).
+- **The published port binds `127.0.0.1`** by default. If the institution's reverse proxy runs on another
+  host, bind `0.0.0.0` and firewall it instead.
+- **TLS is the proxy's**, and the proxy must forward `/syntitude/` **with the prefix intact** (not stripped).
+- **The GFF tree must be readable by uid 10001**, the api container's user.
+- **The API connects as the Postgres superuser.** Nothing writes on a request path, but a read-only role
+  would make that a property of the database rather than of the code; it is not built.
+- **`pg_trgm`** must exist before any migration runs. The Compose init creates it; a managed Postgres
+  needs whoever holds superuser to run `CREATE EXTENSION pg_trgm` once.
+- **No tuning, resource limits or backups** beyond "the dump is the source": the database is rebuilt
+  from a dump, never edited in place, so the dump IS the backup — keep the one that is live.
+- **The healthcheck grace period** (10 minutes) suits today's ~105 MB dump. The 80,000-genome
+  catalogues will need it revisited.
+
 ## Reference data
 
 Annotation by **Bakta**; protein families from **UniProt/UniRef50** and **Pfam/InterPro**; functional

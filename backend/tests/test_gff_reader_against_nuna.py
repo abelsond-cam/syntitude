@@ -10,21 +10,21 @@ which, rather than passing quietly.
 
 import gzip
 import os
-import sys
 from pathlib import Path
 
 import pytest
 
-NUNA_SRC = Path(os.environ.get("NUNA_SRC", Path.home() / "developer/nuna/src"))
 NUNA_DATA = Path(os.environ.get("NUNA_DATA", Path.home() / "developer/nuna/data"))
 GFF_ROOT = NUNA_DATA / "raw/gff"
 
-if NUNA_SRC.is_dir() and str(NUNA_SRC) not in sys.path:
-    sys.path.insert(0, str(NUNA_SRC))
-
+# ⛔ No `sys.path.insert` of the nuna checkout here. It used to add `~/developer/nuna/src` at IMPORT,
+# which made `nuna` importable for every test module collected after this one — so in an environment
+# WITHOUT nuna installed, the other suites' skip-guards never fired and they failed half-importing it
+# instead (found by simulating CI locally). `nuna` comes from an install (editable, or PYTHONPATH set
+# by whoever runs the suite), and where it is absent this module says so and skips.
 nuna_genome_sequence = pytest.importorskip(
     "nuna.tl.locus_browser.genome_sequence",
-    reason=f"nuna not importable from {NUNA_SRC} — vendored-copy cross-check cannot run",
+    reason="nuna is not installed in this interpreter — the vendored-copy cross-check cannot run",
 )
 pytestmark = pytest.mark.skipif(
     not GFF_ROOT.is_dir(), reason=f"probe GFFs not pulled to {GFF_ROOT}"
