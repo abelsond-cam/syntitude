@@ -20,7 +20,7 @@ uv pip install --python .venv/bin/python -e backend
 
 export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
 .venv/bin/python -m syntitude_backend.serve --debug
-curl -s localhost:5000/api/v1/health | python3 -m json.tool
+curl -s localhost:5001/api/v1/health | python3 -m json.tool
 ```
 
 `pg_trgm` is not optional — it is what preserves the page's **exact substring** search semantics

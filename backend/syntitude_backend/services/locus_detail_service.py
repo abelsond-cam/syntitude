@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, tuple_
 from sqlalchemy.orm import Session, aliased
 
 from syntitude_backend.models.enumerations import AnnotationKind, EmbeddingRepresentation
@@ -334,22 +334,70 @@ def load_locus_detail(
     # map's nearest loci made that visible rather than causing it.
     detail.resolved_neighbour_count = len(detail.neighbour_display_rows.all_rows())
 
-    # ── the gaps this locus can be an endpoint of ──────────────────────────────────────────────
-    # ⛔ BOTH columns, because the canonical order is by node_label and a caller holding a locus_id
-    # cannot tell which side it is on without resolving the labels.
-    detail.intergenic_gaps = list(
+    # ── the gaps the drawn track needs — every adjacent pair, not just the focal's two ─────────
+    # ⛔⛔ **Every adjacent pair in every LISTED arrangement.** This read only the gaps the focal
+    # locus is an endpoint of, so the track drew the two regions beside the focal gene and nothing
+    # else — nine genes packed edge to edge with nothing between them, which reads as *"these genes
+    # are adjacent"*: a claim the data does not make, on every locus, found only by LOOKING at the
+    # rebuilt page beside the published one. Still one statement: the pairs are known from the slot
+    # codes and the ordinals the fan-out just resolved.
+    # ⛔ Both orders of each pair, because the canonical order is by node_label and a caller holding
+    # two locus_ids cannot tell which side each is on without resolving the labels.
+    detail.intergenic_gaps = _load_track_gaps(session, pangenome_id=pangenome_id, detail=detail)
+
+    return detail
+
+
+def _adjacent_locus_id_pairs(detail: LocusDetail) -> set[tuple[int, int]]:
+    """Every pair of loci drawn side by side in some listed arrangement — both orders.
+
+    The ten slot codes are the ±5 window in recorded order, `-5 … -1, +1 … +5`, with the focal locus
+    between them. ⚠ A code of `-1` is *the contig ends here* — a real observation, and it BREAKS the
+    adjacency rather than being skipped over: the genes either side of a contig end are not
+    neighbours, and pairing them would ask for a region that does not exist.
+    """
+    locus_id_by_ordinal = {
+        ordinal: row.locus_id for ordinal, row in detail.neighbour_display_rows.by_catalogue_ordinal.items()
+    }
+    locus_id_by_ordinal[detail.locus.catalogue_ordinal] = detail.locus.locus_id
+    focal_code = detail.locus.catalogue_ordinal * 2
+    pairs: set[tuple[int, int]] = set()
+    for arrangement in detail.arrangements:
+        codes = list(arrangement.neighbour_slot_codes)
+        window = codes[:5] + [focal_code] + codes[5:]
+        for left, right in zip(window, window[1:], strict=False):
+            if left < 0 or right < 0:
+                continue
+            a = locus_id_by_ordinal.get(left // 2)
+            b = locus_id_by_ordinal.get(right // 2)
+            if a is None or b is None:
+                continue
+            pairs.add((a, b))
+            pairs.add((b, a))
+    return pairs
+
+
+def _load_track_gaps(session: Session, *, pangenome_id: int, detail: LocusDetail) -> list:
+    """The regions between every adjacent DRAWN pair — one statement, and nothing else.
+
+    ⚠ Only drawn pairs. The old query also returned every gap the focal locus is an endpoint of,
+    including gaps to neighbours that sit only in arrangements past the display cap — loci this
+    response never resolves, so those gaps arrived with a `null` label, which a client cannot key
+    and silently drops. A gap is useful here only between two loci the track can put side by side.
+    And with no arrangement drawn there are no gaps at all: two marginal modes are not neighbours
+    in any genome, so the region between them was never observed (`app.js:987`).
+    """
+    pairs = _adjacent_locus_id_pairs(detail)
+    if not pairs:
+        return []
+    return list(
         session.execute(
             select(IntergenicGap).where(
                 IntergenicGap.pangenome_id == pangenome_id,
-                or_(
-                    IntergenicGap.flanking_locus_id_a == locus.locus_id,
-                    IntergenicGap.flanking_locus_id_b == locus.locus_id,
-                ),
+                tuple_(IntergenicGap.flanking_locus_id_a, IntergenicGap.flanking_locus_id_b).in_(sorted(pairs)),
             )
         ).scalars()
     )
-
-    return detail
 
 
 def _neighbour_display_rows(

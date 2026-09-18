@@ -37,8 +37,8 @@ from syntitude_backend.ingest.ingest_nuna_model_registry import (
 )
 from syntitude_backend.ingest.ingest_pangenome_run import ingest_pangenome_run
 from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
-from syntitude_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
 from syntitude_backend.ingest.ingest_reference_vocabularies import load_pfam_reference
+from syntitude_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
 from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
 from syntitude_backend.models.genome import Genome, GenomeContig
 from syntitude_backend.models.locus import Locus
