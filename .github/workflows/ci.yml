@@ -84,8 +84,11 @@ jobs:
 
       - name: Lint
         # Pinned: an unpinned ruff that learns a new rule turns this job red with no change to the code.
+        # The scope backend/README.md names as "must pass" — the package and its tests. `scripts/` is
+        # left out while `dump_api_locus_fixture.py` is rewritten on main; widening this to `backend/`
+        # is the whole change once that lands clean.
         working-directory: .
-        run: uvx ruff@0.16.8 check backend/
+        run: uvx ruff@0.16.8 check backend/syntitude_backend backend/tests
 
       - name: Test (skip reasons printed)
         run: uv run --no-sync python -m pytest -rs -p no:cacheprovider --junitxml="$RUNNER_TEMP/backend-junit.xml"
