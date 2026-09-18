@@ -14,26 +14,34 @@ file would have shown:
    `test_no_drift` does.
 """
 
+import importlib.util
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, text
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
-ALEMBIC = BACKEND_ROOT.parent / ".venv/bin/alembic"
+#: ⚠ The RUNNING interpreter's alembic, never a path into one particular venv. The old
+#: `BACKEND_ROOT.parent / ".venv/bin/alembic"` silently SKIPPED this whole module from a git worktree
+#: or a CI runner — neither has that directory — and "skipped" is not "the migration is fine".
+#: Running `-m alembic` from `BACKEND_ROOT` also means `env.py` imports THIS checkout's models.
+ALEMBIC = [sys.executable, "-m", "alembic"]
 PROBE_URL = os.environ.get(
     "SYNTITUDE_MIGRATION_DATABASE_URL",
     f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/syntitude_migrate_probe",
 )
 
-pytestmark = pytest.mark.skipif(not ALEMBIC.exists(), reason="alembic not installed in the venv")
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("alembic") is None, reason="alembic is not installed in this interpreter"
+)
 
 
 def _alembic(*args):
     return subprocess.run(
-        [str(ALEMBIC), *args],
+        [*ALEMBIC, *args],
         cwd=BACKEND_ROOT,
         env={**os.environ, "SYNTITUDE_DATABASE_URL": PROBE_URL},
         capture_output=True,
