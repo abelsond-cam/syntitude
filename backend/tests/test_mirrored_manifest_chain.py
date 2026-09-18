@@ -13,6 +13,9 @@ from syntitude_backend.ingest.mirrored_manifest_chain import (
 )
 from tests.conftest import NUNA_DATA_ROOT, artifacts_for, requires_artifacts
 
+#: The adapter rebinds a function INSIDE nuna, so without nuna there is nothing for it to rebind.
+_NUNA_ABSENT = "the adapter rebinds nuna's `run_manifest.read_manifest`; nuna is not installed"
+
 CSD3 = Path(
     "/home/dca36/rds/rds-floto-bacterial-4k08a2yyQLw/david/nuna/processed/probe_ecoli_kleb_200"
     "/analysis/step3b_rho_merge/assignments/x.tsv"
@@ -60,7 +63,7 @@ def test_the_chain_reaches_THREE_manifests_and_reproduces_the_published_provenan
 
 def test_the_adapter_is_REMOVED_on_exit_including_after_a_failure():
     """⛔ A rebinding left switched on is a library that means something else everywhere else."""
-    from nuna.tl.cluster import run_manifest
+    run_manifest = pytest.importorskip("nuna.tl.cluster.run_manifest", reason=_NUNA_ABSENT)
 
     before = run_manifest.read_manifest
     with manifests_resolved_against(Path("/nowhere")):
@@ -75,7 +78,7 @@ def test_the_adapter_is_REMOVED_on_exit_including_after_a_failure():
 
 def test_a_path_that_RESOLVES_as_written_is_read_as_written(tmp_path):
     """⚠ On CSD3 the recorded paths are correct, so the adapter must be a no-op there."""
-    from nuna.tl.cluster import run_manifest
+    run_manifest = pytest.importorskip("nuna.tl.cluster.run_manifest", reason=_NUNA_ABSENT)
 
     assignments = tmp_path / "analysis" / "step" / "assignments"
     runs = tmp_path / "analysis" / "step" / "runs"

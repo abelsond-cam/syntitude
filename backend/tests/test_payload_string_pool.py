@@ -16,9 +16,12 @@ from syntitude_backend.instruments.payload_string_pool import ABSENT, StringPool
 
 @pytest.fixture()
 def reference():
-    from nuna.tl.locus_browser.export_payload import _Intern
-
-    return _Intern()
+    # ⚠ A skip, not an error, where `nuna` is absent (CI, the server): `_Intern` is the oracle and
+    # there is no other one, so without it this module has nothing to compare against.
+    export_payload = pytest.importorskip(
+        "nuna.tl.locus_browser.export_payload", reason="the oracle is nuna's own `_Intern`; nuna is not installed"
+    )
+    return export_payload._Intern()
 
 
 def _agree(pool: StringPool, intern, values) -> None:

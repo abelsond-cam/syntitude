@@ -175,9 +175,11 @@ def test_the_arrangement_cap_is_recovered_from_the_DATA_not_from_nunas_default()
     """
     from types import SimpleNamespace
 
-    from nuna.tl.locus_browser.export_payload import TOP_ARRANGEMENTS
-
     from syntitude_backend.instruments.payload_serialiser import _arrangement_cap
+
+    TOP_ARRANGEMENTS = pytest.importorskip(
+        "nuna.tl.locus_browser.export_payload", reason="the default under test is nuna's; nuna is not installed"
+    ).TOP_ARRANGEMENTS
 
     assert TOP_ARRANGEMENTS == 4, "the point of this test is that the default is NOT what shipped"
 
