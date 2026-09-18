@@ -115,3 +115,47 @@ AUDIT_RERUN_HEADLINE_KEYS: frozenset[str] = frozenset(
 
 #: The tier name that no longer exists, and therefore no longer enters the pool.
 RETIRED_TIER = "no_homology"
+
+
+# ── T6 · the Sequence tab ───────────────────────────────────────────────────────────────────────
+@dataclass(frozen=True)
+class DisplayedValueException:
+    """A value the frozen page PRINTED differently from the new client, where both are right.
+
+    Not a data difference — the API carries the page's exact value — so it is keyed by the rule that
+    relates the two, and the suite asserts that rule on every gene it compares rather than counting
+    to a number.
+    """
+
+    species_keys: tuple[str, ...]
+    field: str
+    frozen_value: str
+    current_value: str
+    rule: str
+    reason: str
+
+
+#: ⚠ **The Sequence tab's "Contig" row, and the contig named in its short-flank sentence.** The frozen
+#: page printed `cname[contig_index]` from the `.nseq` header — the GFF's full seqid,
+#: `SAMEA103923484.contig00324` — and `GeneSequenceCard.vue` prints `contig_name`, `contig00324`.
+#:
+#: ⛔ **The page never printed `contig_index + 1`.** `.nseq` shipped the names in `contig_idx` order
+#: precisely so it would not have to (`genome_sequence.schema.md`, trap 1), and T6 measured the
+#: page's contig equal to the API's `seqid` on **every one of 1,021,997 genes** (both species,
+#: `SYNTITUDE_SEQUENCE_PARITY_EVERY_GENE=1`, 2026-09-18). The 28.6 % `index + 1` divergence is real in
+#: the database but was never on the page.
+#:
+#: Measured on `syntitude_dev`: `seqid == f"{sample_id}.{contig_name}"` on all 26,878 contigs, which is
+#: the rule below. The API serves both fields, so this is the card's choice of which to print — a
+#: difference a reader sees, recorded here rather than absorbed, and a decision for the owner.
+CONTIG_ROW_SHOWS_NAME_NOT_SEQID = DisplayedValueException(
+    species_keys=("ecoli", "kp"),
+    field="Contig",
+    frozen_value="SAMEA103923484.contig00324 — the GFF seqid, the `.nseq` header's `cname`",
+    current_value="contig00324 — `genome_contig.contig_name`",
+    rule='seqid == f"{sample_id}.{contig_name}" on every gene compared',
+    reason=(
+        "The published page printed the seqid; the new card prints the part after the sample prefix. Both name "
+        "the same contig on every gene, and the API returns both."
+    ),
+)
