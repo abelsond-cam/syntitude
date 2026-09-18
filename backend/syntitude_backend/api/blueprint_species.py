@@ -310,11 +310,17 @@ def get_locus(species_key: str, locus_label: str):
 
             from syntitude_backend.models.genome import Genome
 
+            # ⛔ Scoped to THIS species. Unscoped, a genome from the other catalogue resolved, matched
+            # no arrangement, and the page said "anchored — this genome has no gene at this locus":
+            # a claim about a genome that is not in this pangenome at all.
             anchor_genome_id = session.execute(
-                select(Genome.genome_id).where(Genome.sample_id == anchor)
+                select(Genome.genome_id).where(
+                    Genome.sample_id == anchor,
+                    Genome.pathogen_species_id == pangenome.pathogen_species_id,
+                )
             ).scalar_one_or_none()
             if anchor_genome_id is None:
-                return _not_found(f"no genome {anchor!r}")
+                return _not_found(f"no genome {anchor!r} in the {species_key!r} catalogue")
 
         try:
             detail = load_locus_detail(

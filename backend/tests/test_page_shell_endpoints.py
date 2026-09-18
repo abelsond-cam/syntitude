@@ -172,3 +172,18 @@ def test_the_vendored_audit_policy_is_nuna_s_own():
     export_payload = pytest.importorskip("nuna.tl.locus_browser.export_payload")
     assert tuple(export_payload.POLICY["failure_tiers"]) == audit_residual_service.FAILURE_TIERS
     assert export_payload.POLICY["contested_pfclass"] == audit_residual_service.CONTESTED_PFAM_CLASS
+
+
+# ── the anchor, across species ──────────────────────────────────────────────────────────────────
+def test_anchoring_a_genome_from_ANOTHER_catalogue_is_a_named_404(client):
+    """⛔ Unscoped, it read as "anchored, and this genome has no gene here" — about a genome that is
+    not in this pangenome at all, which is a different and false claim."""
+    kp_genome = client.get("/api/v1/species/kp/genomes", query_string={"limit": 1}).get_json()["genomes"][0]
+    reply = client.get("/api/v1/species/ecoli/loci/2811", query_string={"anchor": kp_genome["sample_id"]})
+    assert reply.status_code == 404
+    assert "ecoli" in reply.get_json()["detail"]
+    # …while a genome of the RIGHT catalogue still anchors.
+    ecoli_genome = client.get("/api/v1/species/ecoli/genomes", query_string={"limit": 1}).get_json()["genomes"][0]
+    anchored = client.get("/api/v1/species/ecoli/loci/2811", query_string={"anchor": ecoli_genome["sample_id"]})
+    assert anchored.status_code == 200
+    assert anchored.get_json()["anchor"]["is_anchored"] is True
