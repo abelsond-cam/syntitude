@@ -71,6 +71,24 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   const displayNames = reactive(new Map<string, string>());
 
   /**
+   * Bumped by every navigation, so an `openHash` probe can tell that the reader moved on while it
+   * was in flight. ⛔ Without it a slow 404 on `#200r` landed AFTER the reader had clicked on to 400
+   * and yanked them back to 200 — pushing a history entry and wiping their Forward history.
+   */
+  let generation = 0;
+  /**
+   * Whole-string labels the server has said do not exist (`species label`), so Back onto a reversed
+   * entry does not re-ask. A 404 is never cached by the locus cache, which holds only answers.
+   */
+  const knownMissing = new Set<string>();
+  /**
+   * A hash whose `r` could not be resolved because the probe itself FAILED (network, 5xx). `retry`
+   * re-reads it: retrying the committed forward label instead would 404 and claim the locus the link
+   * named does not exist.
+   */
+  let unresolvedHash: string | null = null;
+
+  /**
    * The locus currently drawable, whatever the status. ⚠ Deliberately NOT called "the locus": a
    * component that renders this while `status === 'failed'` is showing the *previous* one, and the
    * error panel beside it is what makes that honest.
@@ -122,6 +140,9 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     route.value = null;
     trail.value = [];
     displayNames.clear();
+    knownMissing.clear();
+    unresolvedHash = null;
+    generation += 1;
     view.value = { status: "idle" };
     cache.clear();
     anchor.clearAnchor();
@@ -143,6 +164,8 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     const species = speciesKey.value;
     if (species === null) throw new Error("navigateTo before setSpecies");
 
+    generation += 1;
+    unresolvedHash = null;
     route.value = { label: locusLabel, direction };
     // ⛔ Retreat rather than growth — Back fires `hashchange`, which lands here exactly as a click
     // does, and pushing unconditionally made the breadcrumb GROW when the reader went backwards.
@@ -188,6 +211,11 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
       view.value = { status: "ready", value: outcome.result.value };
     } else {
       view.value = { status: "failed", failure: outcome.result, previous };
+      // ⚠ A locus that does not exist is not a step the reader took: leave no crumb for it, or the
+      // breadcrumb offers a dead `·99999` button for as long as it stays on screen.
+      if (outcome.result.kind === "not_found" && trail.value[trail.value.length - 1] === locusLabel) {
+        trail.value = trail.value.slice(0, -1);
+      }
     }
   }
 
@@ -234,24 +262,42 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
       return false;
     }
     if (!text) return false;
-    if (route.value?.label === text && route.value.direction === FORWARD) return true;
+    // Already there — unless "there" failed, which is exactly when the reader is asking again.
+    if (route.value?.label === text && route.value.direction === FORWARD && view.value.status !== "failed") {
+      return true;
+    }
 
     const stem = text.endsWith("r") ? text.slice(0, -1) : "";
+    let probeFailed = false;
     if (stem) {
       const key = locusCacheKey(species, text, anchorSampleId.value);
+      const missingKey = `${species} ${text}`;
+      if (knownMissing.has(missingKey)) {
+        return openReversed(stem);
+      }
       if (!cache.has(key)) {
+        const started = generation;
         const whole = await fetchLocus(species, text, {
           ...(anchorSampleId.value ? { anchorSampleId: anchorSampleId.value } : {}),
         });
+        // ⛔ Superseded: the reader navigated while the probe was out. Change NOTHING.
+        if (generation !== started || speciesKey.value !== species) return true;
         if (whole.ok) cache.put(key, whole.value);
         else if (whole.kind === "not_found") {
-          if (route.value?.label === stem && route.value.direction === REVERSED) return true;
-          await navigateTo(stem, REVERSED);
-          return true;
-        }
+          knownMissing.add(missingKey);
+          return openReversed(stem);
+        } else probeFailed = true;
       }
     }
     await navigateTo(text, FORWARD);
+    // ⚠ Set AFTER the navigation, which clears it — and only if nothing newer has happened since.
+    if (probeFailed && route.value?.label === text) unresolvedHash = rawHash;
+    return true;
+  }
+
+  async function openReversed(stem: string): Promise<boolean> {
+    if (route.value?.label === stem && route.value.direction === REVERSED) return true;
+    await navigateTo(stem, REVERSED);
     return true;
   }
 
@@ -259,6 +305,13 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   async function retry(): Promise<void> {
     const current = route.value;
     if (current === null) return;
+    if (unresolvedHash !== null) {
+      // The link's `r` was never resolved — resolve it now rather than assume it was a label.
+      const hash = unresolvedHash;
+      unresolvedHash = null;
+      await openHash(hash);
+      return;
+    }
     await navigateTo(current.label, current.direction);
   }
 

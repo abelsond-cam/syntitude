@@ -32,7 +32,9 @@ from syntitude_backend.application_factory import create_application
 from syntitude_backend.configuration import Configuration
 from syntitude_backend.models.gene import Gene, GeneLocusMembership
 from syntitude_backend.models.genome import Genome
+from syntitude_backend.models.genome_collection import GenomeCollectionMembership
 from syntitude_backend.models.locus import Locus
+from syntitude_backend.models.pangenome import Pangenome
 from syntitude_backend.models.pathogen_species import PathogenSpecies
 
 SPECIES_KEYS = ("ecoli", "kp")
@@ -117,6 +119,10 @@ def choose_sequences(session: Session, pangenome_id: int) -> dict[str, tuple[str
             Gene.strand == "-",
             Gene.start_position > 500,
             Gene.length_nt > 900,
+            # ⚠ A locus SOME collection genome lacks, so the "no gene here" case below exists at the
+            # same locus — on kp the first minus-strand gene sat at a locus all 100 genomes carry.
+            Locus.member_genome_count
+            < select(Pangenome.genome_count).where(Pangenome.pangenome_id == pangenome_id).scalar_subquery(),
         )
         .order_by(Gene.genome_id, Gene.flat_index)
         .limit(1)
@@ -126,10 +132,18 @@ def choose_sequences(session: Session, pangenome_id: int) -> dict[str, tuple[str
         .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
         .where(Locus.node_label == minus.node_label, Locus.pangenome_id == pangenome_id)
     )
+    # ⛔ A genome of THIS COLLECTION that lacks a gene here — not merely one of the species. The
+    # database holds more genomes per species than the pangenome modelled, and one outside the
+    # collection is a different claim (404, "not in this catalogue"), which the recorded "no gene here"
+    # answer would then have silently been.
+    collection = select(Pangenome.genome_collection_id).where(Pangenome.pangenome_id == pangenome_id)
     absent = session.execute(
         select(Genome.sample_id)
-        .join(PathogenSpecies, PathogenSpecies.pathogen_species_id == Genome.pathogen_species_id)
-        .where(PathogenSpecies.published_pangenome_id == pangenome_id, Genome.genome_id.not_in(members))
+        .join(GenomeCollectionMembership, GenomeCollectionMembership.genome_id == Genome.genome_id)
+        .where(
+            GenomeCollectionMembership.genome_collection_id == collection.scalar_subquery(),
+            Genome.genome_id.not_in(members),
+        )
         .order_by(Genome.sample_id)
         .limit(1)
     ).scalar_one()

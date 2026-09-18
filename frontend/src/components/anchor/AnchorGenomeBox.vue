@@ -110,6 +110,12 @@ function onKeydown(event: KeyboardEvent): void {
     return;
   }
   const hits = answer.value?.genomes ?? [];
+  // ⛔ No hits, or an answer to an earlier query: every key below does nothing, as on the published
+  // page (`if (!A.hits.length) return;`). Otherwise Enter on "No genome matches" hit the −1 row and
+  // CLEARED the reader's anchor — the one thing they were not asking for.
+  const answeredQuery = answer.value?.query ?? null;
+  const typed = text.value === sampleId.value ? "" : text.value.trim();
+  if (hits.length === 0 || answeredQuery !== typed) return;
   if (event.key === "ArrowDown") {
     cursor.value = cursor.value + 1 >= hits.length ? -1 : cursor.value + 1;
     event.preventDefault();

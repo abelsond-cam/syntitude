@@ -175,13 +175,44 @@ def test_the_vendored_audit_policy_is_nuna_s_own():
 
 
 # ── the anchor, across species ──────────────────────────────────────────────────────────────────
-def test_anchoring_a_genome_from_ANOTHER_catalogue_is_a_named_404(client):
+def test_a_genome_OUTSIDE_this_catalogue_is_a_named_404_for_the_anchor_AND_the_sequence(client):
     """⛔ Unscoped, it read as "anchored, and this genome has no gene here" — about a genome that is
     not in this pangenome at all, which is a different and false claim."""
     kp_genome = client.get("/api/v1/species/kp/genomes", query_string={"limit": 1}).get_json()["genomes"][0]
     reply = client.get("/api/v1/species/ecoli/loci/2811", query_string={"anchor": kp_genome["sample_id"]})
     assert reply.status_code == 404
     assert "ecoli" in reply.get_json()["detail"]
+    # ⛔⛔ And a genome of the right SPECIES that this pangenome never modelled: the database holds
+    # 122 ecoli genomes against a 100-genome collection.
+    engine = client.application.extensions["syntitude_database"].engine
+    with Session(engine) as session:
+        from syntitude_backend.models.genome import Genome
+        from syntitude_backend.models.genome_collection import GenomeCollectionMembership
+        from syntitude_backend.models.pangenome import Pangenome
+
+        collection_id = session.execute(
+            select(Pangenome.genome_collection_id).where(
+                Pangenome.pangenome_id == _pangenome_id(client.application, "ecoli")
+            )
+        ).scalar_one()
+        outsider = session.execute(
+            select(Genome.sample_id)
+            .join(PathogenSpecies, PathogenSpecies.pathogen_species_id == Genome.pathogen_species_id)
+            .where(
+                PathogenSpecies.species_key == "ecoli",
+                Genome.genome_id.not_in(
+                    select(GenomeCollectionMembership.genome_id).where(
+                        GenomeCollectionMembership.genome_collection_id == collection_id
+                    )
+                ),
+            )
+            .limit(1)
+        ).scalar_one()
+    for path in ("/api/v1/species/ecoli/loci/2811", f"/api/v1/species/ecoli/genomes/{outsider}/loci/2811/sequence"):
+        query = {"anchor": outsider} if "sequence" not in path else {}
+        outside = client.get(path, query_string=query)
+        assert outside.status_code == 404, (path, outside.status_code)
+        assert "catalogue" in outside.get_json()["detail"]
     # …while a genome of the RIGHT catalogue still anchors.
     ecoli_genome = client.get("/api/v1/species/ecoli/genomes", query_string={"limit": 1}).get_json()["genomes"][0]
     anchored = client.get("/api/v1/species/ecoli/loci/2811", query_string={"anchor": ecoli_genome["sample_id"]})

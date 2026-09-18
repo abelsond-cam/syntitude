@@ -126,8 +126,11 @@ watch([openPopoverSlot, isFocalPopoverOpen, drawable], async () => {
 });
 
 function onDocumentClick(event: MouseEvent): void {
-  if (!isPopoverOpen.value) return;
-  if (popover.value?.contains(event.target as Node)) return;
+  if (!isPopoverOpen.value || popover.value === null) return;
+  // ⚠ The PATH, not `contains(target)`: a click on "Try again" re-renders the card before this
+  // handler runs, removing the button from the DOM — `contains` then says "outside" and the card
+  // closed on the reader mid-retry. The path is fixed at dispatch time.
+  if (event.composedPath().includes(popover.value)) return;
   track.closePopover();
 }
 
@@ -183,8 +186,12 @@ function jump(locus: string): void {
       </div>
 
       <div ref="frame" class="track-frame">
-        <div v-if="view.status === 'pending' || view.status === 'idle'" class="track-scroll track-waiting">
+        <!-- ⚠ Idle is NOT loading: nothing was asked for, and "Loading…" would wait forever. -->
+        <div v-if="view.status === 'pending'" class="track-scroll track-waiting">
           <p class="muted">Loading the locus…</p>
+        </div>
+        <div v-else-if="view.status === 'idle'" class="track-scroll track-waiting">
+          <p class="muted">Search a gene name above to open a locus.</p>
         </div>
         <GeneTrack
           v-else-if="drawable !== null"

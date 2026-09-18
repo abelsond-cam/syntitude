@@ -77,7 +77,10 @@ async function run(text: string): Promise<void> {
 
 watch(query, (text) => {
   if (debounce !== null) clearTimeout(debounce);
-  debounce = setTimeout(() => void run(text), DEBOUNCE_MS);
+  debounce = setTimeout(() => {
+    debounce = null;
+    void run(text);
+  }, DEBOUNCE_MS);
 });
 
 function choose(label: string): void {
@@ -87,10 +90,29 @@ function choose(label: string): void {
   emit("go", label);
 }
 
-function onKeydown(event: KeyboardEvent): void {
+/** Whether the answer on screen is to the text in the box — not to what was typed before it. */
+function answerIsCurrent(): boolean {
+  return debounce === null && answer.value !== null && answer.value.query.trim() === query.value.trim();
+}
+
+async function onKeydown(event: KeyboardEvent): Promise<void> {
   if (event.key === "Escape") {
     close();
     input.value?.blur();
+    return;
+  }
+  if (event.key === "Enter" && query.value.trim() !== "" && !answerIsCurrent()) {
+    // ⛔ Enter acts on the text in the box. The published page searched synchronously; here the answer
+    // trails the typing by a debounce and a round trip, and Enter pressed inside that gap chose a hit
+    // for the PREVIOUS query — `rfa` → `rfaL`, Enter, landed on rfaC. Ask now, then choose.
+    event.preventDefault();
+    if (debounce !== null) {
+      clearTimeout(debounce);
+      debounce = null;
+    }
+    await run(query.value);
+    const first = answer.value?.hits[0];
+    if (first !== undefined) choose(first.label);
     return;
   }
   const hits = answer.value?.hits ?? [];

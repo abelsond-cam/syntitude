@@ -54,7 +54,10 @@ export const useViewTabStore = defineStore("viewTab", () => {
   watch(
     () => drawable.value?.locus.label ?? null,
     (label, previousLabel) => {
-      if (label === null || previousLabel === null || label === previousLabel) return;
+      // ⚠ NOT skipped when there was no previous locus: a reader whose first link was dead, who then
+      // opened the documentation and clicked a chip, asked to SEE that locus (`app.js::show`:
+      // `current !== i` held for -1 too).
+      if (label === null || label === previousLabel) return;
       if (view.value !== "locus" && view.value !== "sequence") showView("locus");
     },
   );

@@ -100,7 +100,10 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
   function drawnKey(detail: LocusDetailResponse | null): string | null {
     if (detail === null) return null;
     const anchorBlock = detail.anchor.is_anchored ? detail.anchor.arrangement_ranks.join(",") : "-";
-    return `${detail.locus.label}|${anchorBlock}`;
+    // ⚠ And WHICH genome: two anchors can carry identical ranks here, and switching between them
+    // must still re-derive, as `app.js::setAnchor` always did. The response does not name the genome,
+    // so the store's own anchor supplies it.
+    return `${detail.locus.label}|${anchorSampleId.value ?? ""}|${anchorBlock}`;
   }
 
   /**

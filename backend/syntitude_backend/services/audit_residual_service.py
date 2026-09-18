@@ -26,7 +26,7 @@ from syntitude_backend.models.locus import Locus
 #: ⛔ **Vendored from `nuna.tl.locus_browser.export_payload.POLICY`** — the serving side must not
 #: import `nuna`, a private repo the med-school server does not have. The tiers the audit counts
 #: against a model (`failure_tiers`) and the Pfam verdict it calls contested (`contested_pfclass`).
-#: `tests/test_audit_residual_loci.py` asserts these equal nuna's own wherever nuna is installed,
+#: `tests/test_page_shell_endpoints.py` asserts these equal nuna's own wherever nuna is installed,
 #: because a copy that drifted would list a different set of loci from the one the report counted.
 FAILURE_TIERS = ("synteny_only", "no_homology")
 CONTESTED_PFAM_CLASS = "disjoint"

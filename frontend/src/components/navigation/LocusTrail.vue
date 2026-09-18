@@ -6,8 +6,9 @@
  * this only draws what the navigation store holds. A crumb is a JUMP (`go(i)` with no direction on
  * the published page), so it always faces forward.
  *
- * ⚠ Names come from loci this session DREW. A crumb whose locus has not yet been drawn — only ever
- * the current one while its response is in flight — shows its label, which is still a true name.
+ * ⚠ Names come from loci this session DREW. A crumb whose locus has not been drawn — the current one
+ * while its response is in flight, or one that failed to load for a reason other than not existing
+ * (a locus that does not exist leaves no crumb at all) — shows its label, which is still a true name.
  */
 import { computed } from "vue";
 

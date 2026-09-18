@@ -37,8 +37,14 @@ function count(key: string): number {
 }
 
 /** `failure_tiers` is synteny_only + no_homology; both are counted here, as the audit counts them. */
-const contextAloneCount = computed(() => count("synteny_only_n_clusters") + count("no_homology_n_clusters"));
-const conflictCount = computed(() => count("pfam_conflict_n_clusters"));
+// ⚠ The headline's count until the rows arrive, then the rows' OWN count — the published footer
+// printed `len(list)`, and a summary must never promise ten over a list of nine.
+const contextAloneCount = computed(
+  () =>
+    lists.value?.grouped_on_context_alone.length ??
+    count("synteny_only_n_clusters") + count("no_homology_n_clusters"),
+);
+const conflictCount = computed(() => lists.value?.pfam_conflicts.length ?? count("pfam_conflict_n_clusters"));
 
 async function load(event: Event): Promise<void> {
   if (!(event.target as HTMLDetailsElement).open || lists.value !== null || isLoading.value) return;
@@ -55,11 +61,9 @@ async function load(event: Event): Promise<void> {
 
 /** `render_page._goto_rows`: enough evidence beside the name to judge before clicking. */
 function evidence(row: ResidualLocusRow): string {
-  const bits = [
-    prevalenceBandLabel(row.prevalence_band),
-    `${row.gene_count.toLocaleString()} genes`,
-    `${row.uniref50_family_count ?? 0} UniRef50`,
-  ];
+  const bits = [prevalenceBandLabel(row.prevalence_band), `${row.gene_count.toLocaleString()} genes`];
+  // ⚠ Omitted when not measured — `?? 0` would have printed a measurement nobody made.
+  if (row.uniref50_family_count !== null) bits.push(`${row.uniref50_family_count} UniRef50`);
   if (row.pfam_architecture_count !== null) bits.push(`${row.pfam_architecture_count} architectures`);
   if (row.syntenic_a5 !== null) bits.push(`A5 ${row.syntenic_a5.toFixed(2)}`);
   // ⚠ The row has always shown SIMILARITIES and the API stores distances: converted once, here.

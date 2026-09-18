@@ -240,6 +240,27 @@ def get_audit_residual_loci(species_key: str):
         )
 
 
+def _resolve_catalogue_genome(session, pangenome, sample_id: str) -> int | None:
+    """A genome of THIS pangenome's collection, by sample id — or `None`. One statement.
+
+    ⛔⛔ **The collection, not the species.** The database holds 122 ecoli and 158 kp genomes against
+    100-genome pangenomes, so a species-scoped lookup still resolved 22 + 58 genomes this catalogue
+    never modelled. Anchored, one read as *"anchored — this genome has no gene at this locus"*; on the
+    Sequence tab as `genes: []`, *"has no gene here"* — a claim about a genome this pangenome says
+    nothing about at all. (First unscoped, then species-scoped in `acb8ea4`, which still left these.)
+    """
+    from syntitude_backend.models.genome_collection import GenomeCollectionMembership
+
+    return session.execute(
+        select(Genome.genome_id)
+        .join(GenomeCollectionMembership, GenomeCollectionMembership.genome_id == Genome.genome_id)
+        .where(
+            Genome.sample_id == sample_id,
+            GenomeCollectionMembership.genome_collection_id == pangenome.genome_collection_id,
+        )
+    ).scalar_one_or_none()
+
+
 def _resolve_pangenome(session, species_key: str):
     # ⛔ One statement. See `resolve_published_pangenome` for what this used to cost every route.
     return resolve_published_pangenome(session, species_key)
@@ -306,19 +327,7 @@ def get_locus(species_key: str, locus_label: str):
         anchor_genome_id = None
         anchor = request.args.get("anchor")
         if anchor:
-            from sqlalchemy import select
-
-            from syntitude_backend.models.genome import Genome
-
-            # ⛔ Scoped to THIS species. Unscoped, a genome from the other catalogue resolved, matched
-            # no arrangement, and the page said "anchored — this genome has no gene at this locus":
-            # a claim about a genome that is not in this pangenome at all.
-            anchor_genome_id = session.execute(
-                select(Genome.genome_id).where(
-                    Genome.sample_id == anchor,
-                    Genome.pathogen_species_id == pangenome.pathogen_species_id,
-                )
-            ).scalar_one_or_none()
+            anchor_genome_id = _resolve_catalogue_genome(session, pangenome, anchor)
             if anchor_genome_id is None:
                 return _not_found(f"no genome {anchor!r} in the {species_key!r} catalogue")
 
@@ -449,11 +458,9 @@ def get_gene_sequence(species_key: str, sample_id: str, locus_label: str):
         except SpeciesNotPublished as error:
             return _not_found(str(error))
 
-        genome_id = session.execute(
-            select(Genome.genome_id).where(Genome.sample_id == sample_id)
-        ).scalar_one_or_none()
+        genome_id = _resolve_catalogue_genome(session, pangenome, sample_id)
         if genome_id is None:
-            return _not_found(f"no genome {sample_id!r}")
+            return _not_found(f"no genome {sample_id!r} in the {species_key!r} catalogue")
         locus_id = session.execute(
             select(Locus.locus_id).where(
                 Locus.pangenome_id == pangenome.pangenome_id, Locus.node_label == locus_label

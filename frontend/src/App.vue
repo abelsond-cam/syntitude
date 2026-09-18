@@ -14,7 +14,7 @@
  * is what stops the two echoing each other forever over a percent-encoded label.
  */
 import { storeToRefs } from "pinia";
-import { computed, onBeforeUnmount, onMounted, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import HoverTip from "@/components/layout/HoverTip.vue";
 import SiteFooter from "@/components/layout/SiteFooter.vue";
@@ -26,6 +26,8 @@ import FunctionView from "@/components/views/FunctionView.vue";
 import LocusEvidenceView from "@/components/views/LocusEvidenceView.vue";
 import NavigatingView from "@/components/views/NavigatingView.vue";
 import SequenceView from "@/components/views/SequenceView.vue";
+import { formatLocusHash } from "@/lib/locusHashRoute";
+import { FORWARD } from "@/lib/walkDirection";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 import { useSpeciesCatalogueStore } from "@/stores/speciesCatalogueStore";
 import { useViewTabStore } from "@/stores/viewTabStore";
@@ -56,7 +58,14 @@ function go(locusLabel: string): void {
 async function openFromAddress(): Promise<void> {
   const opened = await navigation.openHash(window.location.hash);
   const landing = current.value?.landing_locus ?? null;
-  if (!opened && landing !== null) await navigation.navigateTo(landing);
+  if (opened || landing === null) return;
+  // ⛔ REPLACE the bare entry rather than pushing a second one: with a push, the reader's first Back
+  // returned to the hash-less address, which re-opened the same landing locus — a Back that did
+  // nothing, on every visit to the home URL.
+  const url = new URL(window.location.href);
+  url.hash = formatLocusHash({ label: landing, direction: FORWARD });
+  window.history.replaceState(window.history.state, "", url);
+  await navigation.navigateTo(landing);
 }
 
 function onHashChange(): void {
@@ -90,12 +99,34 @@ watch(pageTitle, (title) => {
   document.title = title;
 });
 
+/**
+ * A `?species=` naming nothing this server publishes. ⛔ It is SAID, never swapped for another
+ * catalogue: locus labels are small integers that exist in both (locus 1098 is `yohK` in ecoli and
+ * `fimA` in kp), so a silent substitution would open the link's locus number in the wrong organism,
+ * under a URL still naming the one the reader asked for.
+ */
+const unknownSpecies = ref<string | null>(null);
+
 onMounted(async () => {
   window.addEventListener("hashchange", onHashChange);
   await species.loadSpeciesList();
   const requested = new URL(window.location.href).searchParams.get(SPECIES_PARAMETER);
-  const chosen =
-    publishedSpecies.value.find((entry) => entry.key === requested)?.key ?? publishedSpecies.value[0]?.key;
+  let chosen: string | undefined;
+  if (requested === null) {
+    chosen = publishedSpecies.value[0]?.key;
+  } else {
+    // Case is forgiven (`KP` is plainly `kp`), and the address is corrected to what is shown.
+    chosen = publishedSpecies.value.find((entry) => entry.key === requested.toLowerCase())?.key;
+    if (chosen === undefined) {
+      if (speciesList.value.status === "ready") unknownSpecies.value = requested;
+      return;
+    }
+    if (chosen !== requested) {
+      const url = new URL(window.location.href);
+      url.searchParams.set(SPECIES_PARAMETER, chosen);
+      window.history.replaceState(window.history.state, "", url);
+    }
+  }
   if (chosen === undefined) return;
   await species.selectSpecies(chosen);
   if (current.value !== null) await openFromAddress();
@@ -121,6 +152,11 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
   <!-- ⛔ Each failure SAYS which thing failed; none of them renders as an empty catalogue. -->
   <section v-if="speciesList.status === 'failed'" class="wrap load-failure">
     <p class="pop-error" role="alert">The list of species did not load — {{ speciesList.failure.detail }}.</p>
+  </section>
+  <section v-else-if="unknownSpecies !== null" class="wrap load-failure">
+    <p class="pop-error" role="alert">
+      No species “{{ unknownSpecies }}” is published on this server — choose one above.
+    </p>
   </section>
   <section v-else-if="speciesList.status === 'ready' && publishedSpecies.length === 0" class="wrap load-failure">
     <p class="lede">No species is published on this server yet.</p>
