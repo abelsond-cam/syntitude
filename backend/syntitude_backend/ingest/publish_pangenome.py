@@ -22,10 +22,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from sqlalchemy import func, select, update
+from sqlalchemy import exists, func, select, update
 from sqlalchemy.orm import Session
 
 from syntitude_backend.models.enumerations import EmbeddingRepresentation
+from syntitude_backend.models.genome_collection import GenomeCollectionMembership
 from syntitude_backend.models.locus import Locus
 from syntitude_backend.models.locus_arrangement import LocusArrangement
 from syntitude_backend.models.locus_embedding_geometry import (
@@ -34,6 +35,7 @@ from syntitude_backend.models.locus_embedding_geometry import (
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
+from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
 from syntitude_backend.models.pathogen_species import PathogenSpecies
 
 
@@ -173,6 +175,49 @@ def verify_pangenome_is_servable(session: Session, pangenome: Pangenome) -> tupl
         .where(Locus.pangenome_id == pangenome.pangenome_id, Locus.display_name.is_(None))
     ).scalar_one()
     check("every locus has a display name", unnamed == 0, f"{unnamed:,} loci have none")
+
+    # ⭐ The anchor picker lists genomes FROM this table, so a collection genome with no row is not
+    # "a genome in nothing" — it is a genome the picker silently cannot offer, and a stray row is a
+    # genome it offers that this catalogue never saw. Both directions, in one statement over the
+    # collection, not over the 412 M membership rows the counts were derived from.
+    counted = select(PangenomeGenomeLocusCount.genome_id).where(
+        PangenomeGenomeLocusCount.pangenome_id == pangenome.pangenome_id
+    )
+    members = select(GenomeCollectionMembership.genome_id).where(
+        GenomeCollectionMembership.genome_collection_id == pangenome.genome_collection_id
+    )
+    uncounted, stray = session.execute(
+        select(
+            select(func.count())
+            .select_from(GenomeCollectionMembership)
+            .where(
+                GenomeCollectionMembership.genome_collection_id == pangenome.genome_collection_id,
+                ~exists(
+                    counted.where(
+                        PangenomeGenomeLocusCount.genome_id == GenomeCollectionMembership.genome_id
+                    )
+                ),
+            )
+            .scalar_subquery(),
+            select(func.count())
+            .select_from(PangenomeGenomeLocusCount)
+            .where(
+                PangenomeGenomeLocusCount.pangenome_id == pangenome.pangenome_id,
+                ~exists(
+                    members.where(
+                        GenomeCollectionMembership.genome_id == PangenomeGenomeLocusCount.genome_id
+                    )
+                ),
+            )
+            .scalar_subquery(),
+        )
+    ).one()
+    check(
+        "every collection genome has a locus count row",
+        uncounted == 0 and stray == 0,
+        f"{uncounted:,} collection genomes have no row and {stray:,} rows name a genome outside the "
+        "collection — the anchor picker would drop or invent them",
+    )
     return passed, failed
 
 

@@ -13,7 +13,7 @@
  * three different slot spaces.
  */
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 
 import type { LocusDetailResponse, NeighbourDisplayRow } from "@/api/types";
 import { gapKeyFor, indexGapsByPair } from "@/lib/intergenicGaps";
@@ -63,6 +63,15 @@ const neighboursByLabel = computed(() => {
 });
 
 const gapsByPair = computed(() => indexGapsByPair(props.detail.intergenic_gaps));
+
+/**
+ * ⛔ The IGR tint is ON only where there are scores to tint with (`app.js`: `if (HAS_VAR)`). Without
+ * them every gap would be white, which is exactly what a measured, fully conserved neighbourhood
+ * looks like — so the class is withheld rather than letting the page claim a measurement it never had.
+ */
+const hasVarianceScores = computed(() =>
+  props.detail.intergenic_gaps.some((gap) => gap.length_variance_score !== null),
+);
 
 /**
  * One drawn position. A neighbour carries everything its component needs already resolved — the
@@ -122,6 +131,26 @@ function gapBefore(index: number) {
 }
 
 /**
+ * ⭐ Put the focal gene under the middle of the page (`app.js::centreFocal`, David 2026-08-23), so
+ * the switcher centred below it really is beneath it. The focal gene is the middle SLOT, but slots
+ * are as wide as their genes, so five long genes on one side push it far off the track's own centre —
+ * only a scroll can centre it. Re-run whenever the row is redrawn: a new locus, another arrangement,
+ * a flipped walk. The browser clamps it when the track is narrower than its scroller.
+ */
+const scroller = ref<HTMLDivElement | null>(null);
+
+async function centreFocal(): Promise<void> {
+  await nextTick();
+  const host = scroller.value;
+  const focal = host?.querySelector<HTMLElement>(".slot.focal");
+  if (!host || !focal) return;
+  host.scrollLeft = focal.offsetLeft + focal.offsetWidth / 2 - host.clientWidth / 2;
+}
+
+onMounted(centreFocal);
+watch([() => props.detail, selectedArrangementIndex, walkDirection], centreFocal);
+
+/**
  * ⭐ Prefetch on hover. The cursor sits on a block for 150–300 ms before the click, which covers a
  * 4 kB response — and because there are no user writes the cache is a pure function of its key, so
  * a prefetch that is never used costs one request and no correctness risk at all.
@@ -133,8 +162,13 @@ function prefetch(locus: string | null): void {
 </script>
 
 <template>
-  <div class="track-scroll">
-    <div class="track" :class="{ dimmed: isDimmed }" role="list" aria-label="gene neighbourhood">
+  <div ref="scroller" class="track-scroll">
+    <div
+      class="track"
+      :class="{ dimmed: isDimmed, 'igr-var': hasVarianceScores }"
+      role="list"
+      aria-label="gene neighbourhood"
+    >
       <template v-for="(item, index) in row" :key="item.key">
         <IntergenicSlot v-if="index > 0" :gap="gapBefore(index)" />
 

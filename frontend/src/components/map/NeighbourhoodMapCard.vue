@@ -284,7 +284,7 @@ const globalNote = computed(() => {
         v-for="option in MAP_ZOOMS"
         :key="option"
         type="button"
-        class="map-zoom"
+        class="zoom map-zoom"
         :class="{ on: option === zoom }"
         :disabled="option === 'global' && sprite === null"
         :title="

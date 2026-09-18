@@ -54,6 +54,10 @@ async function drawLocus(label: string) {
 beforeEach(() => {
   setActivePinia(createPinia());
   fetchLocus.mockReset();
+  // ⚠ Anchoring re-asks for the locus on screen (the anchored response differs), so every
+  // `setAnchor` below issues a locus fetch too. Answer it with the same locus rather than leaving
+  // the mock to return `undefined`, which would fail inside the navigation store instead of here.
+  fetchLocus.mockImplementation(async (_species: string, label: string) => success(locusDetail(label)));
   fetchGeneSequence.mockReset();
 });
 

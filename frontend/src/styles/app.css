@@ -1,0 +1,3204 @@
+/* ⭐ PORTED WHOLE from the published page's stylesheet — nuna `src/nuna/tl/locus_browser/app.css`
+   (the file the live static site serves). Everything above the "ADDED FOR THE REBUILT PAGE" section at
+   the bottom is that file byte for byte, so a diff against it shows exactly what the rebuild changed.
+   ⚠ Global, not scoped — see `README.md` beside this file for why. */
+
+/* locus browser — an instrument readout, not a document.
+   Monospace carries the identity (ids, accessions, counts, the wordmark): sequence data is monospaced by nature.
+   Every colour is a token so the two themes are one system; the consistency ramp is mixed in oklab from
+   --ramp-hi/--ramp-lo, so it re-derives itself per theme instead of being hard-coded twice.
+   Consistency is carried by hue alone (--ramp-lo purple = variable, --ramp-hi blue = invariant); --anchor is
+   the separate accent that ties the focal gene to the card describing it. */
+
+:root {
+    --paper: #eef1f7;
+    --panel: #ffffff;
+    --panel-2: #f7f9fc;
+    --ink: #0b1220;
+    --ink-2: #3a4658;
+    --ink-3: #6b7789;
+    --rule: #d5dde9;
+    --rule-2: #e6ebf3;
+    /* ⛔ The divergence ramp is BLUE -> PURPLE, and the reason is arithmetic, not taste (David, 2026-08-24:
+       blue->maroon "leaves a bit of a clash"). `color-mix(in oklab, ...)` interpolates in RECTANGULAR Lab, so
+       the midpoint of two equal-chroma ends sits at `C x cos(half the hue gap)`. Blue->maroon spans 120.5deg,
+       collapsing the middle of the ramp to **0.50 x C** — a grey-mauve mud that reads as a third colour
+       rather than as a midpoint. Blue->purple spans 52.6deg and holds **0.90 x C** the whole way.
+
+       Both ends carry the SAME OKLab L and C (0.500 / 0.204 light, 0.685 / 0.146 dark): the purple IS the
+       blue with its hue rotated from 262deg to 310deg and nothing else touched. The ramp is therefore a pure
+       hue rotation carrying no lightness step of its own, which leaves the ALPHA (genome penetrance) as the
+       only thing changing a block's tone. That was the ask.
+
+       ⛔ The preserved end is a ROYAL blue, not a navy (David, 2026-08-24: *"the same needs to be a more
+       royal / true blue rather than a navy so that there is better distinction for preserved nodes"*). The
+       old `#0f4c9a` sat at L 0.428 and read as near-black at full penetrance, so the invariant nodes — the
+       ones a reader most wants to pick out — were the least distinguishable things on the track. L went
+       0.428 -> 0.500 and C 0.141 -> 0.204, and BOTH ends moved together: raising only the blue would have
+       reintroduced exactly the lightness step this ramp exists not to have.
+
+       Chroma is 88 % of the tightest gamut edge the two hues share, so neither end clips on a wide-gamut
+       display. White block text sits at 6.3:1 on the preserved end and 6.7:1 on the divergent one — the
+       constraint that set the ceiling on L, since `.block.pale` only takes over below 0.45 penetrance. */
+    --ramp-hi: #1657d5;
+    --ramp-lo: #8630b7;
+    --win: #c3643b;
+    --gold: #8a5f10;
+    --rust: #a83a2a;
+    --focus: #1657d5;
+    /* ⛔ The focal locus is the SAIL ORANGE from the Syntitude mark (David, 2026-08-24) — hull `#E2794C`,
+       sails `#EFBD97` / `#FADFC7`. It outlines the focal block, fills it, and carries through to the chosen
+       arrangement chip, its fan line and its row in the A0 card: one colour for one relationship.
+
+       Derived, not picked: L and C are the previous blue anchor's EXACTLY (0.608 / 0.133 light, 0.740 / 0.117
+       dark), with only the hue moved to the logo's 43deg. Same visual weight, same contrast — the wash still
+       carries --ink at 16:1 — so nothing about legibility moved with the hue. It also now sits OFF the
+       divergence ramp's blue-purple axis entirely, which is what stops the subject of the page reading as a
+       point on the very scale that describes its neighbours.
+
+       ⚠ A dark green (H160: `#149a66` / `#e7f4ec` light, `#60c291` / `#0b2a1c` dark) is the standing
+       alternative — same derivation, one hue different. */
+    --anchor: #c3643b;
+    --anchor-wash: #faede7;
+
+    /* the neighbourhood map's categorical set: BLACK focal (an emphasis, not a category) + five hues chosen
+       against the dataviz validator, not by eye — worst adjacent CVD dE 22.0 (deutan). The rendered PNG
+       diagnostics use exactly these, so a figure and the page agree on what colour a rank is. */
+    --map-bg: #d2d8e2;
+    --map-focal: #000000;
+    --map-1: #e41a1c;
+    --map-2: #377eb8;
+    --map-3: #4daf4a;
+    --map-4: #984ea3;
+    --map-5: #d9a400;
+
+    --mono:
+        ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+        "Liberation Mono", monospace;
+    --sans:
+        ui-sans-serif, -apple-system, "Segoe UI", "Helvetica Neue", Arial,
+        sans-serif;
+
+    --s1: 4px;
+    --s2: 8px;
+    --s3: 12px;
+    --s4: 18px;
+    --s5: 28px;
+    --s6: 44px;
+    --maxw: 1240px;
+    /* the right-hand evidence column. ONE fact: `.work` lays the grid out with it and the mark centres
+       itself over it, so the two cannot drift apart into a pair of numbers that happen to agree. */
+    --side-w: 340px;
+    --mark-size: 76px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --paper: #070b12;
+        --panel: #0f1622;
+        --panel-2: #141d2c;
+        --ink: #e6ecf5;
+        --ink-2: #a9b6c9;
+        --ink-3: #74829a;
+        --rule: #212c3e;
+        --rule-2: #19222f;
+        --ramp-hi: #6798f3;
+        --ramp-lo: #b57edd;
+        --win: #e9916e;
+        --gold: #d6a94a;
+        --rust: #ec9081;
+        --focus: #6798f3;
+        --anchor: #e9916e;
+        --anchor-wash: #361b10;
+
+        /* Lifted for a dark ground: the PNG set is committed to white paper, and #4daf4a / #d9a400 are exactly the
+       two that fail the dark-surface band. Same hue order, so rank 3 is still green. */
+        --map-bg: #2b374a;
+        --map-focal: #ffffff;
+        --map-1: #ff6b6d;
+        --map-2: #6aa9e8;
+        --map-3: #63d660;
+        --map-4: #c98ecf;
+        --map-5: #f0c04a;
+    }
+}
+
+/* the viewer's toggle stamps data-theme on the root and must win over the media query, both directions */
+:root[data-theme="dark"] {
+    --paper: #070b12;
+    --panel: #0f1622;
+    --panel-2: #141d2c;
+    --ink: #e6ecf5;
+    --ink-2: #a9b6c9;
+    --ink-3: #74829a;
+    --rule: #212c3e;
+    --rule-2: #19222f;
+    --ramp-hi: #6798f3;
+    --ramp-lo: #b57edd;
+    --win: #e9916e;
+    --gold: #d6a94a;
+    --rust: #ec9081;
+    --focus: #6798f3;
+    --anchor: #e9916e;
+    --anchor-wash: #361b10;
+
+    /* Lifted for a dark ground: the PNG set is committed to white paper, and #4daf4a / #d9a400 are exactly the
+       two that fail the dark-surface band. Same hue order, so rank 3 is still green. */
+    --map-bg: #2b374a;
+    --map-focal: #ffffff;
+    --map-1: #ff6b6d;
+    --map-2: #6aa9e8;
+    --map-3: #63d660;
+    --map-4: #c98ecf;
+    --map-5: #f0c04a;
+}
+
+:root[data-theme="light"] {
+    --paper: #eef1f7;
+    --panel: #ffffff;
+    --panel-2: #f7f9fc;
+    --ink: #0b1220;
+    --ink-2: #3a4658;
+    --ink-3: #6b7789;
+    --rule: #d5dde9;
+    --rule-2: #e6ebf3;
+    --ramp-hi: #1657d5;
+    --ramp-lo: #8630b7;
+    --win: #c3643b;
+    --gold: #8a5f10;
+    --rust: #a83a2a;
+    --focus: #1657d5;
+    --anchor: #c3643b;
+    --anchor-wash: #faede7;
+
+    /* the neighbourhood map's categorical set: BLACK focal (an emphasis, not a category) + five hues chosen
+       against the dataviz validator, not by eye — worst adjacent CVD dE 22.0 (deutan). The rendered PNG
+       diagnostics use exactly these, so a figure and the page agree on what colour a rank is. */
+    --map-bg: #d2d8e2;
+    --map-focal: #000000;
+    --map-1: #e41a1c;
+    --map-2: #377eb8;
+    --map-3: #4daf4a;
+    --map-4: #984ea3;
+    --map-5: #d9a400;
+}
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+a {
+    color: var(--ramp-hi);
+    text-underline-offset: 2px;
+}
+
+:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+.wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 var(--s4);
+}
+
+.mono {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+.num {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* micro-label: the instrument-panel legend used above every block of data */
+.legend {
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 620;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* ============================================================================ instrument bar */
+.bar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--panel);
+    border-bottom: 1px solid var(--rule);
+}
+
+.bar-in {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: var(--s3) var(--s4);
+    display: flex;
+    align-items: center;
+    gap: var(--s4);
+    flex-wrap: wrap;
+}
+
+.mark {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.mark span {
+    color: var(--ink-3);
+    font-weight: 400;
+}
+
+.mark .mark-rule,
+.mark .mark-sub {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+}
+
+/* ======================================================= species picker + pangenome census */
+.species-strip {
+    background: var(--panel);
+    border-bottom: 1px solid var(--rule);
+}
+
+.species-in {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s5);
+    flex-wrap: wrap;
+    padding-top: var(--s3);
+    padding-bottom: var(--s3);
+}
+
+.species-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.species-pick select {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    font-style: italic;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 6px 10px;
+    min-width: 260px;
+}
+
+.pangenome {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* The mark, on the strip that names the microbe and counts its pangenome (David, 2026-08-21). `margin-left:
+   auto` pushes it right; the `margin-right` then brings it back in so its centre lands on the centre of the
+   evidence column below — both expressed from --side-w, so it is one alignment rather than two numbers that
+   agree until someone changes the grid. On a narrow window that column is gone, so the offset goes with it.
+
+   Decorative: the alt text is in the SVG's own aria-label, and it navigates nowhere, because the only place
+   it could go is the page the reader is already on. */
+.brand-mark {
+    margin-left: auto;
+    margin-right: calc(var(--side-w) / 2 - var(--mark-size) / 2);
+    align-self: center;
+    flex: 0 0 auto;
+    line-height: 0;
+}
+
+.brand-mark svg {
+    width: var(--mark-size);
+    height: var(--mark-size);
+    display: block;
+    border-radius: calc(var(--mark-size) * 0.22);
+}
+
+.pg-line {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--ink-2);
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.pg-line b {
+    color: var(--ink);
+}
+
+.pg-sep {
+    color: var(--ink-3);
+    opacity: 0.6;
+}
+
+.pg-sub {
+    font-size: 12px;
+    color: var(--ink-3);
+}
+
+.search {
+    position: relative;
+    flex: 1 1 320px;
+    min-width: 240px;
+}
+
+.search input {
+    width: 100%;
+    padding: 9px 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.search input::placeholder {
+    color: var(--ink-3);
+}
+
+.results {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 62vh;
+    overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    box-shadow: 0 14px 34px rgb(6 12 24 / 18%);
+}
+
+.results:empty {
+    display: none;
+}
+
+.hit {
+    display: grid;
+    grid-template-columns: minmax(84px, auto) 1fr auto;
+    gap: var(--s3);
+    align-items: baseline;
+    width: 100%;
+    padding: 7px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    background: none;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+
+.hit:last-child {
+    border-bottom: 0;
+}
+
+.hit:hover,
+.hit[aria-selected="true"] {
+    background: var(--panel-2);
+}
+
+.hit-name {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 13.5px;
+}
+
+.hit-desc {
+    color: var(--ink-2);
+    font-size: 12.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hit-meta {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    white-space: nowrap;
+}
+
+.badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--ink-3);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.badge b {
+    color: var(--ink-2);
+    font-weight: 600;
+}
+
+/* ============================================================================ the track */
+.track-panel {
+    background: var(--panel);
+    border-bottom: 1px solid var(--rule);
+    padding: var(--s5) 0 var(--s4);
+}
+
+/* the popover is positioned against this box, so the position detail opens beside the bar that was clicked
+   rather than in a column at the far side of the page */
+.track-panel > .wrap {
+    position: relative;
+}
+
+/* The site is a pangenome navigator; the track is one instrument within it. The wordmark used to carry
+   "structural locus browser", which named the whole site after one of its parts — so the name moved down to
+   sit on the thing it actually names. Same eyebrow treatment as a card's h2: a section label, not a title. */
+
+/* ⛔ ONE row for the name and the breadcrumb (David, 2026-08-25). Stacked, they spent two lines and the gap
+   between them on ~20 px of text and pushed the track down for nothing. `baseline`, not `center`: the two are
+   different sizes (10.5 px tracked sans against 11.5 px mono) and centring them would leave neither sitting on
+   the other's line. The bar now carries the bottom margin that both children used to carry separately. */
+.panel-bar {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 var(--s3);
+    margin: 0 0 var(--s3);
+}
+
+.panel-head {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 620;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.pop {
+    position: absolute;
+    z-index: 40;
+    width: 296px;
+    max-width: calc(100vw - 24px);
+}
+
+.pop[hidden] {
+    display: none;
+}
+
+/* ---- the hover tooltip ----
+   The page draws its own rather than leaning on the browser's `title`, because a native tooltip appears at
+   the browser's discretion and on this track it often did not (David, 2026-08-21). `position: fixed` off the
+   cursor, never a scroll container: the track scrolls horizontally, the page scrolls vertically, and an
+   absolutely-positioned tip would lag both. `pointer-events: none` is load-bearing — a tip that can be
+   hovered sits under the cursor, hides the element it describes, and flickers. */
+.tip {
+    position: fixed;
+    z-index: 60;
+    max-width: 340px;
+    padding: 6px 9px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background-color: var(--panel);
+    box-shadow: 0 8px 22px rgb(4 10 22 / 26%);
+    font-size: 11.5px;
+    line-height: 1.42;
+    color: var(--ink);
+    pointer-events: none;
+}
+
+.tip[hidden] {
+    display: none;
+}
+
+/* the descriptions are already written as several lines; the first is the subject, the rest qualify it */
+.tip > div + div {
+    margin-top: 2px;
+    color: var(--ink-2);
+}
+
+/* It opens over the prose that explains the track, so it must not repeat it: the popover carries the loci at
+   that position and nothing else, set a step smaller than the page.
+   The opaque colour is declared HERE as well as on .card, because a popover you can read the page through is
+   not a popover — and the way this broke once (see .position-card) was a background that failed at
+   computed-value time and reset itself to transparent. This is the backstop for the next one. */
+.pop > .card {
+    margin: 0;
+    background-color: var(--panel);
+    padding: var(--s3);
+    max-height: 58vh;
+    overflow-y: auto;
+    font-size: 12px;
+    box-shadow: 0 10px 30px rgb(4 10 22 / 22%);
+}
+
+.pop > .card > h2 {
+    margin-bottom: 2px;
+}
+
+/* one line of data under the heading — the denominator the percentages below are shares of */
+.pop-meta {
+    margin: 0 0 var(--s2);
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 10.5px;
+    color: var(--ink-3);
+}
+
+.pop .alt {
+    padding: 5px 0;
+}
+
+.pop .alt-name {
+    font-size: 12px;
+}
+
+.pop .alt-desc {
+    font-size: 10.5px;
+}
+
+.pop .alt-n {
+    font-size: 11px;
+}
+
+.pop-tail {
+    margin: var(--s2) 0 0;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+}
+
+/* the A0 popover takes the anchor, exactly as the focal block and the summary card do — the three are one
+   subject, and the accent is what says so */
+.focal-card {
+    border-color: var(--anchor);
+    border-top: 3px solid var(--anchor);
+}
+
+/* Since schema 13 this card lists EVERY arrangement, and a locus can have 84 of them. Without a ceiling the
+   card runs off the bottom of the viewport and the rows past the fold are unreachable — the popover is
+   absolutely positioned, so the page does not grow to contain it. The ROWS scroll, not the card: scrolling
+   the card would carry its heading and its close button away with them. */
+.arr-scroll {
+    max-height: 46vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.focal-card > h2 {
+    color: var(--anchor);
+}
+
+/* the focal position lists sequence families, which are records to look up rather than places to walk to */
+.alt-static {
+    cursor: default;
+}
+
+.alt-static .acc-link {
+    font-weight: 700;
+}
+
+.pop-close {
+    float: right;
+    border: 0;
+    background: none;
+    padding: 0 0 0 var(--s2);
+    margin: -2px 0 0;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--ink-3);
+    cursor: pointer;
+}
+
+.pop-close:hover {
+    color: var(--ink);
+}
+
+/* The marginal bar is 4px tall, which is not a click target. The hit area is padded out and the padding
+   pulled back off with a negative margin, so the button is comfortable without moving anything on the track. */
+.marg-hit {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: none;
+    padding: 5px 0;
+    margin: -5px 0;
+    cursor: pointer;
+}
+
+.marg-hit:hover .marg,
+.marg-hit:focus-visible .marg {
+    outline: 1px solid var(--ink-3);
+    outline-offset: 1px;
+}
+
+.trail {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+}
+
+/* Only once there is a trail to divide from the name. `:empty` is exactly the state `renderTrail` leaves the
+   element in below two entries, so the rule and the code agree without either knowing about the other. */
+.trail:not(:empty)::before {
+    content: "";
+    align-self: center;
+    width: 1px;
+    height: 11px;
+    margin-right: 2px;
+    background: var(--rule);
+}
+
+.trail button {
+    font: inherit;
+    border: 0;
+    background: none;
+    padding: 0;
+    color: var(--ramp-hi);
+    cursor: pointer;
+}
+
+.trail .sep {
+    opacity: 0.55;
+}
+
+/* ---------------------------------------------------------------- arrangement switcher
+   The track shows ONE whole neighbourhood, so the reader has to be able to see there are others and move
+   between them. Each option is a real set of genomes; the ↺ marks one displayed reverse-complemented. */
+/* below the track, with the rest of the prose: the switcher describes what is drawn above it, and putting it
+   overhead pushed the instrument itself off the top of the section */
+/* ---- the arrangement switcher, anchored under the focal gene ----
+   The wrap is the SVG's offset parent, so the fan's coordinates need no page-scroll term and survive vertical
+   scrolling for free. */
+/* Three grid rows: the fan, then the options with the anchor control beside them, then the sentences.
+   The columns are SYMMETRIC — gutter, options, gutter — which is what keeps the option row's centre the page's
+   centre whether the control is there or not, and therefore what the fan can point at. (It was a padding on
+   the switcher and an absolutely-positioned panel; that pinned the box to the wrap's TOP, level with the fan,
+   so it never sat in line with the buttons it acts on — David, 2026-08-25.) */
+.arr-wrap {
+    position: relative;
+    margin-top: var(--s3);
+    display: grid;
+    grid-template-columns: var(--arr-gutter) minmax(0, 1fr) var(--arr-gutter);
+    /* the left gutter the anchor-genome control sits in, and the mirrored column on the right that keeps the
+       option row centred under the focal gene regardless of it — one number, so the two cannot drift */
+    --arr-gutter: 260px;
+}
+
+.arr-fan {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+.arr-notes {
+    grid-column: 1 / -1;
+    grid-row: 3;
+}
+
+.arr-fan {
+    display: block;
+    width: 100%;
+    height: 0; /* set from JS to reach the option row; 0 until there is something to join */
+    overflow: visible;
+    pointer-events: none;
+}
+
+.fan-line {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+}
+
+/* The chosen arrangement's line is the one drawn on the track above, so it reads as the live connection and
+   the rest as the alternatives on offer. `--anchor`, matching the focal block and the chosen chip: one colour
+   for one relationship, at both ends of the line and along it. */
+.fan-line.on {
+    stroke: var(--anchor);
+    stroke-width: 1.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .fan-line {
+        transition: stroke 0.15s ease;
+    }
+}
+
+.arr-switch {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    margin-top: 0;
+}
+
+.arr-switch:empty {
+    display: none;
+}
+
+/* The sentence sits UNDER the buttons now (David, 2026-08-23): the fan points at the options, so the options
+   have to be the first thing beneath the gene, and a paragraph above would push them a line further away and
+   break the line the fan is drawing. */
+.arr-head {
+    margin: var(--s2) 0 0;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.arr-only {
+    margin: 0 0 var(--s2);
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.arr-head b,
+.arr-only b {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+/* Centred, so the options sit under the middle of the page — where `centreFocal` has just put the gene they
+   belong to (David, 2026-08-23). Left-aligned they read as a toolbar for the whole track. */
+.arr-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* the sentence under them is centred with them, or it reads as belonging to the next thing down the page */
+.arr-head,
+.arr-only,
+.arr-flip,
+.arr-anchored {
+    text-align: center;
+}
+
+/* What the anchor did at this locus. It sits BELOW the options, centred in their column — above them it
+   pushed the whole row down the moment a genome was picked, leaving the box out of line with the buttons it
+   acts on. Takes the accent so it reads with the box and the marked option rather than as body text. */
+.arr-anchored {
+    margin: var(--s2) 0 0;
+    font-size: 12.5px;
+    color: var(--anchor);
+}
+
+.arr-anchored b {
+    font-family: var(--mono);
+    font-weight: 620;
+}
+
+/* the "no gene here" case is a caveat, not an accent — it says the anchor found nothing to point at */
+.arr-anchored.muted {
+    color: var(--ink-3);
+}
+
+.arr-opt {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: 5px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--panel-2);
+    color: var(--ink-2);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.arr-opt:hover {
+    border-color: color-mix(in oklab, var(--ramp-hi) 45%, var(--rule));
+}
+
+/* ⛔ The SAME blue as the focal gene. `--anchor` outlines the focal block and `--anchor-wash` fills it, so the
+   gene under examination is the one washed block on a track of ramp colours; giving the chosen arrangement the
+   identical treatment says the two are one object — this neighbourhood belongs to that gene (David,
+   2026-08-23). It was near-black `--ink` before, which read as "selected control" rather than as a
+   relationship to anything on the track. */
+.arr-opt.on {
+    border-color: var(--anchor);
+    background: var(--anchor-wash);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--anchor);
+}
+
+/* The anchored genome's own arrangement. Dashed, so it reads as "this one is yours" and stays distinct from
+   `.on` ("this one is drawn") — they are usually the same button and sometimes deliberately are not, which is
+   exactly when the reader needs to see two marks rather than one. */
+.arr-opt.anchored {
+    border-style: dashed;
+    border-color: var(--anchor);
+}
+
+.arr-anch-mark {
+    margin-right: 4px;
+    color: var(--anchor);
+}
+
+.arr-top {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12.5px;
+    white-space: nowrap;
+}
+
+.arr-top b {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.arr-rank {
+    font-weight: 700;
+    color: var(--ink-3);
+}
+
+.arr-inv {
+    color: var(--ramp-lo);
+    font-weight: 700;
+}
+
+.arr-pct {
+    color: var(--ink-3);
+}
+
+.arr-diff {
+    font-size: 11px;
+    color: var(--ink-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.arr-rest {
+    margin-top: var(--s2);
+    font-size: 11.5px;
+}
+
+.arr-flip {
+    margin-top: var(--s2);
+    font-size: 11.5px;
+    max-width: 88ch;
+    padding-left: var(--s2);
+    border-left: 2px solid var(--ramp-lo);
+}
+
+.arr-flip .arr-inv {
+    font-size: 13px;
+}
+
+.track-scroll {
+    overflow-x: auto;
+    padding: var(--s2) 0 0;
+}
+
+/* ---- the frame: the scroller, plus a reserved gutter for the offset band's own label ----
+   The bars in the offset band were the one channel with no words beside them. The swatch legend under the
+   track says what the COLOURS mean; nothing said what the ROW is, so the row is named where it sits (David,
+   2026-08-21). The label lives in a reserved gutter rather than floating over the track, because the track
+   scrolls horizontally and an overlay would permanently hide whichever slot reached the right edge.
+
+   The track's geometry custom properties are declared HERE rather than on `.track` so this label can read
+   --label-h and --block-h to sit level with the band. They inherit down to `.track` and `.slot` unchanged. */
+.track-frame {
+    /* --label-max is set from MEASUREMENT, not taste. A label rotated by --label-angle reaches
+       max-width x cos(angle) to the RIGHT of its anchor, so it stays over its own gene only while the box is
+       at least that wide. At 72px it reached 36px, and only 70% of loci are that wide — the other 30% had
+       their name sitting on top of a neighbour, which is what made the track unreadable (David: "the graph is
+       muddled", 2026-08-21, naming perC ·5510 over ·7024 over ·7527). At 40px it reaches 20px and 91-93% of
+       loci can hold their own label; the rest print none and show it on hover instead.
+
+       40px is ~5 monospace characters at 11.5px, and gene names are mostly four. --label-h follows from it:
+       40 x sin(60) = 35, plus room for the descenders. */
+    --label-max: 40px;
+    --label-h: 38px;
+    --block-h: 56px;
+    --label-angle: 60deg; /* measured from HORIZONTAL */
+    --notch: 5px; /* the arrow point, shallowed from 11px: the lanes carry direction now, this corroborates */
+
+    /* No right gutter any more: the node key moved into the switcher's own empty right column (David,
+       2026-08-25), which is what lets the track run the full width of the page. `position: relative` stays —
+       the popover anchors to it. */
+    position: relative;
+}
+
+/* The band's label AND its colour key. The key used to sit in the legend under the track, three rows away
+   from the bars it described (David, 2026-08-21); a reader checking what a colour meant had to leave the
+   thing they were reading. Now it stands beside them, and what remains below is only the two channels with
+   nowhere on the track to live.
+
+   Centred on the band rather than aligned to its top: the block is ~101px tall and the band row is ~26px, so
+   an anchored top would hang the whole key below the strands it belongs to. The offset is half the block's
+   height less half the band's — change --band-ends height and this follows. */
+/* The switcher's RIGHT gutter — the column that mirrors the anchor control and was reserved and empty. Both
+   gutters carry `align-self: center` and so does the option row between them, so all three sit on one axis:
+   the control stays in line with the buttons it acts on however tall this key is. */
+.band-note {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: center;
+    justify-self: end;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.3;
+    color: var(--ink-3);
+    pointer-events: none;
+}
+
+.band-title {
+    color: var(--ink-2);
+}
+
+/* Two channels side by side (David, 2026-08-25), each its own bar and its own pair of ends. A block carries
+   two independent quantities, so a reader shown one key reads the other wrong — they belong together, and
+   beside the blocks rather than three rows above them. */
+.band-key {
+    display: flex;
+    align-items: stretch;
+    gap: var(--s2);
+}
+
+.band-ch {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Purple at the top, blue at the bottom, from the SAME two tokens `.block .fill` mixes between — so the key
+   cannot drift from the track it describes, in either theme. Twice the height it had as a plain rule, which
+   is what makes it read as a ramp rather than a border.
+   ⚠ Written out in full rather than sharing a selector list with `.band-pen`: each bar is checked against the
+   property of `.block .fill` it claims to describe, and a shared rule makes "the .band-pen rule" ambiguous. */
+.band-ramp {
+    flex: 0 0 auto;
+    width: 8px;
+    border-radius: 2px;
+    background: linear-gradient(to bottom, var(--ramp-lo), var(--ramp-hi));
+}
+
+/* ⛔ The SAME 18 % floor `.block .fill` clamps its opacity to, or the key stops describing the track beside
+   it: a block in one genome is faint, not invisible, and a key fading to nothing would promise otherwise.
+   Held at `--c` = 1 so this bar varies one channel only, exactly as the ramp beside it does. */
+.band-pen {
+    flex: 0 0 auto;
+    width: 8px;
+    border-radius: 2px;
+    background: linear-gradient(
+        to bottom,
+        var(--ramp-hi),
+        color-mix(in oklab, var(--ramp-hi) 18%, transparent)
+    );
+}
+
+/* The ramp has no height of its own — it stretches to this, so the bar and the words that label its ends
+   are one measurement. 81px (David, 2026-08-21): half again on the 54px it launched at. */
+.band-ends {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 81px;
+    font-size: 9px;
+}
+
+.band-ends em {
+    font-style: normal;
+}
+
+/* ---- the track's geometry ----
+   The slot is a FIVE-ROW GRID and every rule below places something in one of its rows:
+
+       1  forward gene names, raked UP from above their block
+       2  forward gene blocks
+       3  the OFFSET BAND — this position's occupancy bar and its A±n label
+       4  reverse gene blocks
+       5  reverse gene names, raked DOWN from below their block
+
+   Putting the offset band between the lanes rather than under everything is what lets the two strands sit
+   close together (David, 2026-08-20). The previous layout gave each lane its own name band, so the boxes were
+   a whole label-height apart; now only the band separates them. Names are mostly four characters, so
+   --label-max is sized for those and longer ones ellipsize rather than the whole track paying for them.
+
+   --label-h and --label-max stay ONE decision: a label rotated by --label-angle needs max-width x sin(angle)
+   of vertical room, and `.track-scroll` sets overflow-x, which makes overflow-y compute to auto — so a band
+   too short for its own text CLIPS rather than overflowing. At 60 degrees, 72px of text needs ~62px.
+
+   The dashed baseline is gone: the offset band now separates the strands, and a second divider would only
+   compete with it. It was also the last hard-coded pixel position in this file. */
+.track {
+    /* geometry (--label-max, --label-h, --block-h, --label-angle, --notch) is declared on `.track-frame`
+       above and inherited here, so the band label and the slots cannot drift apart. */
+    position: relative;
+    display: flex;
+    align-items: start;
+    gap: 6px;
+    min-width: 1080px;
+    padding: 0 2px 0;
+}
+
+/* Width is set INLINE per slot, from the locus's median gene length — see app.js::sizeSlot. `flex: 0 0 auto`
+   is what lets it stand: the old `flex: 1 1 0` would have stretched every slot back to an equal share and
+   thrown the scale away without any rule appearing to be wrong. */
+.slot {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-rows:
+        var(--label-h) var(--block-h) auto
+        var(--block-h) var(--label-h);
+    align-items: stretch;
+}
+
+.slot > .gname {
+    grid-row: 1;
+    align-self: end;
+}
+
+.slot > .block {
+    grid-row: 2;
+    /* ⛔ A grid item's default `min-width: auto` floors it at its MIN-CONTENT width, and for a border-box
+       button that includes the 26px of horizontal padding below. So every block narrower than 26px — which is
+       every short intergenic region, drawn at the 6px floor — rendered at 26px and spilled ~20px to the RIGHT,
+       painting over the downstream gene (David, 2026-08-23: "all the short IGR are currently overlapping the
+       downstream genes"). The slot itself was always the correct width; only the button overflowed it, which
+       is why the track's spacing looked right while the ink did not.
+
+       Worked example, Kp drpB–rnaY: a 42 nt gap, 6px of slot, drawn as ~26px of white over rnaY. */
+    min-width: 0;
+}
+
+/* Below `narrow` the locus id and product are already hidden (see `.slot.narrow .lid`), so the padding that
+   was reserving room for them is reserving room for nothing — and on a 6px block it is four times the box.
+   Dropping it is what lets a short IGR draw at its true 6px instead of at the padding's width. */
+.slot.narrow > .block {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.slot > .mid {
+    grid-row: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px 0;
+}
+
+.slot[data-dir="rev"] > .block {
+    grid-row: 4;
+}
+
+.slot[data-dir="rev"] > .gname {
+    grid-row: 5;
+    align-self: start;
+}
+
+/* The name rises from the MIDDLE of its gene, not from a corner (David, 2026-08-20): `left: 50%` puts the
+   rotation origin over the centre of the block, so a reader tracing a label down to its gene lands on the gene
+   rather than on the edge between two of them. A forward name sweeps UP from the block's top edge and a
+   reverse name sweeps DOWN from its bottom edge — mirrored origin, mirrored angle — so in both cases the text
+   travels away from the strand axis and the two rows of labels cannot meet. */
+.slot > .gname {
+    position: relative;
+    left: 50%;
+    display: flex;
+    align-items: flex-end;
+    transform: rotate(calc(-1 * var(--label-angle)));
+    transform-origin: left bottom;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: var(--label-max);
+    width: max-content;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-2);
+    pointer-events: none;
+}
+
+.slot[data-dir="rev"] > .gname {
+    align-items: flex-start;
+    transform: rotate(var(--label-angle));
+    transform-origin: left top;
+}
+
+.slot.focal > .gname {
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 12.5px;
+}
+
+/* ---- intergenic regions: WHITE, spanning both lanes, and deliberately off the consistency ramp ----
+   A white block is not a Nuna locus. It has no cluster, no embedding and no identity beyond the two genes
+   either side of it, and its width is a median over genomes that disagree — for 36.5% of adjacencies, over a
+   single genome. Any ramp colour here would invite a reader to interpret a number that does not exist; blank
+   says "this space is here, and we have not typed it". It spans rows 2-4 because it IS the space between the
+   two strands, not a third thing sitting on one of them. */
+.slot.gap > .block,
+.slot.joint > .block {
+    /* From HALFWAY UP the forward boxes to HALFWAY DOWN the reverse ones (David, 2026-08-21), so it crosses
+       the occupancy bars rather than stopping short of them. Spanning the full rows and insetting by half a
+       block at each end keeps it tied to --block-h: change the box height and the white block follows,
+       instead of the two drifting apart. */
+    grid-row: 2 / 5;
+    margin-top: calc(var(--block-h) / 2);
+    margin-bottom: calc(var(--block-h) / 2);
+    cursor: default;
+}
+
+.slot.gap > .gname {
+    grid-row: 5;
+    align-self: start;
+    align-items: flex-start;
+    transform: rotate(var(--label-angle));
+    transform-origin: left top;
+}
+
+/* ---- the seam: two genes that meet or overlap ----
+   ⛔ NOT AN INTERGENIC REGION, and since 2026-08-21 it does not carry one of their classes either (David:
+   "there should not be a region here at all"). Where two genes meet there is no space, so there is nothing to
+   call a region and nothing to put in one — 0 of the 4,632 / 4,232 overlapping-or-abutting adjacencies in
+   this cohort carry a named feature, which is true by construction. What survives is a MARK: 20% of adjacent
+   pairs overlap at a median of 4 bases, which is 0.4px and could never be a width, so the fact is stated as a
+   narrow vertical seam in the page's own ink — unmistakable for the pale open-space blocks either side. */
+.slot.joint .fill {
+    background: repeating-linear-gradient(
+        135deg,
+        var(--ink-3) 0 1.5px,
+        transparent 1.5px 4px
+    );
+    opacity: 0.7;
+    border: 0;
+    border-left: 1px solid var(--ink-3);
+    border-right: 1px solid var(--ink-3);
+    clip-path: none;
+}
+
+/* ---- the IGR size-variance channel (schema 12) ----
+   White = every genome carries the same length; yellow = they do not. Drawn as a translucent OVERLAY on the
+   white fill rather than as a replacement colour, so a variance-coloured gap still reads as the same object
+   as an uncoloured one — it is the same block, tinted. `--v` is set per block by app.js and is 0 when the
+   payload has no score, so the rule is inert until the toggle is on AND a score exists.
+
+   A linear-gradient of one flat colour is used instead of `color-mix` deliberately: this page is one
+   self-contained file that has to render wherever it is opened, and a background-image layer needs nothing
+   newer than the rest of the stylesheet already assumes. */
+.track.igr-var .slot.gap .fill {
+    background-image: linear-gradient(
+        rgba(232, 168, 20, var(--v, 0)),
+        rgba(232, 168, 20, var(--v, 0))
+    );
+}
+
+@media (prefers-color-scheme: dark) {
+    .track.igr-var .slot.gap .fill {
+        /* Warmer and brighter on a dark ground: the same hue at the same alpha over a dark panel reads as
+           brown rather than as the yellow the legend promises. */
+        background-image: linear-gradient(
+            rgba(255, 198, 60, var(--v, 0)),
+            rgba(255, 198, 60, var(--v, 0))
+        );
+    }
+}
+
+.slot.gap .fill {
+    background: var(--panel);
+    opacity: 1;
+    /* A stronger edge than --rule (David, 2026-08-21). A white block has to read as a deliberate object on a
+       track of saturated ones; at --rule it looked like the page showing through a gap between two genes,
+       which is the one thing it must not be mistaken for. Solid on the long sides and dashed only across the
+       ends, so the "we have not typed this" signal survives without the whole outline going soft. */
+    border: 1px solid var(--ink-3);
+    border-top-style: dashed;
+    border-bottom-style: dashed;
+    clip-path: none; /* no arrow: an intergenic region has no direction of transcription */
+}
+
+.slot.gap .gsub,
+.slot.gap .igr-name {
+    color: var(--ink-3);
+    text-shadow: none;
+    font-style: italic;
+}
+
+/* a gap's foot states a LENGTH and the genomes it was measured over — 36.5% of adjacencies are seen in one
+   genome only, so the denominator is part of the number and is never dropped */
+.slot-foot .gnt,
+.slot-foot .gn {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.slot-foot .gn {
+    opacity: 0.75;
+}
+
+/* A box too narrow to own its label keeps the name and SHRINKS it (David, 2026-08-21) rather than dropping it.
+   Both --label-max and the font size come down together, because the overhang is driven by the label's
+   LENGTH: a name raked at 60 degrees reaches half its own width to the right, so shortening the text is what
+   pulls it back over its own gene. 26px at 9px monospace is about four characters, and gene names are mostly
+   four. */
+.slot.tight > .gname {
+    --label-max: 26px;
+    font-size: 9px;
+}
+
+/* A block narrower than its own text cannot hold the locus id or the product; both are in the popover, which
+   is one click away. Hiding them beats letting an ellipsis stand in for a gene name. */
+.slot.narrow .lid,
+.slot.narrow .gsub {
+    display: none;
+}
+
+.block {
+    position: relative;
+    height: var(--block-h, 62px);
+    padding: 7px 16px 7px 10px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+}
+
+/* Every gene box carries its own edge. Two genes that abut have only the track's 6px between them and were
+   reading as ONE long block (David, 2026-08-21, on Kp ·1726 beside mviM) — the fill alone cannot say where one
+   gene stops, because neighbours often land on near-identical ramp colours. The edge is derived from the fill
+   rather than a fixed ink, so it stays legible at both ends of the ramp and in both themes. */
+.block .fill {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    outline: 1px solid color-mix(in oklab, var(--paper) 55%, transparent);
+    outline-offset: -1px;
+    /* TWO ORTHOGONAL AXES, one block:
+         HUE   (--c) = how often THIS gene holds the position, against the divergent genes that occupy it in
+                       other genomes — deep blue when it always does, purple (a hotspot of variance) when it
+                       rarely does. Its denominator is the genomes that have a gene here at all, so a perfectly
+                       ordinary block reads 20 in 100.
+         ALPHA (--p) = how many genomes this part of the graph COVERS. Not every locus reaches the whole
+                       pangenome, and a hue computed over five genomes is not the finding one over a hundred is
+                       — the fade is what stops the first being read as the second.
+       They were both driving hue once, which said one thing twice. Alpha is the literal coverage (50 of 100
+       genomes reads 0.50), floored at 0.18 so a rare locus is faint rather than absent — a block you cannot
+       see is a hole in the track, not a low number. */
+    background: color-mix(
+        in oklab,
+        var(--ramp-hi) calc(var(--c) * 100%),
+        var(--ramp-lo)
+    );
+    opacity: max(0.18, var(--p, 1));
+    clip-path: polygon(
+        0 0,
+        calc(100% - var(--notch)) 0,
+        100% 50%,
+        calc(100% - var(--notch)) 100%,
+        0 100%
+    );
+}
+
+.block[data-dir="rev"] {
+    padding: 7px 10px 7px 16px;
+}
+
+.block[data-dir="rev"] .fill {
+    clip-path: polygon(
+        var(--notch) 0,
+        100% 0,
+        100% 100%,
+        var(--notch) 100%,
+        0 50%
+    );
+}
+
+.block .gname {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgb(4 10 22 / 45%);
+}
+
+.block .gsub {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: rgb(255 255 255 / 82%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgb(4 10 22 / 45%);
+}
+
+/* the locus id, on the block beside the name: 1,364 display names are carried by more than one locus
+   (tnp alone by 280), so without it two blocks reading the same name are genuinely ambiguous */
+/* top: 2px and line-height 1 — the name is vertically centred and a long one ellipsises rightward, straight
+   under the badge, so the two were meeting. Lifting the badge to the block's top edge clears it. */
+.block .lid {
+    position: absolute;
+    top: 2px;
+    right: 14px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    line-height: 1;
+    color: rgb(255 255 255 / 66%);
+    text-shadow: 0 1px 2px rgb(4 10 22 / 45%);
+    pointer-events: none;
+}
+
+/* The badge stays TOP-RIGHT on every block, forward or reverse. It used to follow the arrow point to the
+   left on reverse blocks, which made the ids look like they belonged to different things; a reverse block's
+   right edge is its blunt end, so the same inset clears the geometry either way. */
+
+/* --ink-2, not --ink-3: on the pale --anchor-wash interior the lighter grey falls under 4.5:1, and an id is
+   read character by character */
+.slot.focal .block .lid {
+    color: var(--ink-2);
+    text-shadow: none;
+}
+
+/* the marginal under-bar: how ALL member genes split at this position, kept visually subordinate to the
+   block so it reads as the population behind the block rather than as another gene */
+.marg {
+    display: flex;
+    height: 4px;
+    gap: 1px;
+    background: var(--rule-2);
+}
+
+.marg i {
+    display: block;
+    height: 100%;
+    background: color-mix(in oklab, var(--ramp-lo) 55%, transparent);
+    min-width: 1px;
+}
+
+.marg i.on {
+    background: var(--ramp-hi);
+}
+
+.marg i.oth {
+    background: var(--rule);
+}
+
+/* the focal position's bar is the locus's OWN sequence composition — which UniRef50 families fill it. Its
+   dominant family takes the anchor, so the bar belongs to the focal gene above it rather than reading as one
+   more consistency ramp. A locus with no UniRef50 label at all gets .marg-none: a gap, not a false bar. */
+.slot.focal .marg i {
+    background: color-mix(in oklab, var(--anchor) 42%, transparent);
+}
+
+.slot.focal .marg i.on {
+    background: var(--anchor);
+}
+
+.marg-none {
+    background: none;
+}
+
+.block.empty {
+    cursor: default;
+}
+
+.block.empty .fill {
+    background: none;
+    opacity: 1;
+    border: 1px dashed var(--rule);
+}
+
+.block.empty .gname {
+    color: var(--ink-3);
+    text-shadow: none;
+    font-weight: 400;
+}
+
+/* The focal locus is drawn to the SAME scale as its neighbours, which it was not before: it used to take
+   1.9 shares of the track so its name would not truncate. With names raked into their own band above the
+   lanes that reason is gone, and a focal gene drawn wider than it is would be the one block on the track
+   lying about its length — on the very gene the reader came to look at. It keeps a floor so it stays
+   clickable, and the emphasis it needs comes from colour and the outline, not from size. */
+.slot.focal {
+    min-width: 24px;
+}
+
+.slot.focal .block {
+    padding-right: 20px;
+}
+
+/* an outlined arrow: clip-path clips a border away, so the outline is a second arrow inset inside the first.
+   --anchor draws the outline and --anchor-wash fills it, so the gene under examination is the one washed block
+   on a track of ramp colours and reads as the subject at a glance. The wash is pale enough that the name and
+   product keep their --ink/--ink-2 colours: 15:1 and 8:1 light, 13:1 and 7:1 dark. */
+.slot.focal .fill {
+    background: var(--anchor);
+    opacity: 1;
+}
+
+.slot.focal .fill::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    background: var(--anchor-wash);
+    clip-path: polygon(
+        0 0,
+        calc(100% - var(--notch)) 0,
+        100% 50%,
+        calc(100% - var(--notch)) 100%,
+        0 100%
+    );
+}
+
+/* the focal gene points backwards when the reader arrived travelling against it — the inner cutout has to
+   mirror too, or the outline stops being an arrow */
+.slot.focal .block[data-dir="rev"] {
+    padding-right: 10px;
+    padding-left: 20px;
+}
+
+.slot.focal .block[data-dir="rev"] .fill::after {
+    clip-path: polygon(
+        var(--notch) 0,
+        100% 0,
+        100% 100%,
+        var(--notch) 100%,
+        0 50%
+    );
+}
+
+.slot.focal .gname {
+    color: var(--ink);
+    text-shadow: none;
+    font-size: 15px;
+}
+
+.slot.focal .gsub {
+    color: var(--ink-2);
+    text-shadow: none;
+}
+
+/* An occupant outside the exported top-N has no share to report, so --c would be 0 — which on the ramp reads
+   as "maximally variable" when it actually means "not measured". Neutral fill and a dashed edge say unknown. */
+.block.unknown .fill {
+    background: var(--rule-2);
+    border: 1px dashed var(--rule);
+}
+
+/* A low-penetrance block is mostly transparent, and white-on-almost-nothing is unreadable — so a faint block
+   takes the page's own ink. The threshold is where the contrast actually fails, not a design preference; the
+   block still reads as faint because the FILL is faint, which is the quantity being encoded. */
+.block.unknown .gname,
+.block.unknown .gsub,
+.block.unknown .lid,
+.block.pale .gname,
+.block.pale .gsub,
+.block.pale .lid {
+    text-shadow: none;
+}
+
+.block.unknown .gname,
+.block.pale .gname {
+    color: var(--ink);
+}
+
+.block.unknown .gsub,
+.block.pale .gsub {
+    color: var(--ink-2);
+}
+
+.block.unknown .lid,
+.block.pale .lid {
+    color: var(--ink-3);
+}
+
+.slot.sel .block::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 2px solid var(--ink);
+    border-radius: 2px;
+}
+
+/* One line per slot, small. These were stacked because side by side a bare number reads as if it belonged to
+   the next block along — so the two are bound by a middot and sit tight, which says they are one label. A sub
+   too long for its column ellipsises rather than spilling into its neighbour and recreating that ambiguity. */
+.slot-foot {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding-left: 2px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    line-height: 1.3;
+    color: var(--ink-3);
+    white-space: nowrap;
+}
+
+.slot-foot .off {
+    flex: none;
+    font-weight: 700;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+}
+
+.slot-foot .sub {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+}
+
+.slot-foot .sub::before {
+    content: "·";
+    margin-right: 4px;
+    color: var(--rule);
+}
+
+.track-note {
+    margin: var(--s3) 0 0;
+    max-width: 78ch;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+/* the three things a reader has to be told, as a key rather than prose. Three paragraphs of the same content
+   sat under the track as an essay and were skipped; short lines against a bolded term get read. */
+.track-key {
+    margin: var(--s2) 0 0;
+    padding-left: 0;
+    max-width: 78ch;
+    list-style: none;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.track-key li {
+    margin-top: 3px;
+    padding-left: var(--s3);
+    text-indent: calc(-1 * var(--s3));
+}
+
+.track-key b {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+/* ============================================================================ working area */
+.work {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
+    gap: var(--s5);
+    align-items: start;
+    padding: var(--s5) 0 var(--s6);
+}
+
+@media (max-width: 940px) {
+    .work {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* no second column to centre over any more, so the mark goes back to the edge */
+    .brand-mark {
+        margin-right: 0;
+    }
+}
+
+.card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: var(--s4);
+    margin-bottom: var(--s4);
+}
+
+/* the card describing the focal gene, accented to match the focal block on the track — the two are the same
+   subject and the shared --anchor is the pointer between them */
+.card.focus-card {
+    border-color: var(--anchor);
+    border-top: 3px solid var(--anchor);
+    background: linear-gradient(var(--anchor-wash), var(--panel) 84px);
+}
+
+.card > h2 {
+    margin: 0 0 var(--s3);
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 620;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.lede {
+    margin: 0 0 var(--s3);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink);
+    text-wrap: balance;
+}
+
+.lede b {
+    font-family: var(--mono);
+    font-weight: 700;
+}
+
+.muted {
+    color: var(--ink-2);
+    font-size: 12.5px;
+    margin: var(--s3) 0 0;
+    max-width: 72ch;
+    /* these notes quote file paths, which are single words wider than a phone */
+    overflow-wrap: break-word;
+}
+
+/* locus headline */
+.locus-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+    flex-wrap: wrap;
+    margin-bottom: var(--s3);
+}
+
+.locus-name {
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.locus-id {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-3);
+}
+
+/* stat tiles */
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+    gap: 1px;
+    background: var(--rule-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.tile {
+    background: var(--panel);
+    padding: 9px 11px;
+}
+
+.tile .v {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.tile .k {
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* chips */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    border: 1px solid currentcolor;
+    white-space: nowrap;
+}
+
+.chip.win {
+    color: var(--win);
+}
+
+.chip.warn {
+    color: var(--gold);
+}
+
+.chip.bad {
+    color: var(--rust);
+}
+
+.chip.neutral {
+    color: var(--ink-3);
+}
+
+/* a Pfam domain reads as the link it is — InterPro's own convention */
+.chip.pfam {
+    color: var(--ramp-hi);
+    border-color: color-mix(in oklab, var(--ramp-hi) 40%, transparent);
+    background: color-mix(in oklab, var(--ramp-hi) 8%, transparent);
+    text-decoration: none;
+}
+
+.chip.pfam:hover {
+    text-decoration: underline;
+    background: color-mix(in oklab, var(--ramp-hi) 16%, transparent);
+}
+
+/* sub-heading inside a card that groups more than one table (Bakta annotation) */
+.sub-head {
+    margin: var(--s4) 0 var(--s2);
+    font-family: var(--sans);
+    font-size: 11.5px;
+    font-weight: 620;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+}
+
+.card > .sub-head:first-of-type {
+    margin-top: var(--s3);
+}
+
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.band {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--panel);
+    background: color-mix(
+        in oklab,
+        var(--ramp-hi) calc(var(--b) * 100%),
+        var(--ink-3)
+    );
+}
+
+/* tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.tw {
+    overflow-x: auto;
+}
+
+th {
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 620;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 0 10px 5px 0;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+}
+
+td {
+    padding: 6px 10px 6px 0;
+    border-bottom: 1px solid var(--rule-2);
+    vertical-align: baseline;
+}
+
+tr:last-child td {
+    border-bottom: 0;
+}
+
+td.n,
+th.n {
+    text-align: right;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    padding-right: 0;
+}
+
+td.acc {
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* The UniRef50 accession is the widest thing in the table and the least readable -- a 10-character opaque
+   identifier that is there to be clicked, not parsed. It gives up the width the gene-name column needs. */
+td.acc .acc-link {
+    font-size: 11px;
+    letter-spacing: -0.01em;
+}
+
+/* per-family gene-name cell: the name THIS family's members carry, and a marker where they disagree */
+.fam-sym-in {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.fam-sym-in .acc {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+}
+
+.fam-sym-in .none {
+    color: var(--ink-3);
+}
+
+td.fam-sym {
+    white-space: nowrap;
+}
+
+/* an accession is an identifier a reader can go and look at, so it reads as the link it is */
+.acc-link {
+    color: var(--ramp-hi);
+    text-decoration: none;
+}
+
+.acc-link:hover {
+    text-decoration: underline;
+}
+
+/* per-family Pfam cell: the architecture, plus this family's own annotation coverage */
+.fam-pf-in {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.fam-pf-in .none {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    font-style: italic;
+}
+
+.fam-cov {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    white-space: nowrap;
+}
+
+/* one architecture: its chips, then each domain named in full underneath */
+.arch {
+    margin-bottom: var(--s2);
+}
+
+.arch-desc {
+    margin-top: 2px;
+    padding-left: 2px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+}
+
+/* The concordance verdict colours the whole card, because a conflicting architecture is evidence AGAINST the
+   merge and must not read as one more neutral fact. Only `disjoint` gets the red rail. */
+.card.pf-bad {
+    border-color: color-mix(in oklab, var(--rust) 55%, var(--rule));
+    border-left: 4px solid var(--rust);
+    background: linear-gradient(
+        color-mix(in oklab, var(--rust) 6%, transparent) 0 0 /
+        100% 100% no-repeat,
+        var(--panel)
+    );
+}
+
+.card.pf-bad > h2 {
+    color: var(--rust);
+}
+
+.card.pf-warn {
+    border-left: 4px solid var(--gold);
+}
+
+/* ⛔ `--win` was `--teal` and was green until 2026-08-24; it is now the mark's sail orange, the same value as
+   `--anchor` (David: *"change the green beside the sequence diversity and bakta annotations to same orange"*).
+   Renamed with it, because a token called `--teal` holding an orange is a lie the next reader has to discover.
+
+   Checked before swapping, since win/warn/bad all become warm: the three verdicts sit at OKLab dE 11.6 (win vs
+   warn), 10.9 (win vs bad) and 10.6 (warn vs bad) — MORE evenly spaced than the green set they replace
+   (15.4 / 22.5 / 10.6), and the orange is the lightest of the three (L 0.608 against 0.519 and 0.503), so
+   lightness reinforces hue rather than leaving the distinction to hue alone. */
+.card.pf-win {
+    border-left: 4px solid color-mix(in oklab, var(--win) 60%, transparent);
+}
+
+.verdict-note {
+    margin-top: var(--s2);
+}
+
+.panel-frame {
+    margin-top: 0;
+    margin-bottom: var(--s3);
+    font-size: 11.5px;
+}
+
+.panel-frame b {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+/* share bar behind the count, so the family split reads at a glance */
+.share {
+    position: relative;
+    min-width: 52px;
+}
+
+.share i {
+    position: absolute;
+    right: 0;
+    bottom: 1px;
+    height: 3px;
+    background: var(--ramp-hi);
+    opacity: 0.5;
+}
+
+/* paired intra/inter bars */
+.pair {
+    display: grid;
+    grid-template-columns: 88px 1fr 46px;
+    align-items: center;
+    gap: var(--s2);
+    margin-bottom: 5px;
+    font-size: 12.5px;
+}
+
+.pair .lab {
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 11.5px;
+}
+
+.pair .rail {
+    height: 9px;
+    background: var(--rule-2);
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+.pair .rail i {
+    display: block;
+    height: 100%;
+    background: var(--ramp-hi);
+}
+
+.pair.inter .rail i {
+    background: var(--ramp-lo);
+}
+
+.pair .val {
+    text-align: right;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================ offset detail panel */
+.side {
+    position: sticky;
+    top: 78px;
+}
+
+@media (max-width: 940px) {
+    .side {
+        position: static;
+    }
+}
+
+/* the position panel carries the selected BLOCK's fill, so it reads as describing that position rather than
+   the focal gene. --c is the block's consistency, set inline; same mix as .block .fill. */
+.position-card {
+    /* the block's own ramp colour, named once so the three uses below stay in step */
+    --ramp: color-mix(
+        in oklab,
+        var(--ramp-hi) calc(var(--c) * 100%),
+        var(--ramp-lo)
+    );
+    border-color: color-mix(in oklab, var(--ramp) 55%, var(--rule));
+    border-top: 4px solid var(--ramp);
+    /* Longhands, deliberately. This was one `background:` shorthand whose closing paren fell in the wrong
+       place, so `/ 100% 100% no-repeat` sat INSIDE linear-gradient(). Because the value also carried a var(),
+       it could not be validated at parse time — it failed at computed-value time instead, where the rule is
+       "treat as unset", i.e. every longhand takes its INITIAL value. `background-color` initial is
+       `transparent`, and .card's own colour had already lost the cascade, so the popover was see-through and
+       the tint never rendered. Split in two, an invalid image can never take the colour with it. */
+    background-color: var(--panel);
+    background-image: linear-gradient(
+        color-mix(in oklab, var(--ramp) 7%, var(--panel)),
+        var(--panel)
+    );
+}
+
+.position-card > h2 {
+    color: color-mix(in oklab, var(--ramp) 82%, var(--ink));
+}
+
+.alt {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--s2);
+    align-items: baseline;
+    width: 100%;
+    padding: 7px 0;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.alt:hover .alt-name {
+    text-decoration: underline;
+}
+
+.alt-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.alt-desc {
+    font-size: 11.5px;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.alt-n {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--ink-2);
+    white-space: nowrap;
+}
+
+/* which way that occupant is transcribed relative to the focal gene */
+.alt-name .strand {
+    margin-left: 6px;
+    font-weight: 400;
+    color: var(--ink-3);
+}
+
+.alt-name .lid {
+    margin-left: 6px;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+/* the entry the track is currently showing — the panel is the whole population, the track is one
+   arrangement of it, so the link between the two has to be visible rather than inferred */
+.alt.on-track {
+    border-left: 3px solid var(--ramp-hi);
+    padding-left: 7px;
+    margin-left: -10px;
+}
+
+.hit-none {
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+.hit-none .alt-desc {
+    white-space: normal;
+    margin-top: 3px;
+}
+
+/* ============================================================================ footer */
+.foot {
+    border-top: 1px solid var(--rule);
+    background: var(--panel);
+    padding: var(--s5) 0;
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.foot dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: var(--s2) var(--s4);
+    margin: var(--s3) 0 0;
+}
+
+.foot dl > div {
+    min-width: 0; /* so a long run_id wraps inside its column instead of widening the grid track */
+}
+
+.foot dt {
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.foot dd {
+    margin: 0 0 var(--s2);
+    font-family: var(--mono);
+    font-size: 12px;
+    /* a run_id is one long unbreakable token; without this it pushes the whole page sideways on a phone */
+    overflow-wrap: anywhere;
+}
+
+/* What was counted AGAINST this model: demoted to the bottom, closed, but present and reachable. A model's
+   own failures listed on its own page is the point — findable by anyone who looks, in front of nobody who
+   doesn't. */
+.foot-detail {
+    margin-top: var(--s4);
+    border-top: 1px solid var(--rule);
+    padding-top: var(--s3);
+}
+
+.foot-detail > summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ink);
+    list-style-position: outside;
+}
+
+.foot-detail > summary::marker {
+    color: var(--ink-3);
+}
+
+.foot-detail .muted {
+    max-width: 78ch;
+}
+
+/* the failure lists can be long, so they scroll inside their own box rather than pushing the footer down */
+.goto-list {
+    max-height: 340px;
+    overflow-y: auto;
+    margin-top: var(--s3);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.goto-row {
+    display: block;
+    width: 100%;
+    padding: 7px var(--s3);
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12.5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.goto-row:last-child {
+    border-bottom: 0;
+}
+
+.goto-row:hover {
+    background: var(--panel-2);
+}
+
+.goto-row b {
+    font-family: var(--mono);
+}
+
+.goto-row .lid {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+.goto-ev {
+    display: block;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+    color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ============================================================================ the neighbourhood map */
+/* A square plate: the export quantises both axes on ONE scale so the map's aspect ratio survives, and a
+   non-square viewport would throw that away at the last step. */
+.map-card .map-canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    background: var(--panel);
+    margin: var(--s2) 0 var(--s3);
+}
+
+/* ===================================================================== the function view (EggNOG tab) */
+.func-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    margin-bottom: var(--s3);
+}
+
+.func-head h2 {
+    margin: 0;
+}
+
+.func-head .lid {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+}
+
+.func-h {
+    align-items: baseline;
+    margin-bottom: var(--s2);
+}
+
+.func-h .sub-head {
+    margin: 0;
+}
+
+/* coverage reads first and reads as prose, not as a statistic tucked under a table */
+.cover {
+    margin: 0 0 var(--s2);
+}
+
+/* EC and KEGG are thin (32 % and 8 % of genes), so they share one compact row each rather than a table */
+.kv {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+    padding: 3px 0;
+    font-size: 12.5px;
+}
+
+.kv .k {
+    flex: none;
+    min-width: 72px;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.kv .v {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.kv .v .acc-link {
+    font-family: var(--mono);
+}
+
+/* the count, held off the accession -- `K15540` and `77` run together read as one token */
+.kv .v .alt-n {
+    margin-left: 3px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.kv .cov {
+    flex: none;
+    color: var(--ink-3);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================ the view tabs
+   The THIRD button strip on the page, and the third distinct class, for the reason spelled out below the
+   map strips: a selector that can reach more than one strip will eventually be read as naming the wrong one.
+   This one is wider and title-cased rather than a tracked micro-label, because its tabs are destinations
+   ("Syntolog Loci", "Sequence") rather than settings -- one of them carries the page's primary content, which is
+   why the class says `view` and not `doc`. */
+.view-tabs {
+    display: flex;
+    gap: 2px;
+    margin: var(--s4) 0 0;
+    border-bottom: 1px solid var(--rule-2);
+}
+
+.view-tab {
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: 3px 3px 0 0;
+    margin-bottom: -1px;
+    padding: 6px 12px;
+    background: none;
+    color: var(--ink-2);
+    font-family: var(--sans);
+    font-size: 12.5px;
+    cursor: pointer;
+}
+
+.view-tab:hover {
+    color: var(--ink);
+    background: var(--panel-2);
+}
+
+.view-tab.on {
+    border-color: var(--rule-2);
+    border-bottom-color: var(--panel);
+    background: var(--panel);
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.view-panel {
+    padding-top: var(--s3);
+}
+
+/* inside a panel the prose is already the content, so the note loses its top rule and the key its inset */
+.view-panel .track-note {
+    margin-top: 0;
+}
+
+#view-navigating .card {
+    margin-top: var(--s3);
+    border: 0;
+    padding: 0;
+    background: none;
+}
+
+/* Two button strips, one above the other: which representation, then which view. They are deliberately
+   different classes rather than one reused, so a stylesheet rule -- or a test selector -- can never mean
+   one and hit the other. */
+.map-tabs {
+    display: flex;
+    gap: 1px;
+    background: var(--rule-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: var(--s2);
+}
+
+.map-tab {
+    flex: 1;
+    border: 0;
+    padding: 5px 6px;
+    background: var(--panel);
+    color: var(--ink-2);
+    font-family: var(--sans);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.map-tab:hover {
+    background: var(--panel-2);
+    color: var(--ink);
+}
+
+.map-tab.on {
+    background: var(--anchor-wash);
+    color: var(--ramp-hi);
+    font-weight: 700;
+}
+
+.zooms {
+    display: flex;
+    gap: 1px;
+    background: var(--rule-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.zoom {
+    flex: 1;
+    border: 0;
+    padding: 5px 6px;
+    background: var(--panel);
+    color: var(--ink-2);
+    font-family: var(--sans);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.zoom:hover {
+    background: var(--panel-2);
+    color: var(--ink);
+}
+
+.zoom.on {
+    background: var(--anchor-wash);
+    color: var(--ramp-hi);
+    font-weight: 700;
+}
+
+.map-key {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* the legend is the navigation: a locus you can see you are confusable with is one you want to open */
+.map-row {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    width: 100%;
+    padding: 3px 4px;
+    border: 0;
+    border-radius: 2px;
+    background: none;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.map-row:hover {
+    background: var(--panel-2);
+}
+
+.map-row i {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.map-row.is-focal {
+    font-weight: 700;
+}
+
+.map-row .nm {
+    flex: 0 1 auto;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* the product, not the locus number. David, 2026-08-19: "the cluster numbers here are not informative.
+   What would be much cooler is a brief description / product." It is what tells a reader whether a
+   neighbour belongs in this locus, which is the question the map raises. */
+.map-row .desc {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink-3);
+    font-family: var(--sans);
+    font-size: 11px;
+}
+
+.map-row .cos {
+    flex: none;
+    margin-left: auto;
+    color: var(--ink-2);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* the inferred-name caution: the NAME reads as a name, and the caveat sits beside it rather than being
+   encoded in the typography, where it would only look broken */
+.inferred-note {
+    margin: -4px 0 var(--s3);
+    font-size: 11.5px;
+    color: var(--rust);
+}
+
+/* the separation row shares the .pair grid so all three lines align, but its middle cell carries the
+   percentile as text: separation is SIGNED, so a rail would need a diverging bar and a centre tick, and
+   the percentile is both the more informative thing and free */
+.pair.sep .sep-pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+.pair.sep {
+    margin-bottom: var(--s3);
+}
+
+/* ============================================================ the null strip
+   A 0..1 cosine axis with the random-pair density behind two ticks. The SAME axis in both representation
+   blocks, deliberately: ESM's random pairs sit near 0.65 and Bacformer's near 0.065, and seeing that
+   difference in place is the whole point -- both loci read as far from chance, and what differs is the gap
+   between the ticks. */
+.nullstrip {
+    position: relative;
+    height: 30px;
+    margin: 2px 0 var(--s2);
+    border-bottom: 1px solid var(--rule);
+}
+
+.nullstrip .nd {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    height: 22px;
+}
+
+.nullstrip .nd i {
+    flex: 1 1 0;
+    min-width: 0;
+    background: var(--rule);
+}
+
+/* the ticks ride above the density; intra is the filled one because it is the subject */
+.nullstrip .nt {
+    position: absolute;
+    top: 0;
+    width: 0;
+    height: 22px;
+    border-left: 2px solid var(--ramp-hi);
+}
+
+.nullstrip .nt.inter {
+    border-left-style: dotted;
+    border-left-color: var(--ramp-lo);
+}
+
+.nsfoot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9.5px;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+}
+
+/* Two rows of three: what the locus IS, then how good it is. Fixed at three rather than auto-fit, because
+   the two rows carry different kinds of thing and a 6-across run would read as one undifferentiated strip. */
+.tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 560px) {
+    .tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* the separation tile is the only ranked one, and with the headline chip gone it is the only flag for a
+   locus that is cohesive yet barely distinguishable from its neighbour */
+.tile.sep-bad .v {
+    color: var(--ramp-lo);
+}
+
+.tile.sep-warn .v {
+    color: var(--gold);
+}
+
+/* The size-variance sentence on a gap card. Its own line rather than a clause on the median sentence: a
+   median and a spread about the mode are different statistics over the same genomes, and run together they
+   read as one confused claim. */
+.gap-var {
+    margin: 0.35rem 0 0;
+    color: var(--ink-2);
+    font-size: 13px;
+}
+
+/* The arrangement drawn on the track, called out in the A0 card the same way it is called out on the chip and
+   on the fan line — the reader should be able to find the same neighbourhood in three places by its colour. */
+.alt-on {
+    background: var(--anchor-wash);
+    box-shadow: inset 2px 0 0 var(--anchor);
+}
+
+.pop-lede {
+    margin: 0 0 var(--s2);
+    font-size: 12.5px;
+    color: var(--ink-2);
+}
+
+.pop-lede b {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+/* "loci:" / "per genome:" — names which partition the run of figures beside it belongs to. Both lines count
+   the same catalogue and neither is a restatement of the other, so each says which one it is. */
+.pg-label {
+    color: var(--ink-3);
+    padding-right: 0.15em;
+}
+
+/* ---- the anchor-genome control ----
+   It lives in the switcher's LEFT GUTTER, absolutely positioned, so the option row stays exactly centred
+   under the focal gene. A flow-positioned panel would push the options right by half its width and the fan
+   would start pointing at a row that is no longer beneath its gene — which is the whole point of the fan.
+
+   `.arr-switch` carries symmetric padding of the same width, so the centre is the centre with or without it. */
+/* ⛔ `align-self: center` is the whole point: the control sits MIDDLE-ALIGNED with the option row, not level
+   with the top of the panel. `position: relative` is for its own dropdown, which is absolutely positioned
+   inside it. */
+.arr-anchor {
+    position: relative;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    text-align: left;
+}
+
+.arr-anchor-box {
+    position: relative;
+    display: block;
+}
+
+.arr-anchor-box input {
+    width: 100%;
+    padding: 7px 26px 7px 10px;
+    transition: padding-left 0.12s ease;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.arr-anchor-box input::placeholder {
+    color: var(--ink-3);
+}
+
+/* Anchored: the box takes the same sail orange the focal gene and the A0 card take, so at a glance the mode
+   is visible from the control itself and not only from the sentence under the buttons. */
+.arr-anchor.on .arr-anchor-box input {
+    border-color: var(--anchor);
+    background: var(--anchor-wash);
+    color: var(--ink);
+    padding-left: 26px;
+}
+
+/* ⚓ beside the control while anchored (David, 2026-08-25) — the same mark each arrangement this genome sits
+   in carries, so the control and the buttons it acts on read as one object. Hidden otherwise: an anchor on an
+   empty box would be a claim about a genome nobody has chosen. */
+.arr-anchor-mark {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: var(--anchor);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.arr-anchor.on .arr-anchor-mark {
+    opacity: 1;
+}
+
+/* The dropdown. `.results` in the header is positioned under `.search`, so this one needs its own frame —
+   same tokens, different anchor. It overlays the option row rather than pushing it down: the fan is drawn to
+   where the buttons ARE, and a list that displaced them would leave every line pointing at empty space. */
+.anchor-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 30;
+    max-height: 280px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.anchor-hit {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 9px;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink);
+}
+
+.anchor-hit:last-child {
+    border-bottom: 0;
+}
+
+.anchor-hit:hover,
+.anchor-hit[aria-selected="true"] {
+    background: var(--rule-2);
+}
+
+/* "most common arrangement" — the off switch, and the only row that is not an accession */
+.anchor-hit.clear {
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--ink-2);
+}
+
+.anchor-hit .anchor-n {
+    flex: none;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.arr-anchor-caret {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: var(--ink-3);
+    pointer-events: none;
+}
+
+/* Narrow: the gutter cannot hold a 260px panel beside a centred row, so the grid collapses to one column and
+   the panel stacks above the options. Centring is preserved either way. */
+@media (max-width: 900px) {
+    .arr-wrap {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .arr-fan {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .arr-anchor {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto var(--s2);
+    }
+
+    .arr-switch {
+        grid-column: 1;
+        grid-row: 3;
+    }
+
+    .band-note {
+        grid-column: 1;
+        grid-row: 4;
+        justify-self: center;
+    }
+
+    .arr-notes {
+        grid-column: 1;
+        grid-row: 5;
+    }
+}
+
+/* ============================================================================ the Sequence view
+   One genome's own DNA at the locus on screen. Everything here is styled from the same tokens as the rest of
+   the page, so both themes follow without a second palette.
+
+   The layout answers one question the reader brings: which of these blocks is the gene? Three monospace
+   blocks of A/C/G/T look identical at a glance, and a guide designed against flanking DNA believing it to be
+   coding is a wasted experiment — so the coding block is the only one that carries the accent, the flanks are
+   deliberately dimmer, and the sentence saying so sits above all three rather than under them. */
+.seq-anchor {
+    max-width: 360px;
+    margin: 0 0 var(--s4);
+}
+
+.seq-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s4);
+}
+
+.seq-head {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-2);
+}
+
+.seq-head b {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+.seq-gene {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    padding-top: var(--s3);
+    border-top: 1px solid var(--rule-2);
+}
+
+.seq-gene:first-of-type {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.seq-copy-h {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* The stats strip. `auto-fit` rather than a fixed count so the six facts reflow to one column on a phone
+   without a media query of their own. */
+.seq-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: var(--s2) var(--s3);
+    margin: 0;
+    padding: var(--s3);
+    background: var(--panel-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+}
+
+.seq-stat dt {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.seq-stat dd {
+    margin: 2px 0 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    /* Contig names and spans are long; wrapping beats a strip that scrolls sideways. */
+    overflow-wrap: anywhere;
+}
+
+/* ⛔ The claim the panel exists to make. It gets the accent border and sits ABOVE the blocks, because a
+   caveat printed underneath three identical-looking sequences is one the reader meets after copying. */
+.seq-warn {
+    margin: 0;
+    padding: var(--s2) var(--s3);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    background: var(--anchor-wash);
+    border-left: 3px solid var(--anchor);
+    border-radius: 0 3px 3px 0;
+}
+
+.seq-warn strong,
+.seq-block.up h4,
+.seq-block.down h4 {
+    color: var(--ink-2);
+}
+
+/* A short flank is a property of the ASSEMBLY, not of the gene, so it reads as a note rather than an error. */
+.seq-edge {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-3);
+}
+
+.seq-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s1);
+}
+
+.seq-bh {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s2);
+}
+
+.seq-bh h4 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.seq-block.cds .seq-bh h4,
+.seq-block.aa .seq-bh h4 {
+    color: var(--ink);
+}
+
+.seq-note {
+    margin: 0;
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+.seq-none {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+}
+
+/* ⚠ `overflow-x: auto` on the block itself, never on the page. A 60-column ruler fits most widths, but a
+   narrow window must scroll the sequence and not the document. */
+.seq-pre {
+    margin: 0;
+    padding: var(--s2) var(--s3);
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    tab-size: 4;
+}
+
+/* The gene, and only the gene, carries the accent — the same sail orange the focal block on the track wears,
+   so the thing the page is about is one colour throughout. */
+.seq-block.cds .seq-pre {
+    color: var(--ink);
+    background: var(--anchor-wash);
+    border-color: var(--anchor);
+}
+
+.seq-block.aa .seq-pre {
+    color: var(--ink);
+}
+
+.seq-copy {
+    flex: none;
+    padding: 3px 9px;
+    font-family: var(--sans);
+    font-size: 11px;
+    color: var(--ink-2);
+    cursor: pointer;
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+}
+
+.seq-copy:hover {
+    color: var(--ink);
+    border-color: var(--ink-3);
+}
+
+.seq-copy:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+
+.seq-both {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+.seq-both-note {
+    font-size: 11px;
+    color: var(--ink-3);
+}
+
+.seq-err {
+    margin: 0;
+    font-size: 13px;
+    color: var(--rust);
+}
+
+/* ============================================================================ ADDED FOR THE REBUILT PAGE
+   Everything below exists because the rebuilt page can do something the published one could not: WAIT
+   for a response, FAIL to get one, or draw with SVG where the published page drew on a canvas. The
+   published page had no loading or error states at all — its catalogue was resident — so none of these
+   classes has a counterpart above, and the tokens are the only thing they share with it. */
+
+/* ---- the catalogue sprite's tint ----
+   The whole-catalogue dust is served as a COVERAGE MASK (flat black, varying alpha), because the server
+   does not know the viewer's theme and two baked sprites would be two artifacts that could disagree.
+   The map card applies `filter: invert(var(--map-sprite-invert, 0))` inline, so light is right with no
+   stylesheet loaded; these rules turn the dust light on a dark ground. Same three states as every
+   other token: the media query, and the explicit toggle winning in both directions. */
+:root {
+    --map-sprite-invert: 0;
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --map-sprite-invert: 1;
+    }
+}
+:root[data-theme="dark"] {
+    --map-sprite-invert: 1;
+}
+:root[data-theme="light"] {
+    --map-sprite-invert: 0;
+}
+
+/* ---- the neighbourhood map, in SVG ----
+   Six dots and six rings need no raster, and jsdom computes no canvas, so a canvas version was invisible
+   to every test. The plate keeps the published `.map-canvas` geometry: square, ruled, on the panel. */
+.map-card .map-figure {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--rule-2);
+    border-radius: 3px;
+    margin: var(--s2) 0 var(--s3);
+}
+/* The plate is the published canvas's own ground, `--map-bg`: the dust and the rings read against it. */
+.map-ground {
+    fill: var(--map-bg);
+}
+.map-dot {
+    stroke: var(--panel);
+    stroke-width: 1.5;
+}
+/* The focal locus carries the accent that ties it to the card and the track. */
+.map-dot.is-focal {
+    stroke: var(--anchor);
+    stroke-width: 3;
+}
+/* A ring is a locus's own within-medoid spread drawn at true scale — a line, never a fill, or six
+   overlapping discs would hide the dots they belong to. */
+.map-ring {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-opacity: 0.55;
+}
+
+/* ---- the focal bar's SECOND remainder ----
+   `.oth` is members in arrangements the display cap left out; `.nowin` is members with no recorded window
+   at all. They are different claims and must not look like one segment, so the second is hatched. */
+.marg i.nowin {
+    background: repeating-linear-gradient(
+        135deg,
+        var(--rule) 0 2px,
+        transparent 2px 4px
+    );
+}
+
+/* ---- waiting, and failing ---- */
+/* A slower response keeps the previous track up and dims it — only after 150 ms, which the store owns,
+   so a cached or fast one never flashes. */
+.track.dimmed {
+    opacity: 0.5;
+    transition: opacity 0.12s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+    .track.dimmed {
+        transition: none;
+    }
+}
+/* Nothing to show yet: a placeholder in the track's own place and height, so the page does not jump. */
+.track-waiting {
+    min-height: 118px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* ⛔ A failure is a sentence in the rust tone, never an empty panel — an empty track and an unanswered
+   request must not look alike. `.pop-error` is shared by every panel that can fail. */
+.pop-error {
+    color: var(--rust);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+.track-error,
+.load-failure .pop-error {
+    display: flex;
+    gap: var(--s3);
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin: var(--s2) 0;
+}
+.load-failure {
+    padding: var(--s4) 0;
+}
+.pop-retry,
+.arr-more {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--panel);
+    color: var(--ink-2);
+    font-family: var(--sans);
+    font-size: 11px;
+    padding: 3px 9px;
+    cursor: pointer;
+}
+.pop-retry:hover,
+.arr-more:hover {
+    background: var(--panel-2);
+    color: var(--ink);
+}
+.pop-retry:focus-visible,
+.arr-more:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+}
+/* The A0 card pages past the cut: its "more" button sits under the list it extends. */
+.arr-more {
+    display: block;
+    margin: var(--s2) auto 0;
+}

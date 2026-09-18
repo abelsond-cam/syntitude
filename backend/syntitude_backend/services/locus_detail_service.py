@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, tuple_
 from sqlalchemy.orm import Session, aliased
 
 from syntitude_backend.models.enumerations import AnnotationKind, EmbeddingRepresentation
@@ -212,6 +212,79 @@ def _locus_by_label(session: Session, pangenome_id: int, node_label: str) -> Loc
     return locus
 
 
+def listed_arrangement_condition(arrangement_limit: int, anchor_genome_id: int | None):
+    """Which arrangements a response carries: the commonest few, OR any the anchored genome sits in.
+
+    ⭐ `member_genome_ids @> ARRAY[?]` is the GIN index doing the work a binary search over a
+    ~490k-entry Int32Array did in the browser. ⛔ **The OR is the rule, not an optimisation** — the
+    anchored arrangement is offered however rare it is, which is `arrShown`'s rule: *"otherwise the
+    reader is told in words that their genome sits in #37 and has no button to go back to it"*.
+    Measured on the probe catalogues, 15,643 (ecoli) and 10,322 (kp) (locus, genome) pairs carry an
+    arrangement past the cap of 8 — ranks as deep as #84 — and without this clause every one of them
+    is a genome anchored to a neighbourhood the response does not contain. Parity suite T4 drives
+    this statement for every one of them.
+    """
+    condition = LocusArrangement.rank_within_locus < arrangement_limit
+    if anchor_genome_id is not None:
+        condition = or_(condition, LocusArrangement.member_genome_ids.contains([anchor_genome_id]))
+    return condition
+
+
+def load_listed_arrangements(
+    session: Session, *, locus_id: int, arrangement_limit: int, anchor_genome_id: int | None
+) -> list[LocusArrangement]:
+    """The arrangements one locus response carries, in rank order. One statement.
+
+    Separate from `load_locus_detail` so parity suite T4 can drive THIS statement for every anchored
+    pair past the cap without paying for the rest of the view each time.
+    """
+    return list(
+        session.execute(
+            select(LocusArrangement)
+            .where(
+                LocusArrangement.locus_id == locus_id,
+                listed_arrangement_condition(arrangement_limit, anchor_genome_id),
+            )
+            .order_by(LocusArrangement.rank_within_locus)
+        ).scalars()
+    )
+
+
+def anchor_arrangement_ranks(arrangements, anchor_genome_id: int) -> list[int]:
+    """The ranks, among `arrangements`, that the anchored genome sits in — ascending, and a LIST.
+
+    ⛔ **A list, never the first match.** A genome at ρ > 1 has two genes at one locus and can sit in
+    two of its arrangements (1,032 ecoli / 801 kp (locus, genome) pairs; up to 14 at one locus), and
+    there is no uniqueness constraint on (locus, genome) anywhere. The published page's
+    `anchorRanks` returns every one, marks each with ⚓, and opens on the lowest.
+
+    ⛔ **Recomputed from the rows, never inferred from the query that added them.** The anchored
+    arrangement is often ALSO within the cap, in which case the OR in `listed_arrangement_condition`
+    added nothing, and a client assuming "the extra row is the anchored one" would mark the wrong one.
+
+    ⚠ Ranks are `rank_within_locus`, 0-based — the same integer as the page's index into its
+    arrangement list, which it prints as `#rank + 1`.
+    """
+    return [
+        arrangement.rank_within_locus
+        for arrangement in arrangements
+        if anchor_genome_id in (arrangement.member_genome_ids or ())
+    ]
+
+
+def membership_is_complete(locus: Locus) -> bool:
+    """Whether EVERY genome present at this locus reaches some arrangement — `app.js::membershipComplete`.
+
+    ⛔ The only thing that settles which of the anchor line's two sentences is true when the anchored
+    genome carries no arrangement here: *"has no gene at this locus"* (complete) or *"has no recorded
+    neighbourhood at this locus"* (not). At 6.26 % of ecoli loci the first would be false.
+
+    ⚠ A GENOME question, so it compares the genome union (`arrangement_member_genome_count`) and never
+    the gene counts: a genome at ρ > 1 can lose one gene's window and keep its arrangement.
+    """
+    return locus.arrangement_member_genome_count >= locus.member_genome_count
+
+
 def load_locus_detail(
     session: Session,
     *,
@@ -245,30 +318,18 @@ def load_locus_detail(
     )
 
     # ── the joint view, capped, plus whichever the anchored genome carries ─────────────────────
-    # ⭐ `member_genome_ids @> ARRAY[?]` is the GIN index doing the work a binary search over a
-    # ~490k-entry Int32Array did in the browser. The OR is what honours `arrShown`'s rule.
-    condition = LocusArrangement.rank_within_locus < arrangement_limit
-    if anchor_genome_id is not None:
-        condition = or_(condition, LocusArrangement.member_genome_ids.contains([anchor_genome_id]))
-    detail.arrangements = list(
-        session.execute(
-            select(LocusArrangement)
-            .where(LocusArrangement.locus_id == locus.locus_id, condition)
-            .order_by(LocusArrangement.rank_within_locus)
-        ).scalars()
+    detail.arrangements = load_listed_arrangements(
+        session,
+        locus_id=locus.locus_id,
+        arrangement_limit=arrangement_limit,
+        anchor_genome_id=anchor_genome_id,
     )
     detail.arrangements_listed = len(detail.arrangements)
     detail.is_anchored = anchor_genome_id is not None
     if anchor_genome_id is not None:
-        # ⛔ Recomputed from the rows rather than inferred from the OR above: the anchored genome's
-        # arrangement may ALSO be within the cap, in which case the OR added nothing and a client
-        # that assumed "the last one" would mark the wrong row. And it is a list, not a scalar —
-        # see `anchor_arrangement_ranks`.
-        detail.anchor_arrangement_ranks = [
-            arrangement.rank_within_locus
-            for arrangement in detail.arrangements
-            if anchor_genome_id in (arrangement.member_genome_ids or ())
-        ]
+        detail.anchor_arrangement_ranks = anchor_arrangement_ranks(
+            detail.arrangements, anchor_genome_id
+        )
 
     detail.pfam_families = _resolve_pfam_families(session, detail)
 
@@ -334,22 +395,70 @@ def load_locus_detail(
     # map's nearest loci made that visible rather than causing it.
     detail.resolved_neighbour_count = len(detail.neighbour_display_rows.all_rows())
 
-    # ── the gaps this locus can be an endpoint of ──────────────────────────────────────────────
-    # ⛔ BOTH columns, because the canonical order is by node_label and a caller holding a locus_id
-    # cannot tell which side it is on without resolving the labels.
-    detail.intergenic_gaps = list(
+    # ── the gaps the drawn track needs — every adjacent pair, not just the focal's two ─────────
+    # ⛔⛔ **Every adjacent pair in every LISTED arrangement.** This read only the gaps the focal
+    # locus is an endpoint of, so the track drew the two regions beside the focal gene and nothing
+    # else — nine genes packed edge to edge with nothing between them, which reads as *"these genes
+    # are adjacent"*: a claim the data does not make, on every locus, found only by LOOKING at the
+    # rebuilt page beside the published one. Still one statement: the pairs are known from the slot
+    # codes and the ordinals the fan-out just resolved.
+    # ⛔ Both orders of each pair, because the canonical order is by node_label and a caller holding
+    # two locus_ids cannot tell which side each is on without resolving the labels.
+    detail.intergenic_gaps = _load_track_gaps(session, pangenome_id=pangenome_id, detail=detail)
+
+    return detail
+
+
+def _adjacent_locus_id_pairs(detail: LocusDetail) -> set[tuple[int, int]]:
+    """Every pair of loci drawn side by side in some listed arrangement — both orders.
+
+    The ten slot codes are the ±5 window in recorded order, `-5 … -1, +1 … +5`, with the focal locus
+    between them. ⚠ A code of `-1` is *the contig ends here* — a real observation, and it BREAKS the
+    adjacency rather than being skipped over: the genes either side of a contig end are not
+    neighbours, and pairing them would ask for a region that does not exist.
+    """
+    locus_id_by_ordinal = {
+        ordinal: row.locus_id for ordinal, row in detail.neighbour_display_rows.by_catalogue_ordinal.items()
+    }
+    locus_id_by_ordinal[detail.locus.catalogue_ordinal] = detail.locus.locus_id
+    focal_code = detail.locus.catalogue_ordinal * 2
+    pairs: set[tuple[int, int]] = set()
+    for arrangement in detail.arrangements:
+        codes = list(arrangement.neighbour_slot_codes)
+        window = codes[:5] + [focal_code] + codes[5:]
+        for left, right in zip(window, window[1:], strict=False):
+            if left < 0 or right < 0:
+                continue
+            a = locus_id_by_ordinal.get(left // 2)
+            b = locus_id_by_ordinal.get(right // 2)
+            if a is None or b is None:
+                continue
+            pairs.add((a, b))
+            pairs.add((b, a))
+    return pairs
+
+
+def _load_track_gaps(session: Session, *, pangenome_id: int, detail: LocusDetail) -> list:
+    """The regions between every adjacent DRAWN pair — one statement, and nothing else.
+
+    ⚠ Only drawn pairs. The old query also returned every gap the focal locus is an endpoint of,
+    including gaps to neighbours that sit only in arrangements past the display cap — loci this
+    response never resolves, so those gaps arrived with a `null` label, which a client cannot key
+    and silently drops. A gap is useful here only between two loci the track can put side by side.
+    And with no arrangement drawn there are no gaps at all: two marginal modes are not neighbours
+    in any genome, so the region between them was never observed (`app.js:987`).
+    """
+    pairs = _adjacent_locus_id_pairs(detail)
+    if not pairs:
+        return []
+    return list(
         session.execute(
             select(IntergenicGap).where(
                 IntergenicGap.pangenome_id == pangenome_id,
-                or_(
-                    IntergenicGap.flanking_locus_id_a == locus.locus_id,
-                    IntergenicGap.flanking_locus_id_b == locus.locus_id,
-                ),
+                tuple_(IntergenicGap.flanking_locus_id_a, IntergenicGap.flanking_locus_id_b).in_(sorted(pairs)),
             )
         ).scalars()
     )
-
-    return detail
 
 
 def _neighbour_display_rows(

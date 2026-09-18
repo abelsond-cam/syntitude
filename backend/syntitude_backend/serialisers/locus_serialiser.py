@@ -26,6 +26,7 @@ from syntitude_backend.models.enumerations import gene_ontology_namespace_name
 from syntitude_backend.services.locus_detail_service import (
     SIGNED_OFFSETS,
     LocusDetail,
+    membership_is_complete,
     resolve_cosine_matrix,
 )
 
@@ -181,7 +182,11 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
     """The whole locus response — one round trip, and the popover is then offline."""
     locus = detail.locus
     neighbours = detail.neighbour_display_rows
-    labels = {row.locus_id: row.node_label for row in neighbours.by_locus_id.values()}
+    # ⛔ EVERY resolved row, both key spaces: a gap between two arrangement occupants that are not
+    # marginal modes is flanked by loci reached only by catalogue ordinal, and keyed on `by_locus_id`
+    # alone its labels come back `null` — so the gap is dropped client-side and two genes read as
+    # adjacent with nothing between them.
+    labels = {row.locus_id: row.node_label for row in neighbours.all_rows()}
     labels.setdefault(locus.locus_id, locus.node_label)
 
     listed_members = sum(
@@ -291,9 +296,7 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
             # is not, the true sentence is *"has no recorded neighbourhood at this locus"*, and at
             # 6.26 % of ecoli loci the first one is false. ⚠ Not derivable from the gene counts
             # above: a genome at ρ > 1 can lose one gene's window and keep its arrangement.
-            "membership_is_complete": (
-                locus.arrangement_member_genome_count >= locus.member_genome_count
-            ),
+            "membership_is_complete": membership_is_complete(locus),
         },
         # ⛔ A LIST, and it is not decoration: without it a client cannot draw the anchored
         # arrangement by default, and cannot offer the button that the display cap's whole rule

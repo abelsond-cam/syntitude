@@ -140,7 +140,10 @@ function walk(): void {
            id and product, and they move to the popover instead. -->
       <template v-if="hasOccupant && !fit.isNarrow">
         <span class="lid">·{{ slot.locus }}</span>
-        <span class="gsub">{{ neighbour?.display_name ?? "—" }}</span>
+        <!-- ⛔ The PRODUCT, not the name — the name is already above the block, and the published
+             block (`app.js:1609`) carries `bestProduct` here, which is what tells a reader what the
+             neighbour does. -->
+        <span class="gsub">{{ neighbour?.best_product ?? "—" }}</span>
       </template>
     </button>
 

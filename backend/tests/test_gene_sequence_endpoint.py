@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 
 import pytest
-from sqlalchemy import TEXT, create_engine, func, select
+from sqlalchemy import TEXT, func, select
 from sqlalchemy.orm import Session
 
 from syntitude_backend.application_factory import create_application
@@ -66,7 +66,11 @@ def _a_gene(session, *, strand: str):
     row = session.execute(
         select(Genome.sample_id, Locus.node_label)
         .select_from(Gene)
-        .join(GeneLocusMembership, (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index))
+        .join(
+            GeneLocusMembership,
+            (GeneLocusMembership.genome_id == Gene.genome_id)
+            & (GeneLocusMembership.flat_index == Gene.flat_index),
+        )
         .join(Genome, Genome.genome_id == Gene.genome_id)
         .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
         .where(
@@ -143,7 +147,11 @@ def test_the_sliced_sequence_REPRODUCES_the_columns_ingest_wrote(engine, gff_roo
         pairs = session.execute(
             select(Genome.sample_id, Locus.node_label)
             .select_from(Gene)
-            .join(GeneLocusMembership, (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index))
+            .join(
+                GeneLocusMembership,
+                (GeneLocusMembership.genome_id == Gene.genome_id)
+                & (GeneLocusMembership.flat_index == Gene.flat_index),
+            )
             .join(Genome, Genome.genome_id == Gene.genome_id)
             .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
             .where(GeneLocusMembership.pangenome_id == PANGENOME, Gene.protein_length_aa.is_not(None))
@@ -232,7 +240,11 @@ def test_the_contig_is_named_by_its_NAME_and_not_by_its_index(client, engine):
         row = session.execute(
             select(Genome.sample_id, Locus.node_label, Gene.contig_index, GenomeContig.contig_name)
             .select_from(Gene)
-            .join(GeneLocusMembership, (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index))
+            .join(
+                GeneLocusMembership,
+                (GeneLocusMembership.genome_id == Gene.genome_id)
+                & (GeneLocusMembership.flat_index == Gene.flat_index),
+            )
             .join(Genome, Genome.genome_id == Gene.genome_id)
             .join(
                 GenomeContig,
@@ -291,7 +303,11 @@ def test_a_flank_that_RUNS_OFF_the_contig_says_so(client, engine, gff_root):
         row = session.execute(
             select(Genome.sample_id, Locus.node_label)
             .select_from(Gene)
-            .join(GeneLocusMembership, (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index))
+            .join(
+                GeneLocusMembership,
+                (GeneLocusMembership.genome_id == Gene.genome_id)
+                & (GeneLocusMembership.flat_index == Gene.flat_index),
+            )
             .join(Genome, Genome.genome_id == Gene.genome_id)
             .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
             .where(GeneLocusMembership.pangenome_id == PANGENOME, Gene.start_position < 50)

@@ -1,65 +1,119 @@
-"""Regenerate frontend/tests/fixtures/api_locus_responses.json from the live API.
+"""Regenerate the front end's real-bytes fixtures from the live API — BOTH species.
 
-Three loci chosen for what they EXERCISE: one ordinary, one with members past the arrangement cap,
-one whose members have no recorded neighbourhood. Run from `backend/` with SYNTITUDE_DATABASE_URL
-set and both catalogues loaded.
+Writes, per species, `frontend/tests/fixtures/api_responses_{species}.json` and the two catalogue
+sprites `catalogue_scatter_{species}_{representation}.png`. Run from `backend/` with
+`SYNTITUDE_DATABASE_URL` set, both catalogues loaded and published, and `SYNTITUDE_ROOT_GFF` set (the
+sequence endpoint reads the GFFs):
+
+    python scripts/dump_api_locus_fixture.py
+
+⭐ **Every case is chosen for what it EXERCISES, by a query that says so** — never "the first locus".
+The front-end suite asserts each case still exercises its property, so a regenerate that picked an
+ordinary locus for a discriminating case fails loudly rather than quietly testing nothing:
+
+- `ordinary` — every arrangement listed, both member remainders zero, and a MEASURED ZERO ESM
+  within-medoid distance (the case a truthiness test drops).
+- `over_cap` — more arrangements than the API lists, so members sit past the cap.
+- `no_window` — the most members with no recorded neighbourhood at all.
+- `function_rich` — EC and KEGG and all three GO namespaces, the parts a typical locus lacks.
+- sequences: a MINUS-strand gene well inside its contig (where the flank orientation can be wrong and
+  still look plausible), and a genome with NO gene at that locus (an answer, not a failure).
 """
-import json, pathlib
-from sqlalchemy import create_engine, select
+
+from __future__ import annotations
+
+import json
+import pathlib
+
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from syntitude_backend.application_factory import create_application
 from syntitude_backend.configuration import Configuration
+from syntitude_backend.models.gene import Gene, GeneLocusMembership
+from syntitude_backend.models.genome import Genome
 from syntitude_backend.models.locus import Locus
+from syntitude_backend.models.pathogen_species import PathogenSpecies
 
-app = create_application(Configuration.from_environment())
-engine = create_engine(app.config["SYNTITUDE"].database_url, future=True)
-with Session(engine) as session:
-    ordinary = session.execute(
-        select(Locus.node_label).where(
-            Locus.pangenome_id == 1, Locus.total_arrangement_count.between(2, 5)
-        ).order_by(Locus.member_gene_count.desc()).limit(1)
-    ).scalar_one()
-    over_cap = session.execute(
-        select(Locus.node_label).where(Locus.pangenome_id == 1, Locus.total_arrangement_count > 12)
-        .order_by(Locus.total_arrangement_count.desc()).limit(1)
-    ).scalar_one()
-    no_window = session.execute(
-        select(Locus.node_label).where(
-            Locus.pangenome_id == 1,
-            Locus.member_gene_count > Locus.arrangement_member_gene_count,
-        ).order_by((Locus.member_gene_count - Locus.arrangement_member_gene_count).desc()).limit(1)
-    ).scalar_one()
+SPECIES_KEYS = ("ecoli", "kp")
+FIXTURES = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "tests" / "fixtures"
+#: The API's arrangement display cap (`locus_detail_service`). `ordinary` must fit inside it.
+ARRANGEMENT_CAP = 8
 
-client = app.test_client()
-out = {"recorded_from": "the API test client", "loci": {}}
 
-# ⭐ The species response too, for the catalogue map: the sprite's viewport comes from THIS endpoint
-# and the loci's positions from the other, so the pair is the only thing that can show them
-# disagreeing — and a disagreement is a picture that still looks like a picture.
-species = client.get("/api/v1/species/ecoli")
-assert species.status_code == 200, species.status_code
-out["species"] = species.get_json()
+def _one(session, statement, what):
+    value = session.execute(statement).scalar_one_or_none()
+    if value is None:
+        raise SystemExit(f"no locus in this catalogue exercises `{what}` — the fixture cannot be built")
+    return value
 
-# ⭐ The Sequence tab, for a MINUS-strand gene — the case where the flank orientation can be wrong
-# and still look entirely plausible. Plus a genome that has no gene at that locus, because "no gene
-# here" is an ANSWER and must be a recorded shape rather than an assumption.
-from syntitude_backend.models.gene import Gene, GeneLocusMembership  # noqa: E402
-from syntitude_backend.models.genome import Genome  # noqa: E402
 
-with Session(engine) as session:
+def choose_cases(session: Session, pangenome_id: int) -> dict[str, str]:
+    """One locus label per case, each selected by the property it exists to exercise."""
+    in_catalogue = Locus.pangenome_id == pangenome_id
+    return {
+        "ordinary": _one(
+            session,
+            select(Locus.node_label)
+            .where(
+                in_catalogue,
+                Locus.total_arrangement_count.between(2, 5),
+                Locus.member_gene_count == Locus.arrangement_member_gene_count,
+                Locus.esm_within_medoid_distance == 0,
+            )
+            .order_by(Locus.member_gene_count.desc(), Locus.catalogue_ordinal)
+            .limit(1),
+            "ordinary",
+        ),
+        "over_cap": _one(
+            session,
+            select(Locus.node_label)
+            .where(in_catalogue, Locus.total_arrangement_count > ARRANGEMENT_CAP + 4)
+            .order_by(Locus.total_arrangement_count.desc(), Locus.catalogue_ordinal)
+            .limit(1),
+            "over_cap",
+        ),
+        "no_window": _one(
+            session,
+            select(Locus.node_label)
+            .where(in_catalogue, Locus.member_gene_count > Locus.arrangement_member_gene_count)
+            .order_by(
+                (Locus.member_gene_count - Locus.arrangement_member_gene_count).desc(), Locus.catalogue_ordinal
+            )
+            .limit(1),
+            "no_window",
+        ),
+        "function_rich": _one(
+            session,
+            select(Locus.node_label)
+            .where(
+                in_catalogue,
+                Locus.ec_annotated_member_count > 0,
+                Locus.kegg_annotated_member_count > 0,
+                Locus.go_annotated_member_count_molecular_function > 0,
+                Locus.go_annotated_member_count_biological_process > 0,
+                Locus.go_annotated_member_count_cellular_component > 0,
+            )
+            .order_by(Locus.member_gene_count.desc(), Locus.catalogue_ordinal)
+            .limit(1),
+            "function_rich",
+        ),
+    }
+
+
+def choose_sequences(session: Session, pangenome_id: int) -> dict[str, tuple[str, str]]:
+    """A minus-strand gene well inside its contig, and a genome with no gene at that locus."""
     minus = session.execute(
         select(Genome.sample_id, Locus.node_label)
         .select_from(Gene)
         .join(
             GeneLocusMembership,
-            (GeneLocusMembership.genome_id == Gene.genome_id)
-            & (GeneLocusMembership.flat_index == Gene.flat_index),
+            (GeneLocusMembership.genome_id == Gene.genome_id) & (GeneLocusMembership.flat_index == Gene.flat_index),
         )
         .join(Genome, Genome.genome_id == Gene.genome_id)
         .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
         .where(
-            GeneLocusMembership.pangenome_id == 1,
+            GeneLocusMembership.pangenome_id == pangenome_id,
             Gene.strand == "-",
             Gene.start_position > 500,
             Gene.length_nt > 900,
@@ -67,79 +121,80 @@ with Session(engine) as session:
         .order_by(Gene.genome_id, Gene.flat_index)
         .limit(1)
     ).one()
-    absent_genome = session.execute(
-        select(Genome.sample_id).where(
-            Genome.genome_id.not_in(
-                select(GeneLocusMembership.genome_id)
-                .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
-                .where(Locus.node_label == minus.node_label, Locus.pangenome_id == 1)
-            )
-        ).limit(1)
+    members = (
+        select(GeneLocusMembership.genome_id)
+        .join(Locus, Locus.locus_id == GeneLocusMembership.locus_id)
+        .where(Locus.node_label == minus.node_label, Locus.pangenome_id == pangenome_id)
+    )
+    absent = session.execute(
+        select(Genome.sample_id)
+        .join(PathogenSpecies, PathogenSpecies.pathogen_species_id == Genome.pathogen_species_id)
+        .where(PathogenSpecies.published_pangenome_id == pangenome_id, Genome.genome_id.not_in(members))
+        .order_by(Genome.sample_id)
+        .limit(1)
+    ).scalar_one()
+    return {"minus_strand": (minus.sample_id, minus.node_label), "no_gene_here": (absent, minus.node_label)}
+
+
+def record_species(client, session: Session, species_key: str) -> dict:
+    """Every response one species' fixture carries, each asserted to have been answered."""
+    pangenome_id = session.execute(
+        select(PathogenSpecies.published_pangenome_id).where(PathogenSpecies.species_key == species_key)
     ).scalar_one()
 
-out["sequences"] = {}
-for name, sample in (("minus_strand", minus.sample_id), ("no_gene_here", absent_genome)):
-    reply = client.get(
-        f"/api/v1/species/ecoli/genomes/{sample}/loci/{minus.node_label}/sequence"
-    )
-    assert reply.status_code == 200, (name, reply.status_code)
-    out["sequences"][name] = {
-        "sample_id": sample,
-        "locus_label": minus.node_label,
-        "response": reply.get_json(),
-    }
-    print(f"  sequence   {name:<14s} {sample} @ {minus.node_label} -> "
-          f"{len(reply.get_json()['genes'])} gene(s)")
+    def get(path, **query):
+        reply = client.get(path, query_string=query)
+        assert reply.status_code == 200, (path, reply.status_code)
+        return reply
 
-# ⭐ And the sprite BYTES, so the front-end suite can close the loop the backend closes on its own
-# side: take the coordinate the real component renders, and read the pixel under it in the real
-# picture. Without this the two projections are verified independently and never against each other.
-FIXTURES = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "tests" / "fixtures"
-for representation in ("bacformer", "esm"):
-    sprite = client.get(f"/api/v1/species/ecoli/map/{representation}/scatter.png")
-    assert sprite.status_code == 200, (representation, sprite.status_code)
-    target = FIXTURES / f"catalogue_scatter_ecoli_{representation}.png"
-    target.write_bytes(sprite.data)
-    print(f"  sprite     {representation:<10s} {len(sprite.data):,} B -> {target.name}")
-# ⭐ A fourth case for the Function tab: a locus carrying EC *and* KEGG *and* all three GO
-# namespaces, because the thin EC/KEGG card and the three-namespace split are exactly the parts a
-# typical locus does not exercise — 22% of loci mention no Pfam at all and most carry no EC.
-with Session(engine) as session:
-    function_rich = session.execute(
-        select(Locus.node_label).where(
-            Locus.pangenome_id == 1,
-            Locus.ec_annotated_member_count > 0,
-            Locus.kegg_annotated_member_count > 0,
-            Locus.go_annotated_member_count_molecular_function > 0,
-            Locus.go_annotated_member_count_biological_process > 0,
-            Locus.go_annotated_member_count_cellular_component > 0,
-        ).order_by(Locus.member_gene_count.desc()).limit(1)
-    ).scalar_one()
+    out: dict = {"recorded_from": "the API test client", "species_key": species_key, "loci": {}, "sequences": {}}
+    # ⭐ The species response too: the sprite's VIEWPORT comes from it and each locus's POSITIONS from
+    # the locus endpoint, so only the recorded pair can show the two disagreeing.
+    out["species"] = get(f"/api/v1/species/{species_key}").get_json()
+    for name, label in choose_cases(session, pangenome_id).items():
+        # ⛔ The function block for EVERY case: a second endpoint describing the same locus, and only
+        # a recorded pair can show the two disagreeing.
+        out["loci"][name] = {
+            "label": label,
+            "response": get(f"/api/v1/species/{species_key}/loci/{label}").get_json(),
+            "function": get(f"/api/v1/species/{species_key}/loci/{label}/function").get_json(),
+        }
+    for name, (sample, label) in choose_sequences(session, pangenome_id).items():
+        response = get(f"/api/v1/species/{species_key}/genomes/{sample}/loci/{label}/sequence").get_json()
+        out["sequences"][name] = {"sample_id": sample, "locus_label": label, "response": response}
+    out["residuals"] = get(f"/api/v1/species/{species_key}/audit/residual-loci").get_json()
+    out["search"] = {"ligase": get(f"/api/v1/species/{species_key}/search", q="ligase", limit=40).get_json()}
 
-for name, label in (("ordinary", ordinary), ("over_cap", over_cap), ("no_window", no_window),
-                    ("function_rich", function_rich)):
-    response = client.get(f"/api/v1/species/ecoli/loci/{label}")
-    assert response.status_code == 200, (name, label, response.status_code)
-    # ⛔ The function block too, and for EVERY case — it is a second endpoint, so nothing but a
-    # recorded pair can show the two disagreeing about the same locus.
-    function = client.get(f"/api/v1/species/ecoli/loci/{label}/function")
-    assert function.status_code == 200, (name, label, function.status_code)
-    out["loci"][name] = {
-        "label": label,
-        "response": response.get_json(),
-        "function": function.get_json(),
-    }
+    # ⭐ The sprite BYTES, so the front-end suite can read the pixel under the coordinate the real
+    # component renders — the two projections checked against each other, not each against itself.
+    for representation in ("bacformer", "esm"):
+        sprite = get(f"/api/v1/species/{species_key}/map/{representation}/scatter.png")
+        (FIXTURES / f"catalogue_scatter_{species_key}_{representation}.png").write_bytes(sprite.data)
+    return out
 
-path = pathlib.Path(__file__).resolve()
-target = pathlib.Path("/Users/davidabelson/developer/syntitude/frontend/tests/fixtures/api_locus_responses.json")
-target.write_text(json.dumps(out, indent=1) + "\n")
-print("wrote", target)
-for name, entry in out["loci"].items():
-    arr = entry["response"]["arrangements"]
-    blank = sum(
-        1 for a in arr["listed"] for s in a["slots"]
-        if s["absence_reason"] == "outside_catalogue"
-    )
-    print(f"  {name:10s} locus {entry['label']:>6s} listed={len(arr['listed'])} total={arr['total']} "
-          f"past_cap={arr['members_in_arrangements_not_listed']} no_window={arr['members_without_a_neighbourhood']} "
-          f"unresolved_slots={blank}")
+
+def main() -> None:
+    """Write both species' fixtures and print what each case exercises."""
+    application = create_application(Configuration.from_environment())
+    client = application.test_client()
+    engine = application.extensions["syntitude_database"].engine
+    with Session(engine) as session:
+        for species_key in SPECIES_KEYS:
+            recorded = record_species(client, session, species_key)
+            target = FIXTURES / f"api_responses_{species_key}.json"
+            target.write_text(json.dumps(recorded, indent=1, sort_keys=True) + "\n")
+            print(f"wrote {target.name}")
+            for name, entry in recorded["loci"].items():
+                arrangements = entry["response"]["arrangements"]
+                print(
+                    f"  {name:14s} locus {entry['label']:>6s} listed={len(arrangements['listed'])} "
+                    f"total={arrangements['total']} past_cap={arrangements['members_in_arrangements_not_listed']} "
+                    f"no_window={arrangements['members_without_a_neighbourhood']}"
+                )
+            for name, entry in recorded["sequences"].items():
+                print(f"  sequence {name:14s} {entry['sample_id']} @ {entry['locus_label']} -> "
+                      f"{len(entry['response']['genes'])} gene(s)")
+
+
+if __name__ == "__main__":
+    main()

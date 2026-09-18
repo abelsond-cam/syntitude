@@ -32,9 +32,10 @@ vi.mock("@/api/client", async (importOriginal) => ({
 }));
 
 const FIXTURES = resolve(process.cwd(), "tests/fixtures");
-const recorded = JSON.parse(
-  readFileSync(resolve(FIXTURES, "api_locus_responses.json"), "utf8"),
-) as {
+/** ⭐ BOTH species: each has its own viewport, its own sprite and its own loci. */
+const SPECIES_KEYS = ["ecoli", "kp"] as const;
+type Recorded = {
+  species_key: string;
   loci: Record<string, { label: string; response: LocusDetailResponse }>;
   species: { map_projections: MapProjection[] };
 };
@@ -77,85 +78,91 @@ function decodeAlpha(bytes: Buffer): { width: number; height: number; alpha: Uin
   return { width, height, alpha };
 }
 
-function projectionFor(representation: Representation): MapProjection {
-  const found = recorded.species.map_projections.find(
-    (projection) => projection.representation === representation,
-  );
-  if (found === undefined) throw new Error(`no ${representation} projection in the fixture`);
-  return found;
-}
+describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
+  const recorded = JSON.parse(
+    readFileSync(resolve(FIXTURES, `api_responses_${speciesKey}.json`), "utf8"),
+  ) as Recorded;
 
-function spriteFor(representation: Representation) {
-  return decodeAlpha(readFileSync(resolve(FIXTURES, `catalogue_scatter_ecoli_${representation}.png`)));
-}
+  function projectionFor(representation: Representation): MapProjection {
+    const found = recorded.species.map_projections.find(
+      (projection) => projection.representation === representation,
+    );
+    if (found === undefined) throw new Error(`no ${representation} projection in the fixture`);
+    return found;
+  }
 
-describe("⭐⭐ every dot the component renders sits on dust in the real sprite", () => {
-  it("across three real loci and both representations", () => {
-    let checked = 0;
-    const misses: string[] = [];
+  function spriteFor(representation: Representation) {
+    return decodeAlpha(readFileSync(resolve(FIXTURES, `catalogue_scatter_${speciesKey}_${representation}.png`)));
+  }
 
-    for (const representation of ["bacformer", "esm"] as const) {
-      const sprite = spriteFor(representation);
-      const descriptor = projectionFor(representation).scatter_sprite;
-      expect(descriptor).not.toBeNull();
-      // ⛔ The picture the browser gets IS the picture the descriptor describes. Without this the
-      // rest of the test could be checking a stale fixture against fresh numbers.
-      expect(sprite.width).toBe(descriptor!.pixel_size);
-      expect(sprite.height).toBe(descriptor!.pixel_size);
+  describe("⭐⭐ every dot the component renders sits on dust in the real sprite", () => {
+    it("across three real loci and both representations", () => {
+      let checked = 0;
+      const misses: string[] = [];
 
-      for (const kind of CASES) {
-        const card = mount(NeighbourhoodMapCard, {
-          props: {
-            detail: recorded.loci[kind]!.response,
-            representation,
-            availableRepresentations: ["bacformer", "esm"] as const,
-            zoom: "global" as const,
-            speciesKey: "ecoli",
-            projection: projectionFor(representation),
-          },
-        });
-        for (const dot of card.findAll(".map-dot")) {
-          // The `<image>` fills the viewBox square, so one user unit is `pixel_size / DRAWN_SIZE`
-          // image pixels — the same mapping the SVG itself declares, taken from the same two
-          // numbers rather than assumed to be 2.
-          const scale = sprite.width / DRAWN_SIZE;
-          const column = Math.floor(Number(dot.attributes("cx")) * scale);
-          const row = Math.floor(Number(dot.attributes("cy")) * scale);
-          checked += 1;
-          if ((sprite.alpha[row * sprite.width + column] ?? 0) === 0) {
-            misses.push(`${representation}/${kind} at ${column},${row}`);
+      for (const representation of ["bacformer", "esm"] as const) {
+        const sprite = spriteFor(representation);
+        const descriptor = projectionFor(representation).scatter_sprite;
+        expect(descriptor).not.toBeNull();
+        // ⛔ The picture the browser gets IS the picture the descriptor describes. Without this the
+        // rest of the test could be checking a stale fixture against fresh numbers.
+        expect(sprite.width).toBe(descriptor!.pixel_size);
+        expect(sprite.height).toBe(descriptor!.pixel_size);
+
+        for (const kind of CASES) {
+          const card = mount(NeighbourhoodMapCard, {
+            props: {
+              detail: recorded.loci[kind]!.response,
+              representation,
+              availableRepresentations: ["bacformer", "esm"] as const,
+              zoom: "global" as const,
+              speciesKey,
+              projection: projectionFor(representation),
+            },
+          });
+          for (const dot of card.findAll(".map-dot")) {
+            // The `<image>` fills the viewBox square, so one user unit is `pixel_size / DRAWN_SIZE`
+            // image pixels — the same mapping the SVG itself declares, taken from the same two
+            // numbers rather than assumed to be 2.
+            const scale = sprite.width / DRAWN_SIZE;
+            const column = Math.floor(Number(dot.attributes("cx")) * scale);
+            const row = Math.floor(Number(dot.attributes("cy")) * scale);
+            checked += 1;
+            if ((sprite.alpha[row * sprite.width + column] ?? 0) === 0) {
+              misses.push(`${representation}/${kind} at ${column},${row}`);
+            }
           }
         }
       }
-    }
 
-    // ⛔ Coverage before the verdict: a run that mounted six empty cards would report no misses.
-    expect(checked).toBeGreaterThanOrEqual(CASES.length * 2 * 2);
-    expect(misses).toEqual([]);
-  });
-
-  it("⛔ and would NOTICE — a dot moved by a tenth of the frame lands on nothing", () => {
-    // The check above is only worth having if empty ground is actually reachable. Shifting every
-    // dot by 60 user units must produce misses, or the sprite is so dense that "on dust" is
-    // vacuous and the whole loop proves nothing.
-    const sprite = spriteFor("bacformer");
-    const card = mount(NeighbourhoodMapCard, {
-      props: {
-        detail: recorded.loci.ordinary!.response,
-        representation: "bacformer" as const,
-        availableRepresentations: ["bacformer", "esm"] as const,
-        zoom: "global" as const,
-        speciesKey: "ecoli",
-        projection: projectionFor("bacformer"),
-      },
+      // ⛔ Coverage before the verdict: a run that mounted six empty cards would report no misses.
+      expect(checked).toBeGreaterThanOrEqual(CASES.length * 2 * 2);
+      expect(misses).toEqual([]);
     });
-    const scale = sprite.width / DRAWN_SIZE;
-    let unlit = 0;
-    for (const dot of card.findAll(".map-dot")) {
-      const column = Math.floor((Number(dot.attributes("cx")) + 60) * scale);
-      const row = Math.floor((Number(dot.attributes("cy")) + 60) * scale);
-      if ((sprite.alpha[row * sprite.width + column] ?? 0) === 0) unlit += 1;
-    }
-    expect(unlit).toBeGreaterThan(0);
+
+    it("⛔ and would NOTICE — a dot moved by a tenth of the frame lands on nothing", () => {
+      // The check above is only worth having if empty ground is actually reachable. Shifting every
+      // dot by 60 user units must produce misses, or the sprite is so dense that "on dust" is
+      // vacuous and the whole loop proves nothing.
+      const sprite = spriteFor("bacformer");
+      const card = mount(NeighbourhoodMapCard, {
+        props: {
+          detail: recorded.loci.ordinary!.response,
+          representation: "bacformer" as const,
+          availableRepresentations: ["bacformer", "esm"] as const,
+          zoom: "global" as const,
+          speciesKey,
+          projection: projectionFor("bacformer"),
+        },
+      });
+      const scale = sprite.width / DRAWN_SIZE;
+      let unlit = 0;
+      for (const dot of card.findAll(".map-dot")) {
+        const column = Math.floor((Number(dot.attributes("cx")) + 60) * scale);
+        const row = Math.floor((Number(dot.attributes("cy")) + 60) * scale);
+        if ((sprite.alpha[row * sprite.width + column] ?? 0) === 0) unlit += 1;
+      }
+      expect(unlit).toBeGreaterThan(0);
+    });
   });
 });
