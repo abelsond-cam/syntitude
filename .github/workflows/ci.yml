@@ -73,22 +73,21 @@ jobs:
         run: uv sync --locked --extra ingest --extra test
 
       - name: Create the probe databases
-        # ⛔ `pg_trgm` in the MIGRATION probe by hand: the migrations do not create it (it is a
+        # ⛔ `pg_trgm` in both probes, before pytest: the migrations do not create it (it is a
         # provisioning step in backend/README.md), so on a fresh database `alembic upgrade head` dies
-        # on `gin_trgm_ops`. The schema probe's fixture creates it itself.
+        # on `gin_trgm_ops`. The schema probe's fixture also creates it; provisioning it here as well
+        # means neither suite depends on the other's fixture having run first.
         run: |
-          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_schema_probe_ci'
-          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_migrate_probe_ci'
-          psql -d syntitude_migrate_probe_ci -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
+          for database in syntitude_schema_probe_ci syntitude_migrate_probe_ci; do
+            psql -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE $database"
+            psql -d "$database" -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
+          done
           psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_unmigrated_ci'
 
       - name: Lint
         # Pinned: an unpinned ruff that learns a new rule turns this job red with no change to the code.
-        # The scope backend/README.md names as "must pass" — the package and its tests. `scripts/` is
-        # left out while `dump_api_locus_fixture.py` is rewritten on main; widening this to `backend/`
-        # is the whole change once that lands clean.
         working-directory: .
-        run: uvx ruff@0.16.8 check backend/syntitude_backend backend/tests
+        run: uvx ruff@0.16.8 check backend/
 
       - name: Test (skip reasons printed)
         run: uv run --no-sync python -m pytest -rs -p no:cacheprovider --junitxml="$RUNNER_TEMP/backend-junit.xml"
