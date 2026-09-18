@@ -22,6 +22,7 @@ import AnchorGenomeBox from "@/components/anchor/AnchorGenomeBox.vue";
 import LocusTrail from "@/components/navigation/LocusTrail.vue";
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
 import OffsetPopover from "@/components/popover/OffsetPopover.vue";
+import ArrangementFan from "@/components/track/ArrangementFan.vue";
 import ArrangementSwitcher from "@/components/track/ArrangementSwitcher.vue";
 import BandKey from "@/components/track/BandKey.vue";
 import GeneTrack from "@/components/track/GeneTrack.vue";
@@ -68,6 +69,31 @@ const frame = ref<HTMLDivElement | null>(null);
 const popoverStyle = ref<Record<string, string>>({});
 const isPopoverOpen = computed(() => openPopoverSlot.value !== null || isFocalPopoverOpen.value);
 
+// ── the fan: redrawn from live positions, like the popover ────────────────────────────────────
+const arrangements = ref<HTMLDivElement | null>(null);
+const fan = ref<InstanceType<typeof ArrangementFan> | null>(null);
+
+function redrawFan(): void {
+  fan.value?.redraw(arrangements.value, frame.value);
+}
+
+watch([drawable, selectedArrangementIndex, walkDirection], async () => {
+  await nextTick();
+  // Twice: once for the new row, once after the track has centred its focal gene under it.
+  redrawFan();
+  requestAnimationFrame(redrawFan);
+});
+
+function onTrackScroll(): void {
+  placeOpenPopover();
+  redrawFan();
+}
+
+function onResize(): void {
+  placeOpenPopover();
+  redrawFan();
+}
+
 function placeOpenPopover(): void {
   const element = popover.value;
   const host = element?.offsetParent as HTMLElement | null | undefined;
@@ -105,7 +131,7 @@ let scroller: Element | null = null;
 onMounted(() => {
   document.addEventListener("click", onDocumentClick);
   document.addEventListener("keydown", onDocumentKeydown);
-  window.addEventListener("resize", placeOpenPopover);
+  window.addEventListener("resize", onResize);
 });
 // The scroller is rendered by `GeneTrack` and replaced when the track first appears, so it is found
 // after each draw rather than once.
@@ -115,17 +141,17 @@ watch(
     await nextTick();
     const next = frame.value?.querySelector(".track-scroll") ?? null;
     if (next === scroller) return;
-    scroller?.removeEventListener("scroll", placeOpenPopover);
+    scroller?.removeEventListener("scroll", onTrackScroll);
     scroller = next;
-    scroller?.addEventListener("scroll", placeOpenPopover);
+    scroller?.addEventListener("scroll", onTrackScroll);
   },
   { immediate: true },
 );
 onBeforeUnmount(() => {
   document.removeEventListener("click", onDocumentClick);
   document.removeEventListener("keydown", onDocumentKeydown);
-  window.removeEventListener("resize", placeOpenPopover);
-  scroller?.removeEventListener("scroll", placeOpenPopover);
+  window.removeEventListener("resize", onResize);
+  scroller?.removeEventListener("scroll", onTrackScroll);
 });
 
 function walk(locus: string, direction: WalkDirection): void {
@@ -216,7 +242,8 @@ function jump(locus: string): void {
       <!-- The switcher, ANCHORED UNDER THE FOCAL GENE (David, 2026-08-23): the neighbourhoods are
            choices for that one locus. The anchor box sits in its left gutter and the channel key in
            its right, so the options stay centred under the focal gene whichever is occupied. -->
-      <div v-if="drawable !== null" class="arr-wrap">
+      <div v-if="drawable !== null" ref="arrangements" class="arr-wrap">
+        <ArrangementFan ref="fan" />
         <AnchorGenomeBox :species-key="speciesKey" placement="track" />
         <ArrangementSwitcher
           :locus="drawable.locus"

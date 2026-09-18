@@ -3202,3 +3202,13 @@ td.fam-sym {
     display: block;
     margin: var(--s2) auto 0;
 }
+
+/* ---- the arrangement fan, drawn ----
+   ⛔ The published rule above pins `.arr-fan` at `height: 0`, and an <svg> of zero height is not drawn at
+   all — so the fan David asked for (2026-08-23) never appeared on the live page. It gets a FIXED row here:
+   the curves run from its top edge, under the focal gene, down to the option tops and spill past its box
+   (`overflow: visible`). Fixed rather than measured, because a measured height would push the very row it
+   was measured to, and every redraw would grow it again. */
+.arr-wrap .arr-fan {
+    height: 30px;
+}
