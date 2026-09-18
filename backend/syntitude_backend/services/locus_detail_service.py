@@ -212,6 +212,79 @@ def _locus_by_label(session: Session, pangenome_id: int, node_label: str) -> Loc
     return locus
 
 
+def listed_arrangement_condition(arrangement_limit: int, anchor_genome_id: int | None):
+    """Which arrangements a response carries: the commonest few, OR any the anchored genome sits in.
+
+    ⭐ `member_genome_ids @> ARRAY[?]` is the GIN index doing the work a binary search over a
+    ~490k-entry Int32Array did in the browser. ⛔ **The OR is the rule, not an optimisation** — the
+    anchored arrangement is offered however rare it is, which is `arrShown`'s rule: *"otherwise the
+    reader is told in words that their genome sits in #37 and has no button to go back to it"*.
+    Measured on the probe catalogues, 15,643 (ecoli) and 10,322 (kp) (locus, genome) pairs carry an
+    arrangement past the cap of 8 — ranks as deep as #84 — and without this clause every one of them
+    is a genome anchored to a neighbourhood the response does not contain. Parity suite T4 drives
+    this statement for every one of them.
+    """
+    condition = LocusArrangement.rank_within_locus < arrangement_limit
+    if anchor_genome_id is not None:
+        condition = or_(condition, LocusArrangement.member_genome_ids.contains([anchor_genome_id]))
+    return condition
+
+
+def load_listed_arrangements(
+    session: Session, *, locus_id: int, arrangement_limit: int, anchor_genome_id: int | None
+) -> list[LocusArrangement]:
+    """The arrangements one locus response carries, in rank order. One statement.
+
+    Separate from `load_locus_detail` so parity suite T4 can drive THIS statement for every anchored
+    pair past the cap without paying for the rest of the view each time.
+    """
+    return list(
+        session.execute(
+            select(LocusArrangement)
+            .where(
+                LocusArrangement.locus_id == locus_id,
+                listed_arrangement_condition(arrangement_limit, anchor_genome_id),
+            )
+            .order_by(LocusArrangement.rank_within_locus)
+        ).scalars()
+    )
+
+
+def anchor_arrangement_ranks(arrangements, anchor_genome_id: int) -> list[int]:
+    """The ranks, among `arrangements`, that the anchored genome sits in — ascending, and a LIST.
+
+    ⛔ **A list, never the first match.** A genome at ρ > 1 has two genes at one locus and can sit in
+    two of its arrangements (1,032 ecoli / 801 kp (locus, genome) pairs; up to 14 at one locus), and
+    there is no uniqueness constraint on (locus, genome) anywhere. The published page's
+    `anchorRanks` returns every one, marks each with ⚓, and opens on the lowest.
+
+    ⛔ **Recomputed from the rows, never inferred from the query that added them.** The anchored
+    arrangement is often ALSO within the cap, in which case the OR in `listed_arrangement_condition`
+    added nothing, and a client assuming "the extra row is the anchored one" would mark the wrong one.
+
+    ⚠ Ranks are `rank_within_locus`, 0-based — the same integer as the page's index into its
+    arrangement list, which it prints as `#rank + 1`.
+    """
+    return [
+        arrangement.rank_within_locus
+        for arrangement in arrangements
+        if anchor_genome_id in (arrangement.member_genome_ids or ())
+    ]
+
+
+def membership_is_complete(locus: Locus) -> bool:
+    """Whether EVERY genome present at this locus reaches some arrangement — `app.js::membershipComplete`.
+
+    ⛔ The only thing that settles which of the anchor line's two sentences is true when the anchored
+    genome carries no arrangement here: *"has no gene at this locus"* (complete) or *"has no recorded
+    neighbourhood at this locus"* (not). At 6.26 % of ecoli loci the first would be false.
+
+    ⚠ A GENOME question, so it compares the genome union (`arrangement_member_genome_count`) and never
+    the gene counts: a genome at ρ > 1 can lose one gene's window and keep its arrangement.
+    """
+    return locus.arrangement_member_genome_count >= locus.member_genome_count
+
+
 def load_locus_detail(
     session: Session,
     *,
@@ -245,30 +318,18 @@ def load_locus_detail(
     )
 
     # ── the joint view, capped, plus whichever the anchored genome carries ─────────────────────
-    # ⭐ `member_genome_ids @> ARRAY[?]` is the GIN index doing the work a binary search over a
-    # ~490k-entry Int32Array did in the browser. The OR is what honours `arrShown`'s rule.
-    condition = LocusArrangement.rank_within_locus < arrangement_limit
-    if anchor_genome_id is not None:
-        condition = or_(condition, LocusArrangement.member_genome_ids.contains([anchor_genome_id]))
-    detail.arrangements = list(
-        session.execute(
-            select(LocusArrangement)
-            .where(LocusArrangement.locus_id == locus.locus_id, condition)
-            .order_by(LocusArrangement.rank_within_locus)
-        ).scalars()
+    detail.arrangements = load_listed_arrangements(
+        session,
+        locus_id=locus.locus_id,
+        arrangement_limit=arrangement_limit,
+        anchor_genome_id=anchor_genome_id,
     )
     detail.arrangements_listed = len(detail.arrangements)
     detail.is_anchored = anchor_genome_id is not None
     if anchor_genome_id is not None:
-        # ⛔ Recomputed from the rows rather than inferred from the OR above: the anchored genome's
-        # arrangement may ALSO be within the cap, in which case the OR added nothing and a client
-        # that assumed "the last one" would mark the wrong row. And it is a list, not a scalar —
-        # see `anchor_arrangement_ranks`.
-        detail.anchor_arrangement_ranks = [
-            arrangement.rank_within_locus
-            for arrangement in detail.arrangements
-            if anchor_genome_id in (arrangement.member_genome_ids or ())
-        ]
+        detail.anchor_arrangement_ranks = anchor_arrangement_ranks(
+            detail.arrangements, anchor_genome_id
+        )
 
     detail.pfam_families = _resolve_pfam_families(session, detail)
 
