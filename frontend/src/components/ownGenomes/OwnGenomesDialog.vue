@@ -36,13 +36,16 @@ const own = useOwnGenomesStore();
  * measurement does not have. ⚠ It is the HuggingFace attention path — the run warns faESM is not
  * installed — so a tuned service is faster than what is quoted here, never slower.
  *
- * ⚠ **The CPU figure is still provisional** and says so on screen. CSD3 job 36055321 (32 icelake
- * cores, fp32) is measuring it; the laptop run it was going to come from was called off. Both
- * numbers and the jobs they came from are recorded in nuna's `PROJECT_STATE.md` §6.
+ * ⭐ **And so is the CPU figure** — CSD3 job 36055321, 32 Icelake cores, **fp32 because an Icelake
+ * core has no native bf16 matmul**: 527.7 s and 372.2 s for the same two genomes, so ~7.5 min,
+ * quoted as 8. ⚠ **The core count is part of the number and is said on screen**: this is a 32-core
+ * server, and a 4-core laptop is roughly eight times slower again. (The laptop measurement was
+ * abandoned — MPS ran out of memory at 13 GiB on a 16 GB machine — and is not missed: 32 cores is
+ * what a CPU deployment would have.) Both numbers and their jobs: nuna's `PROJECT_STATE.md` §6.
  */
 const GPU_SECONDS_PER_GENOME = 15;
-const CPU_MINUTES_PER_GENOME = 45;
-const CPU_TIMING_IS_MEASURED = false;
+const CPU_MINUTES_PER_GENOME = 8;
+const CPU_CORES_TIMED = 32;
 
 const element = ref<HTMLDialogElement | null>(null);
 
@@ -137,9 +140,9 @@ function sentenceFor(outcome: LineOutcome): string {
           Each genome is fetched from <b>BakRep</b> — the Bakta annotation of its assembly — every
           protein is embedded with <b>ESM-C</b>, the genome is run through <b>Bacformer</b>, and each
           gene is placed on the locus of its nearest modelled gene. That is about
-          <b>{{ GPU_SECONDS_PER_GENOME }} s per genome on a GPU</b> — measured on an A100, and
-          almost all of it is ESM-C — or about {{ CPU_MINUTES_PER_GENOME }} minutes on a
-          CPU<span v-if="!CPU_TIMING_IS_MEASURED"> (being measured)</span>.
+          <b>{{ GPU_SECONDS_PER_GENOME }} s per genome on an A100</b>, or about
+          {{ CPU_MINUTES_PER_GENOME }} minutes on {{ CPU_CORES_TIMED }} CPU cores — both measured,
+          and almost all of either is ESM-C rather than Bacformer.
         </p>
         <p class="muted own-caveat">
           Until then this is a demonstration: nothing you add is saved, fetched or computed, and it is
