@@ -46,7 +46,6 @@ import type {
   GeneOntologyNamespace,
   GeneSequenceResponse,
   LocusDetailResponse,
-  MapProjection,
   Representation,
 } from "@/api/types";
 import { SLOT_COUNT } from "@/lib/slotSpaces";
@@ -619,23 +618,12 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
       expect(differing).toBeGreaterThan(0);
     });
 
-    function projectionFor(representation: Representation): MapProjection {
-      const found = recorded.species.map_projections.find(
-        (projection) => projection.representation === representation,
-      );
-      if (found === undefined) throw new Error(`the fixture has no ${representation} projection`);
-      return found;
-    }
-
-    function mountMapCard(kind: (typeof CASES)[number], representation: Representation, zoom = "near") {
+    function mountMapCard(kind: (typeof CASES)[number], representation: Representation) {
       return mount(NeighbourhoodMapCard, {
         props: {
           detail: detailFor(kind),
           representation,
           availableRepresentations: ["bacformer", "esm"] as const,
-          zoom: zoom as "near" | "global",
-          speciesKey,
-          projection: projectionFor(representation),
         },
       });
     }
@@ -669,94 +657,6 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
         mountMapCard(kind, "bacformer").findAll(".muted").at(-1)?.text() ?? "",
       );
       expect(notes.some((note) => /keeping (?!100%)\d/.test(note))).toBe(true);
-    });
-  });
-
-  describe("⭐ the catalogue map, across TWO endpoints, on real bytes", () => {
-    function projectionFor(representation: Representation): MapProjection {
-      const found = recorded.species.map_projections.find(
-        (projection) => projection.representation === representation,
-      );
-      if (found === undefined) throw new Error(`the fixture has no ${representation} projection`);
-      return found;
-    }
-
-    it("⛔ every real position lands INSIDE the viewport the species endpoint published", () => {
-      // ⭐ The cross-endpoint check, and the only one that can catch this class of bug. The positions
-      // come from `/loci/{label}` and the viewport from `/species/{key}`; if they are ever built from
-      // different numbers, every dot still draws — just in the wrong place, over dust that looks
-      // exactly like dust. A dot outside the square is the visible tip of that.
-      let checked = 0;
-      for (const kind of CASES) {
-        for (const representation of ["bacformer", "esm"] as const) {
-          const card = mount(NeighbourhoodMapCard, {
-            props: {
-              detail: detailFor(kind),
-              representation,
-              availableRepresentations: ["bacformer", "esm"] as const,
-              zoom: "global" as const,
-              speciesKey,
-              projection: projectionFor(representation),
-            },
-          });
-          for (const dot of card.findAll(".map-dot")) {
-            const x = Number(dot.attributes("cx"));
-            const y = Number(dot.attributes("cy"));
-            expect(Number.isFinite(x) && Number.isFinite(y)).toBe(true);
-            expect(x).toBeGreaterThanOrEqual(0);
-            expect(x).toBeLessThanOrEqual(600);
-            expect(y).toBeGreaterThanOrEqual(0);
-            expect(y).toBeLessThanOrEqual(600);
-            checked += 1;
-          }
-        }
-      }
-      // ⛔ Coverage before the verdict: a loop that drew nothing would report six green assertions.
-      expect(checked).toBeGreaterThanOrEqual(CASES.length * 2 * 2);
-    });
-
-    it("⚠ the two representations put the SAME locus in different places", () => {
-      // They are different spaces — sequence and context — and their separations agree at only
-      // ρ ≈ 0.47. If the card read one representation's positions while labelled with the other, the
-      // picture would be entirely plausible; this is the fixture that makes the difference visible.
-      const positions = (["bacformer", "esm"] as const).map((representation) =>
-        mount(NeighbourhoodMapCard, {
-          props: {
-            detail: detailFor("ordinary"),
-            representation,
-            availableRepresentations: ["bacformer", "esm"] as const,
-            zoom: "global" as const,
-            speciesKey,
-            projection: projectionFor(representation),
-          },
-        })
-          .findAll(".map-dot")
-          .map((dot) => `${dot.attributes("cx")},${dot.attributes("cy")}`),
-      );
-      expect(positions[0]).not.toEqual(positions[1]);
-    });
-
-    it("addresses each representation's own sprite, by its own digest", () => {
-      const digests = (["bacformer", "esm"] as const).map(
-        (representation) => projectionFor(representation).scatter_sprite?.content_digest,
-      );
-      expect(digests[0]).not.toBe(digests[1]);
-      for (const representation of ["bacformer", "esm"] as const) {
-        const href = mount(NeighbourhoodMapCard, {
-          props: {
-            detail: detailFor("ordinary"),
-            representation,
-            availableRepresentations: ["bacformer", "esm"] as const,
-            zoom: "global" as const,
-            speciesKey,
-            projection: projectionFor(representation),
-          },
-        })
-          .find("image")
-          .attributes("href");
-        expect(href).toContain(`/map/${representation}/scatter.png`);
-        expect(href).toContain(projectionFor(representation).scatter_sprite!.content_digest);
-      }
     });
   });
 

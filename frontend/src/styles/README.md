@@ -2,8 +2,10 @@
 
 `app.css` is nuna's `src/nuna/tl/locus_browser/app.css` — the stylesheet the live static site serves —
 copied **byte for byte**, with one section appended at the bottom ("ADDED FOR THE REBUILT PAGE") for the
-things the published page could never do: wait for a response, fail to get one, or draw the map in SVG.
-A diff against the original therefore shows exactly what the rebuild changed.
+things the published page could never do — wait for a response, fail to get one, or draw the map in SVG
+— and for the design changes David has made since the port, each dated (the mark in the instrument bar
+and the shorter search box, 2026-09-22). **Change the page by adding to that section, never by editing
+above it:** a diff against the original then shows exactly what the rebuild changed.
 
 ## ⛔ Why it is global, not `<style scoped>`
 
@@ -16,6 +18,6 @@ every element it matches is rendered by that component.
 
 ## ⚠ Keep the inline widths
 
-Neighbour-slot widths and the sprite tint are set **inline** in the components, not here: jsdom loads
-no stylesheet and computes no layout, so an inline style is the only version of them any test can see
-(`app.js:1198`). Moving either into this file blanks the assertions that check them.
+Neighbour-slot widths are set **inline** in the component, not here: jsdom loads no stylesheet and
+computes no layout, so an inline style is the only version of them any test can see (`app.js:1198`).
+Moving them into this file blanks the assertions that check them.

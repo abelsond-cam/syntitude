@@ -7,7 +7,7 @@
  * on `pointerenter` is free rather than a risk.
  */
 
-import { API_BASE_URL, requestJson } from "./request";
+import { requestJson } from "./request";
 import type { Result } from "./result";
 import type {
   ArrangementPageResponse,
@@ -16,7 +16,6 @@ import type {
   GenomeListResponse,
   GeneSequenceResponse,
   LocusDetailResponse,
-  Representation,
   SearchResponse,
   SpeciesCatalogueResponse,
   SpeciesListResponse,
@@ -109,28 +108,6 @@ export function fetchGeneSequence(
     `species/${encodeURIComponent(speciesKey)}/genomes/${encodeURIComponent(sampleId)}/loci/` +
       `${labelSegment(locusLabel)}/sequence`,
     signal ? { signal } : {},
-  );
-}
-
-/**
- * ⭐ The whole-catalogue scatter sprite — the only endpoint here that is not JSON, so it is a URL
- * rather than a fetch: the browser loads it as an image and gets decoding, caching and progressive
- * paint for free.
- *
- * ⚠ **The digest goes in the query string on purpose.** Its ETag is the content hash rather than the
- * pangenome id, because an image is cached hard and for a long time by caches we do not control; a
- * URL that carries the digest can never describe different bytes, so the cache entry is permanent
- * and a re-render is picked up immediately.
- */
-export function catalogueScatterSpriteUrl(
-  speciesKey: string,
-  representation: Representation,
-  contentDigest: string,
-): string {
-  const base = API_BASE_URL.replace(/\/$/, "");
-  return (
-    `${base}/species/${encodeURIComponent(speciesKey)}/map/` +
-    `${encodeURIComponent(representation)}/scatter.png?v=${encodeURIComponent(contentDigest)}`
   );
 }
 

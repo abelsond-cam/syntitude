@@ -1,7 +1,7 @@
 """Regenerate the front end's real-bytes fixtures from the live API — BOTH species.
 
-Writes, per species, `frontend/tests/fixtures/api_responses_{species}.json` and the two catalogue
-sprites `catalogue_scatter_{species}_{representation}.png`. Run from `backend/` with
+Writes, per species, `frontend/tests/fixtures/api_responses_{species}.json`. (It also wrote the two
+catalogue sprites until the page stopped drawing them, 2026-09-22.) Run from `backend/` with
 `SYNTITUDE_DATABASE_URL` set, both catalogues loaded and published, and `SYNTITUDE_ROOT_GFF` set (the
 sequence endpoint reads the GFFs):
 
@@ -162,8 +162,9 @@ def record_species(client, session: Session, species_key: str) -> dict:
         return reply
 
     out: dict = {"recorded_from": "the API test client", "species_key": species_key, "loci": {}, "sequences": {}}
-    # ⭐ The species response too: the sprite's VIEWPORT comes from it and each locus's POSITIONS from
-    # the locus endpoint, so only the recorded pair can show the two disagreeing.
+    # ⭐ The species response too: the locus card reads its null baselines and measurable-locus counts
+    # from it and everything else from the locus endpoint, so only the recorded pair can show the two
+    # disagreeing.
     out["species"] = get(f"/api/v1/species/{species_key}").get_json()
     for name, label in choose_cases(session, pangenome_id).items():
         # ⛔ The function block for EVERY case: a second endpoint describing the same locus, and only
@@ -180,12 +181,6 @@ def record_species(client, session: Session, species_key: str) -> dict:
     # The anchor picker's list, cut short on purpose so the `truncated` path is recorded too.
     out["genomes"] = get(f"/api/v1/species/{species_key}/genomes", limit=5).get_json()
     out["search"] = {"ligase": get(f"/api/v1/species/{species_key}/search", q="ligase", limit=40).get_json()}
-
-    # ⭐ The sprite BYTES, so the front-end suite can read the pixel under the coordinate the real
-    # component renders — the two projections checked against each other, not each against itself.
-    for representation in ("bacformer", "esm"):
-        sprite = get(f"/api/v1/species/{species_key}/map/{representation}/scatter.png")
-        (FIXTURES / f"catalogue_scatter_{species_key}_{representation}.png").write_bytes(sprite.data)
     return out
 
 

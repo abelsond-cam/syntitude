@@ -25,7 +25,6 @@ const api = vi.hoisted(() => ({
   fetchArrangementPage: vi.fn(),
   fetchLocusFunction: vi.fn(),
   fetchGeneSequence: vi.fn(),
-  catalogueScatterSpriteUrl: vi.fn(),
   searchLoci: vi.fn(),
   fetchGenomes: vi.fn(),
   fetchAuditResiduals: vi.fn(),

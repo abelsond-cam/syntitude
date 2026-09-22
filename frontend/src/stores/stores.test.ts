@@ -492,9 +492,9 @@ describe("⭐ the neighbourhood map's state is the READER's, not the locus's", (
 
   it("⛔ SURVIVES a walk, where the arrangement and the popover do not", async () => {
     // Which arrangement is drawn is a property of this locus and resets on every step; which space
-    // the reader is looking at and how far out they are zoomed are properties of the reader, and
-    // resetting them would undo their choice forty times in a forty-step walk. Pinned as a contrast
-    // with the track so that adding a reset watcher here has to fail a test first.
+    // the reader is looking at is a property of the reader, and resetting it would undo their choice
+    // forty times in a forty-step walk. Pinned as a contrast with the track so that adding a reset
+    // watcher here has to fail a test first.
     const navigation = useLocusNavigationStore();
     navigation.setSpecies("ecoli");
     const map = useNeighbourhoodMapStore();
@@ -502,7 +502,6 @@ describe("⭐ the neighbourhood map's state is the READER's, not the locus's", (
 
     await walkTo("1");
     map.selectRepresentation("esm");
-    map.setZoom("global");
     track.togglePopoverAt(asDisplaySlot(3));
     // ⛔ The contrast only means something if the popover was actually open — otherwise the
     // assertion below passes over a state that never changed. Same rule as asserting coverage
@@ -511,23 +510,14 @@ describe("⭐ the neighbourhood map's state is the READER's, not the locus's", (
 
     await walkTo("2");
     expect(map.representation).toBe("esm");
-    expect(map.zoom).toBe("global");
     expect(track.openPopoverSlot).toBeNull();
   });
 
-  it("⛔ setZoom is ABSOLUTE — calling it twice lands where it was asked, not back at the start", () => {
-    const map = useNeighbourhoodMapStore();
-    map.setZoom("global");
-    map.setZoom("global");
-    expect(map.zoom).toBe("global");
-  });
-
-  it("opens on the context representation and the locus's own picture", () => {
+  it("opens on the context representation", () => {
     // Bacformer rather than ESM because the two pick DIFFERENT loci (ρ ≈ 0.47 between their
     // separations), so the default is a real choice about which question the map opens on.
     const map = useNeighbourhoodMapStore();
     expect(map.representation).toBe("bacformer");
-    expect(map.zoom).toBe("near");
   });
 });
 

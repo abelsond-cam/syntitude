@@ -1,12 +1,12 @@
 <script setup lang="ts">
 /**
- * The species picker, the pangenome census and the mark.
+ * The species picker and the pangenome census. (The mark moved up to the instrument bar on
+ * 2026-09-22 — `SiteHeader.vue`.)
  *
  * ⭐ **A switch is a navigation, not a filter** — this page holds one catalogue at a time, so choosing
  * another species leaves this one entirely (the published picker set `location.href`).
  */
 import type { SpeciesCatalogueResponse } from "@/api/types";
-import logoMarkup from "@/assets/logo.svg?raw";
 import PangenomeCensus from "@/components/census/PangenomeCensus.vue";
 import type { SpeciesEntry } from "@/stores/speciesCatalogueStore";
 
@@ -39,10 +39,6 @@ function onChange(event: Event): void {
         <span class="legend">Pangenome</span>
         <PangenomeCensus v-if="catalogue !== null" :catalogue="catalogue" />
       </div>
-      <!-- Inlined rather than an <img>: the stylesheet sizes `.brand-mark svg`, and only inline SVG can
-           take a class and stay crisp at any size (`render_page._logo`). -->
-      <!-- eslint-disable-next-line vue/no-v-html — a checked-in asset, not reader input -->
-      <div class="brand-mark" v-html="logoMarkup" />
     </div>
   </section>
 </template>

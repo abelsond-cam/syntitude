@@ -3071,30 +3071,10 @@ td.fam-sym {
 
 /* ============================================================================ ADDED FOR THE REBUILT PAGE
    Everything below exists because the rebuilt page can do something the published one could not: WAIT
-   for a response, FAIL to get one, or draw with SVG where the published page drew on a canvas. The
-   published page had no loading or error states at all — its catalogue was resident — so none of these
-   classes has a counterpart above, and the tokens are the only thing they share with it. */
-
-/* ---- the catalogue sprite's tint ----
-   The whole-catalogue dust is served as a COVERAGE MASK (flat black, varying alpha), because the server
-   does not know the viewer's theme and two baked sprites would be two artifacts that could disagree.
-   The map card applies `filter: invert(var(--map-sprite-invert, 0))` inline, so light is right with no
-   stylesheet loaded; these rules turn the dust light on a dark ground. Same three states as every
-   other token: the media query, and the explicit toggle winning in both directions. */
-:root {
-    --map-sprite-invert: 0;
-}
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --map-sprite-invert: 1;
-    }
-}
-:root[data-theme="dark"] {
-    --map-sprite-invert: 1;
-}
-:root[data-theme="light"] {
-    --map-sprite-invert: 0;
-}
+   for a response, FAIL to get one, or draw with SVG where the published page drew on a canvas — or
+   because David changed the design after the port, and those sections carry the date. The published
+   page had no loading or error states at all — its catalogue was resident — so none of these classes
+   has a counterpart above, and the tokens are the only thing they share with it. */
 
 /* ---- the neighbourhood map, in SVG ----
    Six dots and six rings need no raster, and jsdom computes no canvas, so a canvas version was invisible
@@ -3107,7 +3087,7 @@ td.fam-sym {
     border-radius: 3px;
     margin: var(--s2) 0 var(--s3);
 }
-/* The plate is the published canvas's own ground, `--map-bg`: the dust and the rings read against it. */
+/* The plate is the published canvas's own ground, `--map-bg`: the rings read against it. */
 .map-ground {
     fill: var(--map-bg);
 }
@@ -3211,4 +3191,53 @@ td.fam-sym {
    was measured to, and every redraw would grow it again. */
 .arr-wrap .arr-fan {
     height: 30px;
+}
+
+/* ---- the instrument bar: the ship beside the wordmark, and a shorter search (David, 2026-09-22) ----
+   The mark moved up from the species strip (the ported `.brand-mark` rules above now match nothing), and
+   the search stopped filling the bar. `.brand` is a flex row of its own so that `.mark` keeps flowing as
+   text: made a flex container itself, the spaces between "Syntitude", ".org" and the rule would collapse. */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+.bar-logo {
+    flex: 0 0 auto;
+    line-height: 0;
+}
+.bar-logo svg {
+    display: block;
+    width: 40px;
+    height: 40px;
+}
+/* A wide window: the search is a box, not the rest of the bar — right-aligned, so its edge meets the
+   evidence column's below. ⚠ 460px is the placeholder's width in a 14px monospace, plus padding: any
+   narrower and it is cut mid-word. Below 941px the ported rule stands (fill the row, or wrap onto one of
+   its own), because there a fixed width would only truncate the placeholder sooner. */
+@media (min-width: 941px) {
+    .bar .search {
+        flex: 0 1 460px;
+        margin-left: auto;
+    }
+    /* The list is wider than the box: a row carries a name, a product and a genome count, and at the
+       box's width the product would be cut to two words. Anchored to the box's RIGHT edge (the ported
+       `right: 0`), so it opens under the box and never past the bar. */
+    .bar .results {
+        left: auto;
+        width: 640px;
+    }
+}
+/* A phone: the tagline drops under the wordmark, rather than pushing the bar wider than the screen. */
+@media (max-width: 560px) {
+    .mark {
+        line-height: 1.25;
+    }
+    .mark .mark-rule {
+        display: none;
+    }
+    .mark .mark-sub {
+        display: block;
+    }
 }

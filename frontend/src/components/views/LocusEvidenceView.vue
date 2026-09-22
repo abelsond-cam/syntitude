@@ -24,14 +24,11 @@ const props = defineProps<{
 
 const navigation = useLocusNavigationStore();
 const map = useNeighbourhoodMapStore();
-const { representation, zoom } = storeToRefs(map);
+const { representation } = storeToRefs(map);
 
 const projections = computed(() => props.catalogue.map_projections);
 const available = computed<readonly Representation[]>(() =>
   projections.value.map((projection) => projection.representation),
-);
-const projectionFor = computed(
-  () => projections.value.find((projection) => projection.representation === representation.value) ?? null,
 );
 /**
  * ⚠ The separation TILE reads Bacformer — the context axis the track is built on — so its "of N
@@ -74,12 +71,8 @@ const separationCount = computed(
         :detail="detail"
         :representation="representation"
         :available-representations="available"
-        :zoom="zoom"
-        :species-key="catalogue.species.key"
-        :projection="projectionFor"
         @walk="navigation.navigateTo($event)"
         @select-representation="map.selectRepresentation($event)"
-        @select-zoom="map.setZoom($event)"
       />
     </aside>
   </div>

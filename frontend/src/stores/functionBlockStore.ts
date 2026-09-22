@@ -64,7 +64,7 @@ export const useFunctionBlockStore = defineStore("functionBlock", () => {
   }
 
   /**
-   * ⛔ **Absolute, never a toggle** — the same rule as the walk direction and the map zoom. A
+   * ⛔ **Absolute, never a toggle** — the same rule as the walk direction. A
    * toggle called from two places (a tab click and a keyboard shortcut) lands back where it started
    * while both call sites believe it moved.
    */

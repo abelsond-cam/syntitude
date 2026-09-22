@@ -11,7 +11,7 @@
  *
  * Six loci have a 6×6 distance matrix, and classical MDS on six points is a 6×6 eigenproblem. It is
  * solved here, per locus, on demand, from the 15 cosines the API resolves — sub-millisecond, and it
- * must re-run on every representation or zoom switch with no round trip, which is why it stayed
+ * must re-run on every representation switch with no round trip, which is why it stayed
  * client-side when almost everything else moved to Python.
  *
  * ⭐ **`kept` is what stops the picture over-claiming.** Classical MDS is exact for a configuration

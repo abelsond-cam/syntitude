@@ -167,7 +167,7 @@ function metaFor(genomeCount: number, band: string): string {
       type="search"
       autocomplete="off"
       spellcheck="false"
-      placeholder="Search a gene name, product or UniRef50 accession — press /"
+      placeholder="Search a gene name, product or UniRef50 — press /"
       aria-label="Search loci"
       @keydown="onKeydown"
       @blur="onBlur"

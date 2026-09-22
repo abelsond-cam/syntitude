@@ -199,14 +199,12 @@ export interface NeighbourDisplayRow {
    */
   readonly best_product: string | null;
   /**
-   * ⭐ Where this locus sits on the **whole-catalogue sprite**, per representation — the quantised
-   * `map_x`/`map_y`, in the units {@link projectOntoSprite} expects.
+   * Where this locus sits on the **whole-catalogue UMAP**, per representation — the quantised
+   * `map_x`/`map_y` the catalogue sprite was drawn from.
    *
-   * ⛔ `null` is *not on the picture at all* — a locus with no medoid never reached the map — and is
-   * emphatically not a position of `0, 0`, which is a PLACE, in the middle of the frame.
-   *
-   * ⚠ It rides along here rather than being fetched when the reader switches zoom, because every
-   * zoom, every arrangement and every popover on this page is **zero round trips**.
+   * ⚠ **Served, no longer drawn.** The page stopped showing the catalogue picture on 2026-09-22
+   * (David: *"It isn't helpful"*) and nothing here reads this; it is typed because the server still
+   * sends it. ⛔ `null` is *no medoid*, never a position of `0, 0` — which is a PLACE.
    */
   readonly map_position: Readonly<Record<Representation, MapPosition | null>>;
   /**
@@ -365,16 +363,20 @@ export interface ModelStep {
 export type MapPosition = readonly [number, number];
 
 /**
- * ⭐ The whole-catalogue scatter, as a picture rather than an array — the one part of the map that
- * is O(catalogue). Its BYTES come from `/species/{key}/map/{rep}/scatter.png`; this is everything
- * needed to draw on top of them.
+ * The whole-catalogue scatter, as a picture rather than an array — the one part of the map that is
+ * O(catalogue). Its BYTES come from `/species/{key}/map/{rep}/scatter.png`; this is everything needed
+ * to draw on top of them.
+ *
+ * ⚠ **Served, no longer drawn.** The page stopped showing the catalogue picture on 2026-09-22 (David:
+ * *"It isn't helpful. Just display closest 6 neighbours."*). The server still renders and describes
+ * it, so the type still says what arrives.
  */
 export interface CatalogueScatterSprite {
   readonly pixel_size: number;
   /**
-   * ⛔⛔ **The transform the renderer actually used, and the client must not compute one of its
-   * own.** See `lib/catalogueMapViewport.ts`: a re-derived viewport puts the focal dot beside its
-   * own speck rather than on it, and the picture still looks like a picture.
+   * ⛔⛔ **The transform the renderer actually used.** Anything that draws on the picture must use it
+   * and never compute its own: a re-derived viewport puts a locus's dot BESIDE its own speck rather
+   * than on it, and the picture still looks like a picture.
    */
   readonly viewport_centre: readonly [number, number];
   readonly viewport_span: number;
@@ -402,7 +404,7 @@ export interface MapProjection {
   readonly null_bin_counts: readonly number[] | null;
   /** ⭐ The other half of "p12 of 12,104 loci". */
   readonly separation_measurable_locus_count: number | null;
-  /** `null` where this representation has no rendered sprite — the global zoom is then unavailable. */
+  /** `null` where this representation has no rendered sprite. Served, no longer drawn — see above. */
   readonly scatter_sprite: CatalogueScatterSprite | null;
 }
 
