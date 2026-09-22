@@ -154,7 +154,9 @@ function onBlur(): void {
         @keydown="onKeydown"
         @blur="onBlur"
       />
-      <span class="arr-anchor-mark" aria-hidden="true">⚓</span>
+      <!-- ⚠ U+2693 U+FE0E — the variation selector asks for the TEXT anchor. The bare character can
+           draw as a colour emoji, which ignores `color`, and the grey state would never be grey. -->
+      <span class="arr-anchor-mark" aria-hidden="true">⚓︎</span>
       <span class="arr-anchor-caret" aria-hidden="true">▾</span>
     </label>
     <!-- ⚠ Clicks stop HERE: the document-level closer dismisses the popover on any outside click,

@@ -17,6 +17,7 @@ import { storeToRefs } from "pinia";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import HoverTip from "@/components/layout/HoverTip.vue";
+import OwnGenomesDialog from "@/components/ownGenomes/OwnGenomesDialog.vue";
 import SiteFooter from "@/components/layout/SiteFooter.vue";
 import SiteHeader from "@/components/layout/SiteHeader.vue";
 import SpeciesStrip from "@/components/layout/SpeciesStrip.vue";
@@ -137,6 +138,9 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
 
 <template>
   <HoverTip />
+  <!-- ⚠ Mounted ONCE, here, not in the gutter: a <dialog> opened with `showModal()` belongs to the
+       page, and the box that opens it is redrawn on every walk. -->
+  <OwnGenomesDialog :species-key="speciesKey" :species="publishedSpecies" />
   <SiteHeader
     :species-key="speciesKey"
     :collection-genome-count="current?.pangenome.genome_count ?? null"

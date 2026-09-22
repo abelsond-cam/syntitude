@@ -15,9 +15,12 @@ import PangenomeCensus from "@/components/census/PangenomeCensus.vue";
 import AuditResidualLists from "@/components/footer/AuditResidualLists.vue";
 import LocusTrail from "@/components/navigation/LocusTrail.vue";
 import LocusSearchBox from "@/components/search/LocusSearchBox.vue";
+import OwnGenomesBox from "@/components/anchor/OwnGenomesBox.vue";
+import OwnGenomesDialog from "@/components/ownGenomes/OwnGenomesDialog.vue";
 import TrackPanel from "@/components/layout/TrackPanel.vue";
 import ViewTabs from "@/components/layout/ViewTabs.vue";
 import { useAnchorGenomeStore } from "@/stores/anchorGenomeStore";
+import { useOwnGenomesStore } from "@/stores/ownGenomesStore";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
 const searchLoci = vi.hoisted(() => vi.fn());
@@ -242,5 +245,109 @@ describe("⛔ a locus the address names but the catalogue does not have", () => 
     fetchLocus.mockResolvedValueOnce(failure("network", "offline"));
     await panel.find(".track-error button").trigger("click");
     expect(fetchLocus).toHaveBeenLastCalledWith("ecoli", "2811", expect.anything());
+  });
+});
+
+/** The two published species, as the dialog receives them. */
+const SPECIES = [
+  { key: "ecoli", scientific_name: "Escherichia coli", published: true },
+  { key: "kp", scientific_name: "Klebsiella pneumoniae", published: true },
+] as unknown as Parameters<typeof mountDialog>[0]["species"];
+
+function genomeList(speciesKey: string, sampleIds: readonly string[]) {
+  return success({
+    species_key: speciesKey,
+    query: "",
+    genome_count: sampleIds.length,
+    matched_genome_count: sampleIds.length,
+    truncated: false,
+    genomes: sampleIds.map((sample_id, index) => ({
+      sample_id,
+      collection_genome_ordinal: index,
+      locus_count: 4_000,
+      arrangement_locus_count: 3_900,
+    })),
+  });
+}
+
+function mountDialog(props: { speciesKey: string | null; species: readonly unknown[] }) {
+  return mount(OwnGenomesDialog, { props: props as never });
+}
+
+/** Open the dialog at the add step and let the catalogue check run. */
+async function openAddStep() {
+  const own = useOwnGenomesStore();
+  own.open("account");
+  const dialog = mountDialog({ speciesKey: "ecoli", species: SPECIES });
+  own.showStep("add");
+  await flushPromises();
+  return { own, dialog };
+}
+
+describe("⭐ View your own genomes — the second box in the gutter", () => {
+  it("the ⚓ is drawn even when nothing is anchored: it names the control, it does not claim a genome", () => {
+    // David, 2026-09-22. The published rule hid it, because "an anchor on an empty box would be a claim
+    // about a genome nobody has chosen". Grey makes no claim; the box still colours only when anchored.
+    useAnchorGenomeStore().setAvailability(true);
+    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    expect(box.find(".arr-anchor-mark").exists()).toBe(true);
+    expect(box.find(".arr-anchor").classes()).not.toContain("on");
+  });
+
+  it("opens the dialog on the accounts step", async () => {
+    const box = mount(OwnGenomesBox);
+    await box.find(".own-genomes-box").trigger("click");
+    const own = useOwnGenomesStore();
+    expect(own.isOpen).toBe(true);
+    expect(own.step).toBe("account");
+  });
+
+  it("⛔ says on the FIRST screen what is not built, and that nothing is saved", () => {
+    useOwnGenomesStore().open("account");
+    const dialog = mountDialog({ speciesKey: "ecoli", species: SPECIES });
+    expect(dialog.text()).toContain("Accounts and login will be required — to be completed");
+    expect(dialog.text()).toContain("forgotten when you reload");
+    // The pipeline is described as what the service does, for collaborators to react to.
+    expect(dialog.text()).toContain("BakRep");
+    expect(dialog.text()).toContain("Bacformer");
+    expect(dialog.find(".own-button[disabled]").text()).toContain("Sign in");
+  });
+
+  it("sorts a reader's file into: ours, the other species', not-an-accession, and a repeat", async () => {
+    fetchGenomes.mockImplementation((speciesKey: string) =>
+      Promise.resolve(
+        speciesKey === "ecoli" ? genomeList("ecoli", ["SAMEA103923484"]) : genomeList("kp", ["SAMN03892119"]),
+      ),
+    );
+    const { own, dialog } = await openAddStep();
+    own.setFile("mine.txt", "# mine\nSAMEA103923484\nSAMN03892119\nSAMN05374479\nGCA_012642945.1\nsamn05374479\n");
+    await flushPromises();
+
+    const rows = dialog.findAll(".own-lines li");
+    expect(rows.map((row) => row.classes()[0])).toEqual([
+      "modelled-here",
+      "modelled-elsewhere",
+      "to-be-completed",
+      "not-an-accession",
+      "repeat",
+    ]);
+    expect(rows[1]!.text()).toContain("Klebsiella pneumoniae");
+    // ⛔ BioSample only: an assembly accession is refused, never converted behind the reader's back.
+    expect(rows[3]!.text()).toContain("not a BioSample");
+    // ⚠ The reader's own line comes back in the case they typed it.
+    expect(rows[4]!.text()).toContain("samn05374479");
+    // Only the genomes we could actually place are counted.
+    expect(dialog.text()).toContain("Show 1 genome");
+  });
+
+  it("⛔ a modelled-genome list that FAILED to load is not an empty one", async () => {
+    fetchGenomes.mockResolvedValue(failure("server", "the server answered 500", 500));
+    const { own, dialog } = await openAddStep();
+    own.setFile("mine.txt", "SAMN05374479\n");
+    await flushPromises();
+    expect(dialog.find(".pop-error").text()).toContain("did not load");
+    // Nothing is claimed about the accession: it is not called new, and it is not called modelled.
+    expect(dialog.find(".own-lines li").classes()).toContain("unchecked");
+    expect(dialog.text()).toContain("not checked");
   });
 });

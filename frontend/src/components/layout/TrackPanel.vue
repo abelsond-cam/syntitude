@@ -19,6 +19,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 
 import type { NeighbourDisplayRow } from "@/api/types";
 import AnchorGenomeBox from "@/components/anchor/AnchorGenomeBox.vue";
+import OwnGenomesBox from "@/components/anchor/OwnGenomesBox.vue";
 import LocusTrail from "@/components/navigation/LocusTrail.vue";
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
 import OffsetPopover from "@/components/popover/OffsetPopover.vue";
@@ -275,7 +276,13 @@ function jump(locus: string): void {
            its right, so the options stay centred under the focal gene whichever is occupied. -->
       <div v-if="drawable !== null" ref="arrangements" class="arr-wrap">
         <ArrangementFan ref="fan" />
-        <AnchorGenomeBox :species-key="speciesKey" placement="track" />
+        <!-- ⚠ ONE grid cell, two boxes: the anchor box has to stay centred on the option row
+             (David, 2026-08-25), so the grid places this wrapper and the own-genomes box hangs out
+             of flow beneath it — `.arr-gutter`, in the ADDED section of app.css. -->
+        <div class="arr-gutter">
+          <AnchorGenomeBox :species-key="speciesKey" placement="track" />
+          <OwnGenomesBox />
+        </div>
         <ArrangementSwitcher
           :locus="drawable.locus"
           :arrangements="drawable.arrangements.listed"

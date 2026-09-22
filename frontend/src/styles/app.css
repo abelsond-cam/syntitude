@@ -3276,3 +3276,225 @@ td.fam-sym {
 .pg-arrow {
     color: var(--ink-3);
 }
+
+/* ---- the anchor mark is always drawn, grey until it anchors (David, 2026-09-22) ----
+   The ported rule above hides the ⚓ unless `.on`, because "an anchor on an empty box would be a claim about
+   a genome nobody has chosen" (2026-08-25). A GREY mark makes no such claim: it names the control, and the
+   box still turns orange only when a genome really is anchored. The 26px left padding is now permanent too,
+   so the placeholder does not jump sideways when it does. ⚠ The mark is written U+2693 U+FE0E in the
+   component: the bare anchor can render as a colour emoji, which ignores `color` and would never grey. */
+.arr-anchor .arr-anchor-mark {
+    opacity: 1;
+    color: var(--ink-3);
+}
+.arr-anchor.on .arr-anchor-mark {
+    color: var(--anchor);
+}
+.arr-anchor .arr-anchor-box input {
+    padding-left: 26px;
+}
+
+/* ---- a second box under it: "View your own genomes" (David, 2026-09-22) ----
+   ⛔ The GRID now places a wrapper holding both boxes, and the PAIR is what sits middle-aligned with the
+   option row — the extension of the rule the ported comment states for the single box (David, 2026-08-25).
+   Both boxes stay in flow: an absolutely positioned second box hangs into the notes row under a locus with
+   few arrangements, because the row's height is set by the band key beside it. The options do not move
+   either way — they are centred in column 2, and this column is a fixed 260px.
+   `.arr-anchor`'s own grid properties go inert inside the wrapper; its `position: relative` still anchors
+   its dropdown, and the dropdown's z-index still lifts it over this box. */
+.arr-gutter {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+}
+.own-genomes-box {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 7px 10px 7px 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    text-align: left;
+    color: var(--ink-2);
+    background: var(--panel-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    cursor: pointer;
+}
+.own-genomes-box:hover {
+    color: var(--ink);
+    background: var(--panel);
+}
+/* The `+` sits where the ⚓ sits, in the same grey, so the two read as one pair of controls. */
+.own-genomes-mark {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    line-height: 1;
+    color: var(--ink-3);
+}
+
+/* ---- the "your own genomes" dialog ----
+   A native <dialog>: `showModal()` brings the backdrop, the focus trap and Escape with it. It cannot be a
+   URL — the hash on this page is the locus label — so it is session state, and a real route when accounts
+   exist. */
+.own-dialog {
+    width: min(760px, calc(100vw - 2 * var(--s4)));
+    padding: 0;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    box-shadow: 0 24px 60px rgb(6 12 24 / 28%);
+}
+.own-dialog::backdrop {
+    background: rgb(6 12 24 / 45%);
+}
+.own-dialog-in {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    padding: var(--s4);
+}
+.own-dialog-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding-bottom: var(--s2);
+    border-bottom: 1px solid var(--rule-2);
+}
+.own-dialog-head h2 {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 620;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+.own-close {
+    padding: 2px 4px;
+    border: 0;
+    background: none;
+    color: var(--ink-3);
+    font-size: 13px;
+    cursor: pointer;
+}
+.own-close:hover {
+    color: var(--ink);
+}
+.own-step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+}
+.own-step .muted {
+    margin: 0;
+}
+.own-step .lede {
+    margin: 0;
+}
+/* What is NOT built, and what the numbers on this page still mean: set off, never buried in a paragraph. */
+.own-caveat {
+    border-left: 2px solid var(--rule);
+    padding-left: var(--s3);
+}
+.own-banner {
+    border-left: 3px solid var(--win);
+    padding-left: var(--s3);
+}
+.own-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    margin-top: var(--s2);
+    flex-wrap: wrap;
+}
+.own-button {
+    padding: 6px 12px;
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-2);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    cursor: pointer;
+}
+.own-button:hover:not(:disabled) {
+    background: var(--panel-2);
+    color: var(--ink);
+}
+.own-button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+.own-go {
+    border-color: var(--anchor);
+    color: var(--ink);
+}
+/* The file input covers its own label, so the label IS the button and no second click target exists. */
+.own-file {
+    position: relative;
+    overflow: hidden;
+}
+.own-file input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.own-file-name {
+    font-size: 12px;
+}
+.own-lines {
+    margin: var(--s2) 0 0;
+    padding: 0;
+    list-style: none;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+.own-lines li {
+    display: grid;
+    grid-template-columns: 2.5em 1.2em minmax(10em, auto) 1fr;
+    gap: var(--s2);
+    align-items: baseline;
+    padding: 3px 0;
+    font-size: 12px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--rule-2);
+}
+.own-line-n {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-align: right;
+    color: var(--ink-3);
+}
+.own-line-mark {
+    text-align: center;
+}
+.own-lines li.not-an-accession .own-line-mark {
+    color: var(--rust);
+}
+.own-lines li.to-be-completed .own-line-mark {
+    color: var(--ramp-hi);
+}
+.own-line-id {
+    font-size: 11.5px;
+    color: var(--ink);
+}
+@media (max-width: 900px) {
+    /* One column: the two boxes stack in flow, above the option row. */
+    .arr-gutter {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto var(--s2);
+    }
+}
