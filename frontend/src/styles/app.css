@@ -3241,3 +3241,30 @@ td.fam-sym {
         display: block;
     }
 }
+
+/* ---- the census in two lines (David, 2026-09-22) ----
+   The first line is two groups split at the arrow — the genomes and genes, then the loci they were
+   modelled into — so a window too narrow for both breaks AT the arrow, which then leads the second row.
+   A group wraps within itself only on a screen too narrow for it alone. */
+/* ⚠ And the census keeps its place BESIDE the picker. As a flex item its basis was its widest line, so the
+   longer first line pushed the whole block under the picker below ~1180px. 560px is about the per-genome
+   line's own width: beside the picker wherever that line fits in one row — down to ~884px, as before. */
+.species-in .pangenome {
+    flex: 1 1 560px;
+    min-width: 0;
+}
+#pangenome-lines .pg-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0 7px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+/* A wrapped row sits at the line spacing, not 7px further down: with the ported row gap, the "→" row read
+   as detached from the line it continues and closer to the per-genome line below it. */
+#pangenome-lines .pg-line {
+    row-gap: 0;
+}
+.pg-arrow {
+    color: var(--ink-3);
+}

@@ -51,10 +51,34 @@ describe("the census — two partitions of one catalogue", () => {
     expect(3_375 + 1_461 + 55).toBe(4_891);
   });
 
+  it("⭐ is TWO lines: genomes and genes → the loci they were modelled into, then per genome", () => {
+    // David, 2026-09-22. The spaces between the parts are flex gaps, not text, so the line is read
+    // as pieces IN ORDER rather than as one string.
+    const lines = mount(PangenomeCensus, { props: { catalogue: catalogue() } }).findAll(".pg-line");
+    expect(lines).toHaveLength(2);
+    const first = lines[0]!.text();
+    const pieces = [
+      "100 genomes",
+      "489,146 genes modelled",
+      "→",
+      "17,531 loci,",
+      "including:",
+      "3,385 core,",
+      "8,688 accessory,",
+      "5,458 singletons",
+    ];
+    const positions = pieces.map((piece) => first.indexOf(piece));
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    // ⚠ No comma after the LAST band: "5,458 singletons," would read as a list cut short.
+    expect(first.endsWith("5,458 singletons")).toBe(true);
+    expect(lines[1]!.text()).toMatch(/^per genome:/);
+  });
+
   it("⚠ calls the rare band `singletons` on BOTH lines — one band, one name", () => {
     const lines = mount(PangenomeCensus, { props: { catalogue: catalogue() } }).findAll(".pg-line");
-    expect(lines[1]!.text()).toContain("5,458 singletons");
-    expect(lines[2]!.text()).toContain("singletons");
+    expect(lines[0]!.text()).toContain("5,458 singletons");
+    expect(lines[1]!.text()).toContain("singletons");
     expect(lines.map((line) => line.text()).join(" ")).not.toContain("rare");
   });
 });

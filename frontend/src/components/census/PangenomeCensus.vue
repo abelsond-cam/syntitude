@@ -15,6 +15,11 @@
  * ⚠ The per-genome figures are genes summed per band ÷ genomes, and the three parts sum to the whole
  * by construction because every gene sits in exactly one locus and every locus in one band. They are
  * served, not re-derived from a resident catalogue — the client no longer holds one.
+ *
+ * ⭐ **Two lines, not three (David, 2026-09-22):** the genomes and genes run straight on into the
+ * loci they were modelled into — `100 genomes · 489,146 genes modelled → 17,531 loci, including: …`
+ * — and the per-genome line stays below. The first line is two groups, split at the arrow, so a
+ * narrower window breaks it THERE rather than partway through the list of bands.
  */
 import { computed } from "vue";
 
@@ -74,16 +79,19 @@ const perGenome = computed(() => {
 <template>
   <div id="pangenome-lines">
     <div class="pg-line">
-      <span class="pg-stat"><b>{{ genomeCount.toLocaleString() }}</b> genomes</span>
-      <span class="pg-sep">·</span>
-      <span class="pg-stat"><b>{{ catalogue.pangenome.gene_count.toLocaleString() }}</b> genes modelled</span>
-    </div>
-    <div class="pg-line pg-sub">
-      <b>{{ catalogue.pangenome.locus_count.toLocaleString() }}</b><span class="pg-label"> loci:</span>
-      <template v-for="(part, index) in locusParts" :key="part.label">
-        <span v-if="index" class="pg-sep">·</span>
-        <span class="pg-stat" :data-tip="part.tip"><b>{{ part.value }}</b> {{ part.label }}</span>
-      </template>
+      <span class="pg-group">
+        <span class="pg-stat"><b>{{ genomeCount.toLocaleString() }}</b> genomes</span>
+        <span class="pg-sep">·</span>
+        <span class="pg-stat"><b>{{ catalogue.pangenome.gene_count.toLocaleString() }}</b> genes modelled</span>
+      </span>
+      <span class="pg-group">
+        <span class="pg-arrow" aria-hidden="true">→</span>
+        <span class="pg-stat"><b>{{ catalogue.pangenome.locus_count.toLocaleString() }}</b> loci,</span>
+        <span class="pg-label">including:</span>
+        <!-- ⚠ The comma rides INSIDE its stat: as a flex item of its own it would take a gap on both
+             sides and read "core , 8,688". -->
+        <span v-for="(part, index) in locusParts" :key="part.label" class="pg-stat" :data-tip="part.tip"><b>{{ part.value }}</b> {{ part.label }}{{ index < locusParts.length - 1 ? "," : "" }}</span>
+      </span>
     </div>
     <div v-if="perGenome !== null" class="pg-line pg-sub">
       <span class="pg-label">per genome:</span>

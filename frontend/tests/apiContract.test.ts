@@ -65,8 +65,8 @@ import PangenomeCensus from "@/components/census/PangenomeCensus.vue";
 import SiteFooter from "@/components/layout/SiteFooter.vue";
 import NavigatingView from "@/components/views/NavigatingView.vue";
 
-// ⚠ Only the FETCH is stubbed. `catalogueScatterSpriteUrl` is a pure URL builder and is exactly
-// the thing under test here — stubbing it would assert that the fixture agrees with the stub.
+// ⚠ Only the locus FETCH is stubbed, and every other export is the real one: a stubbed helper would
+// assert that the fixture agrees with the stub.
 vi.mock("@/api/client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/api/client")>()),
   fetchLocus: vi.fn(async () => ({ ok: false, kind: "network", detail: "not used" })),
