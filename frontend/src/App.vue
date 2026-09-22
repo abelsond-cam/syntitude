@@ -178,9 +178,20 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
       <div class="wrap">
         <ViewTabs :view="view" @show="tabs.showView($event)" />
       </div>
+      <!-- In the strip's order (`VIEW_TABS`): the three views of this locus, then the documentation. -->
       <section id="view-node" class="view-panel" role="tabpanel" aria-label="Syntolog Loci" :hidden="view !== 'locus'">
         <div class="wrap">
           <LocusEvidenceView v-if="drawable !== null" :detail="drawable" :catalogue="current" />
+        </div>
+      </section>
+      <section id="view-sequence" class="view-panel" role="tabpanel" aria-label="Sequence" :hidden="view !== 'sequence'">
+        <div class="wrap">
+          <SequenceView v-if="drawable !== null" :detail="drawable" :species-key="current.species.key" />
+        </div>
+      </section>
+      <section id="view-eggnog" class="view-panel" role="tabpanel" aria-label="EggNOG" :hidden="view !== 'function'">
+        <div class="wrap">
+          <FunctionView v-if="drawable !== null" :detail="drawable" />
         </div>
       </section>
       <section
@@ -192,16 +203,6 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
       >
         <div class="wrap">
           <NavigatingView :examples="current.example_locus_rows" @go="go" />
-        </div>
-      </section>
-      <section id="view-sequence" class="view-panel" role="tabpanel" aria-label="Sequence" :hidden="view !== 'sequence'">
-        <div class="wrap">
-          <SequenceView v-if="drawable !== null" :detail="drawable" :species-key="current.species.key" />
-        </div>
-      </section>
-      <section id="view-eggnog" class="view-panel" role="tabpanel" aria-label="EggNOG" :hidden="view !== 'function'">
-        <div class="wrap">
-          <FunctionView v-if="drawable !== null" :detail="drawable" />
         </div>
       </section>
     </main>

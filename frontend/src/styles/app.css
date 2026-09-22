@@ -3242,6 +3242,14 @@ td.fam-sym {
     }
 }
 
+/* ---- the species strip on the page's own grey (David, 2026-09-22) ----
+   The bar, the strip and the track were three white bands in a row. The strip takes `--paper`, the ground
+   the views' cards sit on, so the page reads in alternating bands: white bar, grey strip, white track,
+   grey views. */
+.species-strip {
+    background: var(--paper);
+}
+
 /* ---- the census in two lines (David, 2026-09-22) ----
    The first line is two groups split at the arrow — the genomes and genes, then the loci they were
    modelled into — so a window too narrow for both breaks AT the arrow, which then leads the second row.

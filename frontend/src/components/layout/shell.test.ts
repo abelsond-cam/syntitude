@@ -16,6 +16,7 @@ import AuditResidualLists from "@/components/footer/AuditResidualLists.vue";
 import LocusTrail from "@/components/navigation/LocusTrail.vue";
 import LocusSearchBox from "@/components/search/LocusSearchBox.vue";
 import TrackPanel from "@/components/layout/TrackPanel.vue";
+import ViewTabs from "@/components/layout/ViewTabs.vue";
 import { useAnchorGenomeStore } from "@/stores/anchorGenomeStore";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 
@@ -80,6 +81,14 @@ describe("the census — two partitions of one catalogue", () => {
     expect(lines[0]!.text()).toContain("5,458 singletons");
     expect(lines[1]!.text()).toContain("singletons");
     expect(lines.map((line) => line.text()).join(" ")).not.toContain("rare");
+  });
+});
+
+describe("the view tabs", () => {
+  it("⭐ put the three views OF THIS LOCUS first and the site's documentation last", () => {
+    // David, 2026-09-22 — "Navigating Syntitude" had sat second, between the evidence and the sequence.
+    const labels = mount(ViewTabs, { props: { view: "locus" } }).findAll(".view-tab").map((tab) => tab.text());
+    expect(labels).toEqual(["Syntolog Loci", "Sequence", "EggNOG", "Navigating Syntitude"]);
   });
 });
 

@@ -18,12 +18,16 @@ import { useFunctionBlockStore } from "./functionBlockStore";
 import { useGeneSequenceStore } from "./geneSequenceStore";
 import { useLocusNavigationStore } from "./locusNavigationStore";
 
-/** In the order the strip draws them. `locus` is home. */
+/**
+ * In the order the strip draws them. `locus` is home. ⭐ The three views OF THIS LOCUS come first and
+ * the site's own documentation last (David, 2026-09-22) — it had sat second, between the evidence and
+ * the sequence.
+ */
 export const VIEW_TABS = [
   { id: "locus", label: "Syntolog Loci" },
-  { id: "navigating", label: "Navigating Syntitude" },
   { id: "sequence", label: "Sequence" },
   { id: "function", label: "EggNOG" },
+  { id: "navigating", label: "Navigating Syntitude" },
 ] as const;
 
 export type ViewId = (typeof VIEW_TABS)[number]["id"];
