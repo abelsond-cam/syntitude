@@ -28,13 +28,21 @@ const props = defineProps<{
 const own = useOwnGenomesStore();
 
 /**
- * ⚠ **Provisional, and marked so on screen.** A Bacformer forward pass is measured at 0.63 s per
- * genome on an A100; ESM-C, which dominates, has never been timed. Stage 0 measures both and these
- * two constants are where its numbers land — then the "(being measured)" note comes off.
+ * ⭐ **The GPU figure is measured** (David, 2026-09-22: "I thought ESM and bacformer single forward
+ * was around 15 seconds per genome. Can we please check this"). It is — CSD3 job 36053709, one
+ * A100, bf16, the pinned ESM-C + Bacformer path over three probe genomes: **median 14.3 s per
+ * genome**, of which Bacformer is 0.12–0.47 s and ESM-C is all the rest. Rounded to 15 on purpose:
+ * the three spanned 13–23 s (the first pays CUDA warm-up), so a decimal would claim a precision the
+ * measurement does not have. ⚠ It is the HuggingFace attention path — the run warns faESM is not
+ * installed — so a tuned service is faster than what is quoted here, never slower.
+ *
+ * ⚠ **The CPU figure is still provisional** and says so on screen. CSD3 job 36055321 (32 icelake
+ * cores, fp32) is measuring it; the laptop run it was going to come from was called off. Both
+ * numbers and the jobs they came from are recorded in nuna's `PROJECT_STATE.md` §6.
  */
 const GPU_SECONDS_PER_GENOME = 15;
 const CPU_MINUTES_PER_GENOME = 45;
-const TIMINGS_ARE_MEASURED = false;
+const CPU_TIMING_IS_MEASURED = false;
 
 const element = ref<HTMLDialogElement | null>(null);
 
@@ -129,9 +137,9 @@ function sentenceFor(outcome: LineOutcome): string {
           Each genome is fetched from <b>BakRep</b> — the Bakta annotation of its assembly — every
           protein is embedded with <b>ESM-C</b>, the genome is run through <b>Bacformer</b>, and each
           gene is placed on the locus of its nearest modelled gene. That is about
-          <b>{{ GPU_SECONDS_PER_GENOME }} s per genome on a GPU</b>, or about
-          {{ CPU_MINUTES_PER_GENOME }} minutes on a CPU<span v-if="!TIMINGS_ARE_MEASURED"> (being
-          measured)</span>.
+          <b>{{ GPU_SECONDS_PER_GENOME }} s per genome on a GPU</b> — measured on an A100, and
+          almost all of it is ESM-C — or about {{ CPU_MINUTES_PER_GENOME }} minutes on a
+          CPU<span v-if="!CPU_TIMING_IS_MEASURED"> (being measured)</span>.
         </p>
         <p class="muted own-caveat">
           Until then this is a demonstration: nothing you add is saved, fetched or computed, and it is
