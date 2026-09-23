@@ -61,6 +61,13 @@
     --anchor: #c3643b;
     --anchor-wash: #faede7;
 
+    /* ⛔ A genome PLACED after the model was built is never drawn in the anchor's orange.
+       This is the standing alternative named above — same derivation, one hue apart — and it is
+       paired with a dotted border and the word "placed" everywhere it appears, so hue is never
+       the only thing carrying "this genome is not part of the model". */
+    --projected: #149a66;
+    --projected-wash: #e7f4ec;
+
     /* the neighbourhood map's categorical set: BLACK focal (an emphasis, not a category) + five hues chosen
        against the dataviz validator, not by eye — worst adjacent CVD dE 22.0 (deutan). The rendered PNG
        diagnostics use exactly these, so a figure and the page agree on what colour a rank is. */
@@ -110,6 +117,8 @@
         --focus: #6798f3;
         --anchor: #e9916e;
         --anchor-wash: #361b10;
+        --projected: #60c291;
+        --projected-wash: #0b2a1c;
 
         /* Lifted for a dark ground: the PNG set is committed to white paper, and #4daf4a / #d9a400 are exactly the
        two that fail the dark-surface band. Same hue order, so rank 3 is still green. */
@@ -141,6 +150,8 @@
     --focus: #6798f3;
     --anchor: #e9916e;
     --anchor-wash: #361b10;
+    --projected: #60c291;
+    --projected-wash: #0b2a1c;
 
     /* Lifted for a dark ground: the PNG set is committed to white paper, and #4daf4a / #d9a400 are exactly the
        two that fail the dark-surface band. Same hue order, so rank 3 is still green. */
@@ -170,6 +181,8 @@
     --focus: #1657d5;
     --anchor: #c3643b;
     --anchor-wash: #faede7;
+    --projected: #149a66;
+    --projected-wash: #e7f4ec;
 
     /* the neighbourhood map's categorical set: BLACK focal (an emphasis, not a category) + five hues chosen
        against the dataviz validator, not by eye — worst adjacent CVD dE 22.0 (deutan). The rendered PNG
@@ -3497,4 +3510,86 @@ td.fam-sym {
         max-width: 320px;
         margin: 0 auto var(--s2);
     }
+}
+
+/* ═══ ADDED 2026-09-23 · a genome PLACED on the model, drawn beside it ═══════════════════════════
+   ⛔ Never the anchor's orange. A placed genome was not clustered by the model, and the page must not
+   let a reader mistake it for one that was. Three cues, deliberately redundant: the green
+   `--projected` accent, a DOTTED border, and the word "placed" in the label. Hue alone would fail a
+   reader who cannot see it, and a border alone would be missed. */
+.own-genomes-box.on {
+    color: var(--ink);
+    border: 1px dashed var(--projected);
+    background: var(--projected-wash);
+}
+.own-genomes-box.on .own-genomes-mark {
+    color: var(--projected);
+}
+.own-genomes {
+    position: relative;
+}
+/* The release ✕, in the same place as the anchor box's own — one anchor, released the same way. */
+.own-genomes-release {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0 4px;
+    font-size: 12px;
+    line-height: 1;
+    color: var(--ink-3);
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+.own-genomes-release:hover {
+    color: var(--ink);
+}
+
+/* ⭐ The track, while a placed genome is shown. `--anchor` is REDEFINED on the panel rather than every
+   ⚓ mark, band and popover rule being duplicated: those components already draw with `var(--anchor)`,
+   so they take the placed colour without knowing this state exists. */
+.track-panel.is-projected {
+    --anchor: var(--projected);
+    --anchor-wash: var(--projected-wash);
+}
+
+/* Step 3's list of placed genomes: the evidence, with its denominator. */
+.own-placed {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+.own-placed li {
+    padding: 9px 11px;
+    border: 1px dashed var(--projected);
+    border-radius: 3px;
+    background: var(--projected-wash);
+}
+.own-placed-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.own-placed-id {
+    font-size: 12.5px;
+    color: var(--ink);
+}
+.own-placed-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 14px;
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+}
+.own-lines li.placed-here .own-line-mark {
+    color: var(--projected);
+}
+.own-lines li.placed-elsewhere .own-line-mark {
+    color: var(--ink-2);
 }

@@ -14,7 +14,13 @@ import { useNeighbourhoodMapStore } from "./neighbourhoodMapStore";
 import { useTrackDisplayStore } from "./trackDisplayStore";
 
 const fetchLocus = vi.hoisted(() => vi.fn());
-vi.mock("@/api/client", () => ({ fetchLocus }));
+// ⚠ `anchorQuery` is the real one, not a stub: it is the single place the anchor's KIND becomes a
+// query parameter, and a test that mocked it away would stop checking that a projected genome is
+// never fetched with `anchor=` — which returns a 404 that renders as "this genome has nothing here".
+vi.mock("@/api/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/client")>()),
+  fetchLocus,
+}));
 
 /** Ten slots, every one identifiable, alternating strand so a reversal alone would not pass. */
 function slots(occupants: readonly (string | null)[]): NeighbourSlot[] {
@@ -50,7 +56,7 @@ function locusDetail(overrides: Partial<LocusDetailResponse> = {}): LocusDetailR
       members_without_a_neighbourhood: 0,
       membership_is_complete: true,
     },
-    anchor: { is_anchored: false, arrangement_ranks: [] },
+    anchor: { is_anchored: false, arrangement_ranks: [], kind: null, projected_copies: [] },
     offsets: [],
     intergenic_gaps: [],
     pfam_reference: {},
@@ -388,7 +394,7 @@ describe("the track display", () => {
     ];
     await walkTo("1", locusDetail({
       arrangements: { listed, total: 60, arrangements_not_listed: 52, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0, membership_is_complete: true },
-      anchor: { is_anchored: true, arrangement_ranks: [37] },
+      anchor: { is_anchored: true, arrangement_ranks: [37], kind: "catalogue", projected_copies: [] },
     }));
     expect(track.selectedArrangementIndex).toBe(2);
     expect(track.drawnArrangement?.rank).toBe(37);
@@ -402,7 +408,7 @@ describe("the track display", () => {
     const listed = [arrangement({ rank: 0 }), arrangement({ rank: 2 }), arrangement({ rank: 5 })];
     await walkTo("1", locusDetail({
       arrangements: { listed, total: 6, arrangements_not_listed: 3, members_in_arrangements_not_listed: 0, members_without_a_neighbourhood: 0, membership_is_complete: true },
-      anchor: { is_anchored: true, arrangement_ranks: [5, 2] },
+      anchor: { is_anchored: true, arrangement_ranks: [5, 2], kind: "catalogue", projected_copies: [] },
     }));
     // The track can only draw one of them, so it draws the first.
     expect(track.drawnArrangement?.rank).toBe(2);
@@ -528,7 +534,7 @@ describe("⭐ anchoring the locus already on screen", () => {
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
     await navigation.navigateTo("1", REVERSED);
     fetchLocus.mockResolvedValueOnce(
-      success(locusDetail({ anchor: { is_anchored: true, arrangement_ranks: [] } })),
+      success(locusDetail({ anchor: { is_anchored: true, arrangement_ranks: [], kind: "catalogue", projected_copies: [] } })),
     );
     useAnchorGenomeStore().setAnchor("SAMEA1");
     await nextTick();
@@ -557,7 +563,7 @@ describe("⭐ anchoring the locus already on screen", () => {
       success(
         locusDetail({
           arrangements: { ...locusDetail().arrangements, listed: two, total: 2 },
-          anchor: { is_anchored: true, arrangement_ranks: [1] },
+          anchor: { is_anchored: true, arrangement_ranks: [1], kind: "catalogue", projected_copies: [] },
         }),
       ),
     );

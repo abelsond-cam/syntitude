@@ -27,7 +27,15 @@ const searchLoci = vi.hoisted(() => vi.fn());
 const fetchGenomes = vi.hoisted(() => vi.fn());
 const fetchAuditResiduals = vi.hoisted(() => vi.fn());
 const fetchLocus = vi.hoisted(() => vi.fn());
-vi.mock("@/api/client", () => ({ searchLoci, fetchGenomes, fetchAuditResiduals, fetchLocus }));
+// ⚠ A PARTIAL mock: `anchorQuery` must stay real, because it is the one place the anchor's kind
+// becomes a query parameter and a stub would hide a projected genome being fetched as `anchor=`.
+vi.mock("@/api/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/client")>()),
+  searchLoci,
+  fetchGenomes,
+  fetchAuditResiduals,
+  fetchLocus,
+}));
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -336,8 +344,10 @@ describe("⭐ View your own genomes — the second box in the gutter", () => {
     expect(rows[3]!.text()).toContain("not a BioSample");
     // ⚠ The reader's own line comes back in the case they typed it.
     expect(rows[4]!.text()).toContain("samn05374479");
-    // Only the genomes we could actually place are counted.
-    expect(dialog.text()).toContain("Show 1 genome");
+    // ⚠ Only genomes that are actually PLACED are offered — this catalogue has none in this test,
+    // and the button says what happens next rather than "Show 0 genomes", which would read as a
+    // fault in the reader's file rather than as the part of the service still to be built.
+    expect(dialog.text()).toContain("What happens next");
   });
 
   it("⛔ a modelled-genome list that FAILED to load is not an empty one", async () => {
@@ -351,3 +361,44 @@ describe("⭐ View your own genomes — the second box in the gutter", () => {
     expect(dialog.text()).toContain("not checked");
   });
 });
+
+describe("⭐ a genome PLACED on the model, anchored beside it", () => {
+  it("⛔ does not appear behind the ⚓ — that box means 'one of the modelled genomes'", async () => {
+    const anchor = useAnchorGenomeStore();
+    anchor.setAvailability(true);
+    anchor.setProjectedAnchor("SAMN05374479");
+    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const own = mount(OwnGenomesBox, { props: { speciesKey: "ecoli" } });
+    await flushPromises();
+
+    // The anchor box is back to its empty state: a placed genome is not one of the modelled 100.
+    expect(box.find(".arr-anchor").classes()).not.toContain("on");
+    expect((box.find(".arr-anchor input").element as HTMLInputElement).value).not.toContain(
+      "SAMN05374479",
+    );
+    // …and the OTHER box carries it, with the word that says what it is.
+    expect(own.find(".own-genomes-box").classes()).toContain("on");
+    expect(own.text()).toContain("SAMN05374479");
+    expect(own.text()).toContain("placed");
+  });
+
+  it("⛔ releases the other anchor, because the track draws one genome", () => {
+    const anchor = useAnchorGenomeStore();
+    anchor.setAvailability(true);
+    anchor.setAnchor("SAMEA103923484");
+    expect(anchor.kind).toBe("catalogue");
+    anchor.setProjectedAnchor("SAMN05374479");
+    expect(anchor.sampleId).toBe("SAMN05374479");
+    expect(anchor.kind).toBe("projected");
+    anchor.setAnchor("SAMEA103923484");
+    expect(anchor.kind).toBe("catalogue");
+  });
+
+  it("⚠ an unavailable catalogue anchor does not drop a PLACED one — different table, different question", () => {
+    const anchor = useAnchorGenomeStore();
+    anchor.setProjectedAnchor("SAMN05374479");
+    anchor.setAvailability(false);
+    expect(anchor.sampleId).toBe("SAMN05374479");
+  });
+});
+

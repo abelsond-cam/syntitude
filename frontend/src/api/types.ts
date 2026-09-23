@@ -308,6 +308,15 @@ export interface LocusDetailResponse {
   readonly anchor: {
     readonly is_anchored: boolean;
     readonly arrangement_ranks: readonly number[];
+    /**
+     * ⛔ `catalogue` | `projected` | `null`. A catalogue genome is COUNTED in the arrangements it
+     * occupies; a projected genome MATCHES one without being in it, so `arrangement_ranks` stays
+     * empty for it and its relation is in `projected_copies`. A client that ignores the kind cannot
+     * accidentally render a projected genome as a member — but one that reads `arrangement_ranks`
+     * alone would say "no gene at this locus" about a gene that is plainly placed there.
+     */
+    readonly kind: "catalogue" | "projected" | null;
+    readonly projected_copies: readonly ProjectedCopy[];
   };
   readonly offsets: readonly OffsetMarginal[];
   readonly intergenic_gaps: readonly IntergenicGap[];
@@ -324,6 +333,67 @@ export interface LocusDetailResponse {
   /** ⭐ The 15–303-locus fan-out, answered in THIS response rather than in that many more. */
   readonly neighbour_display_rows: readonly NeighbourDisplayRow[];
   readonly resolved_neighbour_count: number;
+}
+
+/**
+ * One gene of a PROJECTED genome at this locus — placed after the model was built.
+ *
+ * ⛔ **`agreeing_neighbours` is meaningless without `available_neighbours`.** A locus with *m*
+ * modelled genes can supply at most min(n, m) of the n checkers, so the raw count tracks the
+ * locus's SIZE as much as the evidence: measured over the first ten placed genomes, `is_contested`
+ * runs at 0.39 % where the locus has ten genes to offer and 42.6 % where it has fewer, reaching
+ * 96.3 % at singleton loci. Render them together or not at all.
+ */
+export interface ProjectedCopy {
+  readonly flat_index: number;
+  readonly copy_ordinal: number;
+  readonly copies_at_locus: number;
+  readonly nearest_cosine: number | null;
+  readonly agreeing_neighbours: number;
+  readonly available_neighbours: number;
+  readonly placed_summed_cosine: number | null;
+  readonly is_contested: boolean;
+  readonly runner_up_summed_cosine: number | null;
+  /**
+   * ⚠ `false` means the gene is ALONE ON ITS CONTIG and has no ±5 window at all — not that its
+   * window matched nothing, which is `matched_arrangement_rank === null` with this `true`. Three
+   * outcomes, and collapsing two of them reports a neighbourhood comparison for a gene with no
+   * neighbours.
+   */
+  readonly has_a_neighbourhood: boolean;
+  readonly matched_arrangement_rank: number | null;
+  readonly matched_arrangement_genome_count: number | null;
+}
+
+/** A genome placed on this catalogue after the model was built — never a member of it. */
+export interface ProjectedGenomeEntry {
+  readonly sample_id: string;
+  readonly rule: string;
+  readonly neighbours_searched: number;
+  readonly neighbours_reported: number;
+  readonly gene_count: number;
+  readonly placed_gene_count: number;
+  /** ⛔ Four counts that are not the same number — see the backend serialiser. */
+  readonly genes_without_a_vector: number;
+  readonly genes_without_a_neighbourhood: number;
+  readonly contested_gene_count: number;
+  readonly distinct_locus_count: number;
+  readonly multi_copy_locus_count: number;
+  readonly window_matched_gene_count: number;
+  /** ⚠ The distribution, not a mean: there is no novelty threshold, so the spread is the signal. */
+  readonly nearest_cosine: {
+    readonly median: number | null;
+    readonly fifth_percentile: number | null;
+    readonly minimum: number | null;
+  };
+  readonly nuna_git_sha: string | null;
+}
+
+export interface ProjectedGenomesResponse {
+  readonly species_key: string;
+  readonly genomes: readonly ProjectedGenomeEntry[];
+  /** The sentence the page must repeat wherever these genomes appear. */
+  readonly caveat: string;
 }
 
 export interface ArrangementPageResponse {

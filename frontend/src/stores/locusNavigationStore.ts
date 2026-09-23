@@ -17,7 +17,7 @@
 import { defineStore, storeToRefs } from "pinia";
 import { computed, reactive, ref, watch } from "vue";
 
-import { fetchLocus } from "@/api/client";
+import { anchorQuery, fetchLocus } from "@/api/client";
 import { LANES } from "@/api/request";
 import type { Failure } from "@/api/result";
 import type { LocusDetailResponse } from "@/api/types";
@@ -54,7 +54,7 @@ export type LocusView =
 export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   const cache = useLocusDetailCacheStore();
   const anchor = useAnchorGenomeStore();
-  const { sampleId: anchorSampleId } = storeToRefs(anchor);
+  const { sampleId: anchorSampleId, kind: anchorKind } = storeToRefs(anchor);
 
   const speciesKey = ref<string | null>(null);
   const route = ref<LocusRoute | null>(null);
@@ -120,8 +120,12 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
    * redrew in place; here that is one re-navigation to the same route, which leaves the trail alone
    * because `advanceTrail` never pushes the label it already ends on.
    */
-  watch(anchorSampleId, (next, previous) => {
-    if (next === previous || route.value === null || speciesKey.value === null) return;
+  // ⚠ Watches the KIND as well as the accession. Switching the same BioSample from a modelled
+  // anchor to a placed one changes which relation the response describes, and watching the id alone
+  // would leave the previous answer on screen.
+  watch([anchorSampleId, anchorKind], ([nextId, nextKind], [previousId, previousKind]) => {
+    if ((nextId === previousId && nextKind === previousKind) || route.value === null) return;
+    if (speciesKey.value === null) return;
     void navigateTo(route.value.label, route.value.direction);
   });
 
@@ -171,7 +175,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     // does, and pushing unconditionally made the breadcrumb GROW when the reader went backwards.
     trail.value = advanceTrail(trail.value, locusLabel);
 
-    const key = locusCacheKey(species, locusLabel, anchorSampleId.value);
+    const key = locusCacheKey(species, locusLabel, anchorSampleId.value, anchorKind.value);
     const cached = cache.get(key);
     if (cached !== undefined) {
       // ⭐ Zero fetch, and zero flash: no pending, no refreshing, no dim timer.
@@ -198,7 +202,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     const outcome = await LANES.navigation.run((signal) =>
       fetchLocus(species, locusLabel, {
         signal,
-        ...(anchorSampleId.value ? { anchorSampleId: anchorSampleId.value } : {}),
+        ...anchorQuery(anchorSampleId.value, anchorKind.value),
       }),
     );
     // ⭐ Superseded: the reader walked on before this landed. Change NOTHING — not the view, not
@@ -270,16 +274,14 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     const stem = text.endsWith("r") ? text.slice(0, -1) : "";
     let probeFailed = false;
     if (stem) {
-      const key = locusCacheKey(species, text, anchorSampleId.value);
+      const key = locusCacheKey(species, text, anchorSampleId.value, anchorKind.value);
       const missingKey = `${species} ${text}`;
       if (knownMissing.has(missingKey)) {
         return openReversed(stem);
       }
       if (!cache.has(key)) {
         const started = generation;
-        const whole = await fetchLocus(species, text, {
-          ...(anchorSampleId.value ? { anchorSampleId: anchorSampleId.value } : {}),
-        });
+        const whole = await fetchLocus(species, text, anchorQuery(anchorSampleId.value, anchorKind.value));
         // ⛔ Superseded: the reader navigated while the probe was out. Change NOTHING.
         if (generation !== started || speciesKey.value !== species) return true;
         if (whole.ok) cache.put(key, whole.value);

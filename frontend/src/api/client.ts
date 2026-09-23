@@ -16,6 +16,7 @@ import type {
   GenomeListResponse,
   GeneSequenceResponse,
   LocusDetailResponse,
+  ProjectedGenomesResponse,
   SearchResponse,
   SpeciesCatalogueResponse,
   SpeciesListResponse,
@@ -56,14 +57,48 @@ export function fetchSpeciesCatalogue(
 export function fetchLocus(
   speciesKey: string,
   locusLabel: string,
-  options: { anchorSampleId?: string; signal?: AbortSignal } = {},
+  options: { anchorSampleId?: string; projectedSampleId?: string; signal?: AbortSignal } = {},
 ): Promise<Result<LocusDetailResponse>> {
+  // ⛔ `anchor` and `projected` are different parameters because they are different relations: a
+  // modelled genome is COUNTED in an arrangement, a projected one MATCHES it. The API refuses both
+  // at once with a named 400 rather than picking one silently, so this never sends both.
+  const query = options.anchorSampleId
+    ? { anchor: options.anchorSampleId }
+    : options.projectedSampleId
+      ? { projected: options.projectedSampleId }
+      : undefined;
   return requestJson<LocusDetailResponse>(
     `species/${encodeURIComponent(speciesKey)}/loci/${labelSegment(locusLabel)}`,
     {
       ...(options.signal ? { signal: options.signal } : {}),
-      ...(options.anchorSampleId ? { query: { anchor: options.anchorSampleId } } : {}),
+      ...(query ? { query } : {}),
     },
+  );
+}
+
+/**
+ * The one place the anchor's KIND becomes a query parameter — `{}` for no anchor.
+ *
+ * ⚠ Everything that fetches a locus goes through this, so a new call site cannot forget that a
+ * projected genome is not fetched with `anchor=`. Sending it that way returns a 404 (it is in no
+ * collection), which renders as "this genome has nothing here" — a claim, and a false one.
+ */
+export function anchorQuery(
+  sampleId: string | null,
+  kind: "catalogue" | "projected",
+): { anchorSampleId?: string; projectedSampleId?: string } {
+  if (!sampleId) return {};
+  return kind === "projected" ? { projectedSampleId: sampleId } : { anchorSampleId: sampleId };
+}
+
+/** Genomes placed on this catalogue after the model was built — never members of it. */
+export function fetchProjectedGenomes(
+  speciesKey: string,
+  signal?: AbortSignal,
+): Promise<Result<ProjectedGenomesResponse>> {
+  return requestJson<ProjectedGenomesResponse>(
+    `species/${encodeURIComponent(speciesKey)}/projected-genomes`,
+    { ...(signal ? { signal } : {}) },
   );
 }
 

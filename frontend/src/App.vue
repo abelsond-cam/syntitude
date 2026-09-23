@@ -30,10 +30,12 @@ import SequenceView from "@/components/views/SequenceView.vue";
 import { formatLocusHash } from "@/lib/locusHashRoute";
 import { FORWARD } from "@/lib/walkDirection";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
+import { useOwnGenomesStore } from "@/stores/ownGenomesStore";
 import { useSpeciesCatalogueStore } from "@/stores/speciesCatalogueStore";
 import { useViewTabStore } from "@/stores/viewTabStore";
 
 const species = useSpeciesCatalogueStore();
+const own = useOwnGenomesStore();
 const navigation = useLocusNavigationStore();
 const tabs = useViewTabStore();
 const { speciesList, catalogue, current, publishedSpecies, speciesKey } = storeToRefs(species);
@@ -92,6 +94,26 @@ function selectSpecies(nextSpeciesKey: string): void {
   url.hash = "";
   window.location.assign(url.toString());
 }
+
+/**
+ * ⭐ The placed genomes are fetched as soon as the species list is known, not when the dialog opens.
+ *
+ * ⚠ The gutter box has to KNOW whether anything is placed before a reader clicks it: it opens on the
+ * summary when there is something to show and on the accounts page when there is not, and it draws
+ * its placed state from the same list. Fetching only inside the dialog left the box unable to answer
+ * either question until after the reader had already been sent to the wrong screen. Two small
+ * responses, once per page load, against a cache that is immutable for a build.
+ */
+watch(
+  publishedSpecies,
+  (entries) => {
+    if (entries.length === 0) return;
+    void own.loadPlacedGenomes(
+      entries.map((entry) => ({ key: entry.key, scientificName: entry.scientific_name })),
+    );
+  },
+  { immediate: true },
+);
 
 const pageTitle = computed(() =>
   current.value ? `${current.value.species.scientific_name} · Syntitude` : "Syntitude",

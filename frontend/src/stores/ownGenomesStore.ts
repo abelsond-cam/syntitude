@@ -19,8 +19,9 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import { fetchGenomes } from "@/api/client";
+import { fetchGenomes, fetchProjectedGenomes } from "@/api/client";
 import type { Failure } from "@/api/result";
+import type { ProjectedGenomeEntry } from "@/api/types";
 import { parseAccessionList, type AccessionLine, type AccessionList } from "@/lib/parseAccessionList";
 
 /** The three steps, in the order a reader meets them. */
@@ -41,6 +42,10 @@ export type LineOutcome =
   | { readonly kind: "modelled-here" }
   /** Modelled, but in the other species' catalogue. */
   | { readonly kind: "modelled-elsewhere"; readonly speciesKey: string; readonly scientificName: string }
+  /** ⭐ Placed in advance for this demonstration — the reader can anchor it and see it drawn. */
+  | { readonly kind: "placed-here"; readonly entry: ProjectedGenomeEntry }
+  /** Placed, but on the other species' catalogue. */
+  | { readonly kind: "placed-elsewhere"; readonly speciesKey: string; readonly scientificName: string }
   /** A BioSample we cannot place yet — the part of the service that is still to be built. */
   | { readonly kind: "to-be-completed" }
   /** The modelled list did not load, so no claim is made about this accession. */
@@ -63,6 +68,16 @@ export const useOwnGenomesStore = defineStore("ownGenomes", () => {
   const rosterNames = ref<Record<string, string>>({});
   const rosterFailure = ref<Failure | null>(null);
   const isLoadingRosters = ref(false);
+
+  /**
+   * ⭐ The genomes actually placed on each catalogue, from the API. For this demonstration they were
+   * placed in advance; with accounts, this is the list a reader's own additions would join.
+   *
+   * ⚠ Keyed by species, like the rosters, because a BioSample placed on one catalogue says nothing
+   * about the other — the two 100-genome models are disjoint and so are their placements.
+   */
+  const placedBySpecies = ref<Record<string, readonly ProjectedGenomeEntry[]>>({});
+  const placementCaveat = ref<string | null>(null);
 
   const lines = computed<readonly AccessionLine[]>(() => list.value?.lines ?? []);
 
@@ -118,11 +133,50 @@ export const useOwnGenomesStore = defineStore("ownGenomes", () => {
     isLoadingRosters.value = false;
   }
 
+  /**
+   * The placed genomes of every published species. ⛔ Called with the rosters, not instead of them:
+   * "placed here", "modelled here" and "neither" are three different answers and the page needs all
+   * three lists to tell them apart.
+   */
+  async function loadPlacedGenomes(species: readonly SpeciesRoster[]): Promise<void> {
+    const answers = await Promise.all(
+      species.map(async (entry) => ({ entry, result: await fetchProjectedGenomes(entry.key) })),
+    );
+    const placed: Record<string, readonly ProjectedGenomeEntry[]> = {};
+    for (const { entry, result } of answers) {
+      // ⚠ A failed load leaves the species ABSENT rather than empty: absent means "not checked",
+      // and an empty array would let the dialog say "not placed" about a genome that is.
+      if (!result.ok) continue;
+      placed[entry.key] = result.value.genomes;
+      placementCaveat.value = result.value.caveat;
+    }
+    placedBySpecies.value = placed;
+  }
+
+  /** The genomes placed on the catalogue now open, in the order the API returned them. */
+  function placedFor(speciesKey: string | null): readonly ProjectedGenomeEntry[] {
+    return speciesKey === null ? [] : (placedBySpecies.value[speciesKey] ?? []);
+  }
+
   /** What to say about one line, on the page for `speciesKey`. */
   function outcomeFor(line: AccessionLine, speciesKey: string | null): LineOutcome {
     if (line.kind !== "biosample") return { kind: line.kind };
+    // ⚠ Placed BEFORE modelled: the two lists are disjoint by construction (a placed genome is one
+    // the model never clustered), so the order cannot change an answer — but it states the rule.
+    const placedHere = placedFor(speciesKey).find((entry) => entry.sample_id === line.accession);
+    if (placedHere) return { kind: "placed-here", entry: placedHere };
     const here = speciesKey === null ? undefined : modelledBySpecies.value[speciesKey];
     if (here?.includes(line.accession)) return { kind: "modelled-here" };
+    for (const [key, entries] of Object.entries(placedBySpecies.value)) {
+      if (key === speciesKey) continue;
+      if (entries.some((entry) => entry.sample_id === line.accession)) {
+        return {
+          kind: "placed-elsewhere",
+          speciesKey: key,
+          scientificName: rosterNames.value[key] ?? key,
+        };
+      }
+    }
     for (const [key, roster] of Object.entries(modelledBySpecies.value)) {
       if (key === speciesKey) continue;
       if (roster.includes(line.accession)) {
@@ -147,6 +201,8 @@ export const useOwnGenomesStore = defineStore("ownGenomes", () => {
     list,
     lines,
     modelledBySpecies,
+    placedBySpecies,
+    placementCaveat,
     rosterFailure,
     isLoadingRosters,
     open,
@@ -155,6 +211,8 @@ export const useOwnGenomesStore = defineStore("ownGenomes", () => {
     setFile,
     clearFile,
     loadRosters,
+    loadPlacedGenomes,
+    placedFor,
     outcomeFor,
   };
 });

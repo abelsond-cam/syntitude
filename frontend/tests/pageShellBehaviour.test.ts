@@ -28,8 +28,15 @@ const api = vi.hoisted(() => ({
   searchLoci: vi.fn(),
   fetchGenomes: vi.fn(),
   fetchAuditResiduals: vi.fn(),
+  fetchProjectedGenomes: vi.fn(),
 }));
-vi.mock("@/api/client", () => api);
+// ⚠ `anchorQuery` is deliberately NOT stubbed: it is the one place the anchor's kind becomes a
+// query parameter, and a stub would stop this suite noticing if a projected genome were ever
+// fetched as `anchor=` — which 404s, and reads on the page as "this genome has nothing here".
+vi.mock("@/api/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/client")>()),
+  ...api,
+}));
 
 function detail(label: string) {
   return {

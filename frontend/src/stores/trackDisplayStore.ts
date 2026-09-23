@@ -36,7 +36,7 @@ import { useLocusNavigationStore } from "./locusNavigationStore";
 export const useTrackDisplayStore = defineStore("trackDisplay", () => {
   const navigation = useLocusNavigationStore();
   const cache = useLocusDetailCacheStore();
-  const { sampleId: anchorSampleId } = storeToRefs(useAnchorGenomeStore());
+  const { sampleId: anchorSampleId, kind: anchorKind } = storeToRefs(useAnchorGenomeStore());
   const { drawable, walkDirection } = storeToRefs(navigation);
 
   /**
@@ -103,7 +103,7 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
     // ⚠ And WHICH genome: two anchors can carry identical ranks here, and switching between them
     // must still re-derive, as `app.js::setAnchor` always did. The response does not name the genome,
     // so the store's own anchor supplies it.
-    return `${detail.locus.label}|${anchorSampleId.value ?? ""}|${anchorBlock}`;
+    return `${detail.locus.label}|${anchorSampleId.value ?? ""}|${anchorKind.value}|${anchorBlock}`;
   }
 
   /**
@@ -303,7 +303,7 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
    * prefetch the reader did not ask for must leave no trace when it fails.
    */
   function prefetchNeighbour(speciesKey: string, locusLabel: string): void {
-    void cache.prefetch(speciesKey, locusLabel, anchorSampleId.value);
+    void cache.prefetch(speciesKey, locusLabel, anchorSampleId.value, anchorKind.value);
   }
 
   function toggleFocalPopover(): void {

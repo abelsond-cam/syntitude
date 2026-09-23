@@ -299,7 +299,7 @@ describe("the whole track", () => {
         members_without_a_neighbourhood: 5,
         membership_is_complete: true,
       },
-      anchor: { is_anchored: false, arrangement_ranks: [] },
+      anchor: { is_anchored: false, arrangement_ranks: [], kind: null, projected_copies: [] },
       offsets: SIGNED_OFFSETS.map((signed_offset) => marginal({ signed_offset })),
       intergenic_gaps: [],
       pfam_reference: {},

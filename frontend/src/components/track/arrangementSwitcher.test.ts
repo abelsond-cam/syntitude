@@ -51,6 +51,7 @@ function mountSwitcher(props: Partial<InstanceType<typeof ArrangementSwitcher>["
       anchorRanks: [],
       anchorGenomeName: null,
       membershipIsComplete: true,
+      projectedCopies: null,
       walkDirection: FORWARD,
       ...props,
     },
@@ -153,6 +154,7 @@ describe("the single-arrangement locus", () => {
       anchorGenomeName: "SAMEA1",
       anchorRanks: [],
       membershipIsComplete: true,
+      projectedCopies: null,
     });
     expect(switcher.find(".arr-anchored").text()).toContain("has no gene at this locus");
   });
@@ -170,6 +172,7 @@ describe("⛔ the anchor line says one of two DIFFERENT things, and only one is 
       anchorGenomeName: "SAMEA1",
       anchorRanks: [],
       membershipIsComplete: true,
+      projectedCopies: null,
     }).find(".arr-anchored");
     expect(line.text()).toContain("has no gene at this locus");
     expect(line.classes()).toContain("muted");
@@ -183,6 +186,7 @@ describe("⛔ the anchor line says one of two DIFFERENT things, and only one is 
       anchorGenomeName: "SAMEA1",
       anchorRanks: [],
       membershipIsComplete: false,
+      projectedCopies: null,
     }).find(".arr-anchored");
     expect(line.text()).toContain("has no recorded neighbourhood at this locus");
     expect(line.text()).not.toContain("has no gene at this locus");

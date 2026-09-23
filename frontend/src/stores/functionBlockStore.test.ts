@@ -10,7 +10,13 @@ import { useLocusNavigationStore } from "./locusNavigationStore";
 
 const fetchLocus = vi.hoisted(() => vi.fn());
 const fetchLocusFunction = vi.hoisted(() => vi.fn());
-vi.mock("@/api/client", () => ({ fetchLocus, fetchLocusFunction }));
+// ⚠ A PARTIAL mock: `anchorQuery` must stay real, because it is the one place the anchor's
+// kind becomes a query parameter and a stub would hide a projected genome being fetched as
+// `anchor=` — which 404s and reads on the page as "this genome has nothing here".
+vi.mock("@/api/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/api/client")>()),
+  fetchLocus, fetchLocusFunction,
+}));
 
 function locusDetail(label: string): LocusDetailResponse {
   return {
@@ -25,7 +31,7 @@ function locusDetail(label: string): LocusDetailResponse {
       members_without_a_neighbourhood: 0,
       membership_is_complete: true,
     },
-    anchor: { is_anchored: false, arrangement_ranks: [] },
+    anchor: { is_anchored: false, arrangement_ranks: [], kind: null, projected_copies: [] },
     offsets: [],
     intergenic_gaps: [],
     pfam_reference: {},

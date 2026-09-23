@@ -17,6 +17,7 @@
 import { computed, ref, watch } from "vue";
 
 import type { SpeciesEntry } from "@/stores/speciesCatalogueStore";
+import { useAnchorGenomeStore } from "@/stores/anchorGenomeStore";
 import { useOwnGenomesStore, type LineOutcome } from "@/stores/ownGenomesStore";
 import { MAXIMUM_LINES } from "@/lib/parseAccessionList";
 
@@ -26,6 +27,7 @@ const props = defineProps<{
 }>();
 
 const own = useOwnGenomesStore();
+const anchor = useAnchorGenomeStore();
 
 /**
  * ⭐ **The GPU figure is measured** (David, 2026-09-22: "I thought ESM and bacformer single forward
@@ -75,11 +77,38 @@ watch(
   ([open, step]) => {
     if (!open || step !== "add") return;
     if (own.isLoadingRosters || Object.keys(own.modelledBySpecies).length > 0) return;
-    void own.loadRosters(
-      props.species.map((entry) => ({ key: entry.key, scientificName: entry.scientific_name })),
-    );
+    const roster = props.species.map((entry) => ({
+      key: entry.key,
+      scientificName: entry.scientific_name,
+    }));
+    // ⛔ Both lists, together. "Placed here", "modelled here" and "neither" are three different
+    // answers, and with only one list loaded the dialog would give the wrong one of the three.
+    void own.loadRosters(roster);
+    void own.loadPlacedGenomes(roster);
   },
 );
+
+/** The genomes placed on the catalogue now open — what step 3 actually shows. */
+const placed = computed(() => own.placedFor(props.speciesKey));
+
+/** Anchoring from here closes the dialog: the reader asked to SEE the genome, not to read about it. */
+function anchorPlaced(sampleId: string): void {
+  anchor.setProjectedAnchor(sampleId);
+  own.close();
+}
+
+/**
+ * ⚠ The agreement and its denominator, always together. A locus with *m* modelled genes can supply
+ * at most min(n, m) of the n checkers, so "10 of 10" and "1 of 1" are both unanimous and the second
+ * says far less — printing the numerator alone would make a singleton locus look like a failure.
+ */
+function share(numerator: number, denominator: number): string {
+  return `${numerator.toLocaleString()} of ${denominator.toLocaleString()}`;
+}
+
+function percent(part: number, whole: number): string {
+  return whole === 0 ? "—" : `${Math.round((100 * part) / whole)}%`;
+}
 
 async function onFile(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement;
@@ -93,13 +122,19 @@ const rows = computed(() =>
 );
 
 /** ⚠ Counted from the outcomes, never from the line count: a repeat is not a genome. */
-const showable = computed(() => rows.value.filter((row) => row.outcome.kind === "to-be-completed").length);
+const showable = computed(() => rows.value.filter((row) => row.outcome.kind === "placed-here").length);
+/** The ones the service would have to fetch and place — the part that is not built. */
+const toBeCompleted = computed(
+  () => rows.value.filter((row) => row.outcome.kind === "to-be-completed").length,
+);
 
 const MARK: Readonly<Record<LineOutcome["kind"], string>> = {
   "not-an-accession": "✗",
   repeat: "–",
   "modelled-here": "–",
   "modelled-elsewhere": "→",
+  "placed-here": "✓",
+  "placed-elsewhere": "→",
   "to-be-completed": "○",
   unchecked: "?",
 };
@@ -114,6 +149,13 @@ function sentenceFor(outcome: LineOutcome): string {
       return `already one of the 100 genomes ${speciesName.value} was modelled from — use “Anchor to a genome”`;
     case "modelled-elsewhere":
       return `one of the 100 modelled genomes of ${outcome.scientificName} — switch species to anchor it`;
+    case "placed-here":
+      return (
+        `ready — ${outcome.entry.placed_gene_count.toLocaleString()} genes placed on ` +
+        `${outcome.entry.distinct_locus_count.toLocaleString()} loci, in advance for this demonstration`
+      );
+    case "placed-elsewhere":
+      return `placed on the ${outcome.scientificName} catalogue — switch species to see it`;
     case "to-be-completed":
       return "a BioSample we do not hold yet — with an account it would be fetched from BakRep and placed (to be completed)";
     case "unchecked":
@@ -200,21 +242,69 @@ function sentenceFor(outcome: LineOutcome): string {
         <div class="own-actions">
           <button type="button" class="own-button" @click="own.showStep('account')">← Back</button>
           <button type="button" class="own-button own-go" @click="own.showStep('yours')">
-            {{ showable === 1 ? "Show 1 genome" : `Show ${showable} genomes` }} →
+            <!-- ⚠ The label names what will actually be shown. With nothing placed on this
+                 catalogue, "Show 0 genomes" would read as a failure of the reader's file rather
+                 than as the part of the service that is not built yet. -->
+            {{
+              showable === 0
+                ? "What happens next →"
+                : showable === 1
+                  ? "Show 1 genome →"
+                  : `Show ${showable} genomes →`
+            }}
           </button>
         </div>
       </section>
 
       <!-- ── 3 · what was added ──────────────────────────────────────────────────────────────── -->
       <section v-else class="own-step">
-        <p class="lede">Your genomes</p>
+        <p class="lede">Your genomes · {{ speciesName }}</p>
         <p class="muted own-banner">
-          <b>Demonstration.</b> No genome of yours has been placed yet: fetching it from BakRep,
-          embedding it and placing each of its genes on the nearest modelled gene's locus is the part
-          still to be built. When it is, the genomes you add appear here and can be shown on the
-          track beside the 100 this catalogue was modelled from.
+          <b>Demonstration — placed in advance.</b> None of these genomes was clustered by the model.
+          Each of its genes was placed on the locus of its <b>nearest modelled gene</b>, and its
+          neighbours checked that placement: an approximation of what the model would have done, not
+          the model's own clustering. Fetching a genome from BakRep and embedding it on demand is the
+          part still to be built.
         </p>
-        <p class="muted">
+
+        <ul v-if="placed.length" class="own-placed">
+          <li v-for="entry in placed" :key="entry.sample_id">
+            <div class="own-placed-head">
+              <span class="mono own-placed-id">{{ entry.sample_id }}</span>
+              <button type="button" class="own-button own-go" @click="anchorPlaced(entry.sample_id)">
+                Show it on the track →
+              </button>
+            </div>
+            <div class="own-placed-facts">
+              <span>
+                <b>{{ entry.placed_gene_count.toLocaleString() }}</b> genes placed on
+                <b>{{ entry.distinct_locus_count.toLocaleString() }}</b> loci
+              </span>
+              <span>
+                <b>{{ percent(entry.window_matched_gene_count, entry.placed_gene_count) }}</b> sit in a
+                neighbourhood the 100 already have
+              </span>
+              <span>
+                nearest-gene similarity
+                <b>{{ entry.nearest_cosine.median?.toFixed(3) ?? "—" }}</b> median, down to
+                {{ entry.nearest_cosine.minimum?.toFixed(2) ?? "—" }}
+              </span>
+              <span>
+                {{ share(entry.contested_gene_count, entry.placed_gene_count) }} genes have a rival
+                locus with more support
+              </span>
+              <span v-if="entry.genes_without_a_neighbourhood > 0" class="alt-desc">
+                {{ entry.genes_without_a_neighbourhood.toLocaleString() }} genes are alone on their
+                contig, so they have no neighbourhood at all
+              </span>
+            </div>
+          </li>
+        </ul>
+        <p v-else class="muted">
+          No genome has been placed on this catalogue. Add some, or switch species.
+        </p>
+
+        <p class="muted alt-desc">
           Every count elsewhere on this page — prevalence, the bands, the census, the neighbourhoods —
           is the 100 modelled genomes, and stays that way.
         </p>

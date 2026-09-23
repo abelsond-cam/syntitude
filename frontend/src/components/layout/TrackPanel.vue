@@ -44,7 +44,7 @@ const props = defineProps<{
 const navigation = useLocusNavigationStore();
 const track = useTrackDisplayStore();
 const browser = useArrangementBrowserStore();
-const { sampleId: anchorSampleId } = storeToRefs(useAnchorGenomeStore());
+const { sampleId: anchorSampleId, kind: anchorKind } = storeToRefs(useAnchorGenomeStore());
 const { view, drawable, trail, displayNames, walkDirection } = storeToRefs(navigation);
 const {
   selectedArrangementIndex,
@@ -177,7 +177,9 @@ function jump(locus: string): void {
 </script>
 
 <template>
-  <section class="track-panel">
+  <!-- ⭐ `is-projected` redefines `--anchor` for the whole panel, so every ⚓ mark, band and
+       popover rule takes the placed colour without knowing this state exists. -->
+  <section class="track-panel" :class="{ 'is-projected': anchorKind === 'projected' }">
     <div class="wrap">
       <!-- Heading and breadcrumb share ONE row (David, 2026-08-25): stacked they spent two lines on
            ~20 px of text. `.trail:not(:empty)` draws the divider, so it appears with the trail. -->
@@ -281,7 +283,7 @@ function jump(locus: string): void {
              of flow beneath it — `.arr-gutter`, in the ADDED section of app.css. -->
         <div class="arr-gutter">
           <AnchorGenomeBox :species-key="speciesKey" placement="track" />
-          <OwnGenomesBox />
+          <OwnGenomesBox :species-key="speciesKey" />
         </div>
         <ArrangementSwitcher
           :locus="drawable.locus"
@@ -291,6 +293,7 @@ function jump(locus: string): void {
           :anchor-ranks="drawable.anchor.arrangement_ranks"
           :anchor-genome-name="anchorSampleId"
           :membership-is-complete="drawable.arrangements.membership_is_complete"
+          :projected-copies="drawable.anchor.kind === 'projected' ? drawable.anchor.projected_copies : null"
           :walk-direction="walkDirection"
           @select="track.selectArrangement($event)"
         />

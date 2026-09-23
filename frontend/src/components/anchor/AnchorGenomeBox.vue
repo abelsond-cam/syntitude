@@ -40,7 +40,16 @@ const LIST_LIMIT = 200;
 const CLOSE_AFTER_BLUR_MS = 120;
 
 const anchor = useAnchorGenomeStore();
-const { sampleId, isAvailable, isAnchored } = storeToRefs(anchor);
+const { sampleId: anchoredSampleId, isAvailable, kind } = storeToRefs(anchor);
+
+/**
+ * ⛔ **This box shows only a CATALOGUE anchor.** There is one anchor and both boxes read it, but a
+ * genome placed on the model afterwards belongs to the other box — showing its accession here would
+ * put it behind the ⚓, which means "one of the modelled genomes", about a genome that is not one.
+ * So a projected anchor reads as no anchor here, and the box goes back to its grey empty state.
+ */
+const sampleId = computed(() => (kind.value === "catalogue" ? anchoredSampleId.value : null));
+const isAnchored = computed(() => sampleId.value !== null);
 
 const ids = computed(() =>
   props.placement === "track"

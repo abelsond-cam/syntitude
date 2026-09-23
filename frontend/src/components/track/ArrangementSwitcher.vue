@@ -32,7 +32,7 @@
  */
 import { computed } from "vue";
 
-import type { Arrangement, Locus } from "@/api/types";
+import type { Arrangement, Locus, ProjectedCopy } from "@/api/types";
 import { arrangementDifference, commonestArrangement } from "@/lib/arrangementDisplay";
 import { sharePercent } from "@/lib/formatting";
 import type { WalkDirection } from "@/lib/walkDirection";
@@ -52,6 +52,13 @@ const props = defineProps<{
    * about an anchored genome that carries none, and only one of them is ever true.
    */
   membershipIsComplete: boolean;
+  /**
+   * ⛔ A genome PLACED on this model after it was built, not one of its members. Its genes sit on
+   * the loci of their nearest modelled genes, so it MATCHES an arrangement rather than being
+   * counted in one — and the sentence has to say so, or a reader learns that their genome is part
+   * of a model it was never in. `null` when the anchored genome is a member, or when there is none.
+   */
+  projectedCopies: readonly ProjectedCopy[] | null;
   walkDirection: WalkDirection;
 }>();
 
@@ -96,7 +103,42 @@ const coverage = computed(() => {
  */
 const isSingleArrangement = computed(() => props.total <= 1);
 
+/**
+ * ⭐ The placed genome's own sentence, and it never uses the member's words.
+ *
+ * Four cases, each a different claim: it is here and its whole neighbourhood is one the 100 already
+ * have; it is here and its neighbourhood is new; it is here but alone on its contig, so it has no
+ * neighbourhood to compare at all; or it has no gene at this locus.
+ *
+ * ⚠ The agreement always carries its denominator. A locus with *m* modelled genes can offer at most
+ * min(n, m) checkers, so "9 of 10" and "1 of 1" are different evidence and the bare numerator would
+ * make a rare locus look like a doubtful placement.
+ */
+const placedLine = computed(() => {
+  const who = props.anchorGenomeName;
+  const copies = props.projectedCopies;
+  if (who === null || copies === null) return null;
+  if (copies.length === 0) {
+    return { who, isMuted: true, rest: " has no gene placed at this locus — the most common neighbourhood is shown instead" };
+  }
+  const first = copies[0]!;
+  const agreement = `${first.agreeing_neighbours} of its ${first.available_neighbours} nearest agree`;
+  const cosine = first.nearest_cosine === null ? "" : `nearest modelled gene ${first.nearest_cosine.toFixed(2)}; `;
+  const where = !first.has_a_neighbourhood
+    ? "it is alone on its contig here, so it has no neighbourhood to compare"
+    : first.matched_arrangement_rank === null
+      ? "its neighbourhood here is one no modelled genome has"
+      : `its neighbourhood here is #${first.matched_arrangement_rank + 1}`;
+  const copiesHere = copies.length > 1 ? ` (${copies.length} of its genes are placed here)` : "";
+  return {
+    who,
+    isMuted: false,
+    rest: ` — placed after the model was built, not a member: ${where}. ${cosine}${agreement}.${copiesHere}`,
+  };
+});
+
 const anchorLine = computed(() => {
+  if (placedLine.value !== null) return placedLine.value;
   const who = props.anchorGenomeName;
   if (who === null) return null;
   if (props.anchorRanks.length > 0) return { who, isMuted: false, rest: null };

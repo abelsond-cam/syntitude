@@ -18,8 +18,10 @@
 import { defineStore } from "pinia";
 import { ref, shallowRef } from "vue";
 
-import { fetchLocus } from "@/api/client";
+import { anchorQuery, fetchLocus } from "@/api/client";
 import type { LocusDetailResponse } from "@/api/types";
+
+import type { AnchorKind } from "./anchorGenomeStore";
 
 /** How many locus responses to hold. A walk of 40 steps fits comfortably. */
 export const CACHE_LIMIT = 120;
@@ -33,8 +35,12 @@ export function locusCacheKey(
   speciesKey: string,
   locusLabel: string,
   anchorSampleId: string | null,
+  anchorKind: AnchorKind = "catalogue",
 ): string {
-  return `${speciesKey} ${locusLabel} ${anchorSampleId || ""}`;
+  // ⛔ The KIND is part of the key. One BioSample can be a modelled genome of one catalogue and a
+  // projected genome of another, and the two responses describe different relations — without the
+  // kind, anchoring the same accession the other way would be served the previous answer.
+  return `${speciesKey} ${locusLabel} ${anchorSampleId || ""} ${anchorSampleId ? anchorKind : ""}`;
 }
 
 export const useLocusDetailCacheStore = defineStore("locusDetailCache", () => {
@@ -85,14 +91,13 @@ export const useLocusDetailCacheStore = defineStore("locusDetailCache", () => {
     speciesKey: string,
     locusLabel: string,
     anchorSampleId: string | null,
+    anchorKind: AnchorKind = "catalogue",
   ): Promise<void> {
-    const key = locusCacheKey(speciesKey, locusLabel, anchorSampleId);
+    const key = locusCacheKey(speciesKey, locusLabel, anchorSampleId, anchorKind);
     if (entries.has(key) || inFlight.value.has(key)) return;
     inFlight.value.add(key);
     try {
-      const result = await fetchLocus(speciesKey, locusLabel, {
-        ...(anchorSampleId ? { anchorSampleId } : {}),
-      });
+      const result = await fetchLocus(speciesKey, locusLabel, anchorQuery(anchorSampleId, anchorKind));
       if (result.ok) put(key, result.value);
     } finally {
       inFlight.value.delete(key);

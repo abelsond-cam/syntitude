@@ -376,6 +376,9 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
           anchorRanks: detail.anchor.arrangement_ranks,
           anchorGenomeName: anchor,
           membershipIsComplete: detail.arrangements.membership_is_complete,
+          // ⚠ These fixtures are MODELLED genomes read from the real payload — never placed
+          // ones — so the switcher must take the member's sentence, not the placed one.
+          projectedCopies: null,
           walkDirection: "forward" as const,
         },
       });
