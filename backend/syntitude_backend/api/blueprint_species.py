@@ -28,6 +28,7 @@ from syntitude_backend.serialisers.locus_serialiser import (
     serialise_gene_sequence,
     serialise_locus_detail,
 )
+from syntitude_backend.serialisers.projected_genome_serialiser import serialise_projected_genome
 from syntitude_backend.services.audit_residual_service import load_audit_residuals
 from syntitude_backend.services.gene_sequence_service import (
     SequenceUnavailable,
@@ -41,6 +42,10 @@ from syntitude_backend.services.locus_detail_service import (
     load_locus_detail,
 )
 from syntitude_backend.services.locus_search_service import DEFAULT_RESULT_LIMIT, search_loci
+from syntitude_backend.services.projected_genome_service import (
+    list_projected_genomes,
+    resolve_projected_genome,
+)
 from syntitude_backend.services.species_catalogue_service import (
     SpeciesNotPublished,
     list_published_species,
@@ -326,10 +331,35 @@ def get_locus(species_key: str, locus_label: str):
 
         anchor_genome_id = None
         anchor = request.args.get("anchor")
+        projected = request.args.get("projected")
+        # ⛔ One genome is anchored at a time, and the two are DIFFERENT relations to this
+        # pangenome — a member and a genome placed beside it. Serving both would have to pick one
+        # silently, so it is a named 400 instead.
+        if anchor and projected:
+            return (
+                jsonify(
+                    error="anchor and projected are mutually exclusive: a genome is either one of "
+                    "this pangenome's modelled genomes or one placed onto it afterwards, and the "
+                    "page anchors to one genome at a time"
+                ),
+                400,
+            )
         if anchor:
             anchor_genome_id = _resolve_catalogue_genome(session, pangenome, anchor)
             if anchor_genome_id is None:
                 return _not_found(f"no genome {anchor!r} in the {species_key!r} catalogue")
+
+        projected_genome_id = None
+        if projected:
+            projected_genome_id = resolve_projected_genome(session, pangenome.pangenome_id, projected)
+            # ⚠ A genome that EXISTS but was never projected is a 404 that says which, rather than
+            # an empty 200 — the database holds 22 ecoli and 58 kp genomes in neither the collection
+            # nor any projection, and a blank answer for one reads as "it has nothing here".
+            if projected_genome_id is None:
+                return _not_found(
+                    f"no genome {projected!r} placed on the {species_key!r} catalogue — it is not one "
+                    "of the genomes projected onto this pangenome"
+                )
 
         try:
             detail = load_locus_detail(
@@ -337,6 +367,7 @@ def get_locus(species_key: str, locus_label: str):
                 pangenome_id=pangenome.pangenome_id,
                 node_label=locus_label,
                 anchor_genome_id=anchor_genome_id,
+                projected_genome_id=projected_genome_id,
             )
         except LocusNotFound as error:
             return _not_found(str(error))
@@ -599,3 +630,36 @@ def get_genomes(species_key: str):
             },
             pangenome.pangenome_id,
         )
+
+
+@species_blueprint.get("/species/<species_key>/projected-genomes")
+def get_projected_genomes(species_key: str):
+    """⭐ Genomes placed on this catalogue after the model was built — never members of it.
+
+    ⛔ **Every count on this page stays the modelled 100.** These rows are an addition drawn beside
+    the model: prevalence, bands, the census, the marginals, arrangement genome counts and the
+    genome picker are unchanged by anything here, and the `no-count-change` test asserts it.
+
+    ⚠ The response carries the RULE and both neighbour numbers, because a placement means nothing
+    without them: the nearest modelled gene decided the locus, `neighbours_reported` of the nearest
+    checked it, and `neighbours_searched` were kept so a wider check can be tried without searching
+    again.
+    """
+    with _session() as session:
+        try:
+            pangenome = _resolve_pangenome(session, species_key)
+        except SpeciesNotPublished as error:
+            return _not_found(str(error))
+
+        rows = list_projected_genomes(session, pangenome.pangenome_id)
+        payload = {
+            "species_key": species_key,
+            "genomes": [serialise_projected_genome(row) for row in rows],
+            # ⛔ The sentence the page must repeat wherever these genomes appear.
+            "caveat": (
+                "placed after the model was built: each gene sits on the locus of its nearest "
+                "modelled gene, which approximates what the model would have done and is not the "
+                "model's own clustering"
+            ),
+        }
+        return _immutable(payload, pangenome.pangenome_id)

@@ -168,6 +168,34 @@ class CatalogueArtifacts:
         """The sidecar carrying the baseline's mean cosine, which the CSV itself does not."""
         return self.null_baseline(representation).with_suffix(".meta")
 
+    # ── the projection: genomes the model never clustered ─────────────────────────────────────
+    @property
+    def projection_root(self) -> Path:
+        """Where nuna wrote the placements for genomes OUTSIDE this pangenome's 100.
+
+        ⚠ nuna names this directory `{set}_{model_label}` with its own `--model-label`, which is the
+        part after the set token — so the directory name is exactly THIS class's `model_label`, and
+        the two conventions meet without a rule that has to be kept in step.
+
+        ⛔ Not in `required()`. A catalogue is complete without any projected genome, and making the
+        whole load depend on an optional feature's artifacts would be the wrong dependency.
+        """
+        return self.analysis_root / "locus_projection" / self.model_label
+
+    def projected_genome_table(self, sample_id: str) -> Path:
+        """One row per placed gene, with its ±5 window and the arrangement it matched."""
+        return self.projection_root / f"{sample_id}_placed_windows.tsv"
+
+    @property
+    def placement_summary(self) -> Path:
+        """The rule, k, n, and the assignment sha256 the placements were computed against."""
+        return self.projection_root / "placement_summary.json"
+
+    @property
+    def projection_manifest(self) -> Path:
+        """The search's own manifest — the assignment it searched and that file's digest."""
+        return self.projection_root / "manifest.json"
+
     # ── the oracle, which is never an input ───────────────────────────────────────────────────
     @property
     def published_payload(self) -> Path:

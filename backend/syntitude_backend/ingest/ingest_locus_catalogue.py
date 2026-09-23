@@ -61,6 +61,7 @@ from syntitude_backend.models.locus_embedding_geometry import (
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
+from syntitude_backend.models.projected_genome import ProjectedGenome
 from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
 
 #: `catalogue_map._COS` — the factor the 15 upper-triangle cosines are stored at.
@@ -426,6 +427,21 @@ def _delete_pangenome_layer(session: Session, pangenome_id: int) -> None:
             ).delete(synchronize_session=False)
             continue
         session.query(model).filter(column == pangenome_id).delete(synchronize_session=False)
+    # ⛔ **The projection goes too, and it is announced.** `projected_gene_placement.locus_id`
+    # cascades from `locus`, so re-ingesting a catalogue would silently empty the placements while
+    # leaving `projected_genome` rows whose counts describe nothing — a summary saying "4,676 genes
+    # placed on 4,652 loci" over a table with no rows in it. Deleting both together and SAYING so is
+    # the only version of this a reader can act on: the placements are nuna artifacts and are
+    # re-loadable with `--stage projection`, but nothing else would tell you they had gone.
+    projected = session.query(ProjectedGenome).filter(
+        ProjectedGenome.pangenome_id == pangenome_id
+    ).delete(synchronize_session=False)
+    if projected:
+        print(
+            f"  ⚠ {projected} projected genome(s) deleted with this catalogue's loci — "
+            "re-run `--stage projection` to place them again"
+        )
+
     # `locus` last: annotation entries, the cross-tab and the geometry cascade from it.
     session.query(Locus).filter(Locus.pangenome_id == pangenome_id).delete(synchronize_session=False)
     session.flush()

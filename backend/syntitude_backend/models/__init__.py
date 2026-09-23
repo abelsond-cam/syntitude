@@ -41,6 +41,10 @@ from syntitude_backend.models.pangenome_genome_locus_count import (  # noqa: F40
     PangenomeGenomeLocusCount,
 )
 from syntitude_backend.models.pathogen_species import PathogenSpecies  # noqa: F401
+from syntitude_backend.models.projected_genome import (  # noqa: F401
+    ProjectedGenePlacement,
+    ProjectedGenome,
+)
 from syntitude_backend.models.reference_vocabulary import PfamFamily  # noqa: F401
 
 __all__ = [
@@ -72,4 +76,6 @@ __all__ = [
     "PangenomeInputEdge",
     "PangenomeStep",
     "PathogenSpecies",
+    "ProjectedGenePlacement",
+    "ProjectedGenome",
 ]

@@ -178,6 +178,43 @@ def serialise_intergenic_gap(gap, labels: dict) -> dict:
     }
 
 
+
+def serialise_projected_placement(placement, detail) -> dict:
+    """One gene of a projected genome at this locus — the evidence, with its own denominator.
+
+    ⛔ **`agreeing_neighbours` is meaningless without `available_neighbours`.** A locus with *m*
+    modelled genes can supply at most min(n, m) of the n checkers, so the raw count tracks the
+    locus's SIZE as much as the evidence: measured over the first ten placed genomes, `is_contested`
+    runs at 0.39 % where the locus has ten genes to offer and 42.6 % where it has fewer, reaching
+    96.3 % at singletons. Both numbers are serialised together for that reason, and a client that
+    shows one without the other is reporting a bounded numerator as a score.
+
+    ⚠ **Three absences, kept apart.** `matched_arrangement_rank` is null with
+    `has_a_neighbourhood` true → the window was built and matches none of the published
+    arrangements, which is an observation. `has_a_neighbourhood` false → the gene is alone on its
+    contig and has no window at all. A gene with no Bacformer vector has no placement row anywhere.
+    """
+    matched = None
+    for arrangement in detail.arrangements:
+        if arrangement.locus_arrangement_id == placement.matched_locus_arrangement_id:
+            matched = arrangement
+            break
+    return {
+        "flat_index": placement.flat_index,
+        "copy_ordinal": placement.copy_ordinal,
+        "copies_at_locus": placement.copies_at_locus,
+        "nearest_cosine": placement.nearest_cosine,
+        "agreeing_neighbours": placement.agreeing_neighbour_count,
+        "available_neighbours": placement.available_neighbour_count,
+        "placed_summed_cosine": placement.placed_summed_cosine,
+        "is_contested": placement.is_contested,
+        "runner_up_summed_cosine": placement.runner_up_summed_cosine,
+        "has_a_neighbourhood": placement.neighbour_slot_codes is not None,
+        "matched_arrangement_rank": matched.rank_within_locus if matched is not None else None,
+        "matched_arrangement_genome_count": matched.member_genome_count if matched is not None else None,
+    }
+
+
 def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10_000) -> dict:
     """The whole locus response — one round trip, and the popover is then offline."""
     locus = detail.locus
@@ -306,6 +343,16 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
         "anchor": {
             "is_anchored": detail.is_anchored,
             "arrangement_ranks": list(detail.anchor_arrangement_ranks),
+            # ⛔ `catalogue` | `projected` | null. A projected genome MATCHES an arrangement; a
+            # catalogue genome is COUNTED in one. The page must not say "your genome is in
+            # arrangement #3" about a genome that is in no arrangement at all, and the kind is what
+            # stops it. `arrangement_ranks` stays empty for a projected genome — its relation is in
+            # `projected_copies` instead, so a client that ignores the kind cannot accidentally
+            # render a projected genome as a member.
+            "kind": detail.anchor_kind,
+            "projected_copies": [
+                serialise_projected_placement(placement, detail) for placement in detail.projected_placements
+            ],
         },
         "offsets": serialise_offset_occupants(detail),
         "intergenic_gaps": [

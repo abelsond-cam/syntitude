@@ -22,6 +22,7 @@ starts making a claim it cannot support.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from sqlalchemy import and_, or_, select, tuple_
@@ -35,6 +36,7 @@ from syntitude_backend.models.locus_arrangement import LocusArrangement
 from syntitude_backend.models.locus_embedding_geometry import LocusEmbeddingGeometry
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.reference_vocabulary import PfamFamily
+from syntitude_backend.services.projected_genome_service import load_placements_at_locus
 
 #: The signed offsets, in display order. ⛔ `0` is absent — it is the focal locus.
 SIGNED_OFFSETS = (-5, -4, -3, -2, -1, 1, 2, 3, 4, 5)
@@ -155,6 +157,12 @@ class LocusDetail:
     #: this genome has no gene at this locus" — an empty rank list means the second only when this
     #: is true, and the two are different sentences on the page.
     is_anchored: bool = False
+    #: ⛔ A PROJECTED genome's genes at this locus — placed after the model was built, never members.
+    #: ⚠ `anchor_kind` is what stops the page saying "this genome is in arrangement #3" about a
+    #: genome that is in no arrangement at all: a projected genome MATCHES an arrangement, which is
+    #: a different relation from being counted in one, and the two must not share a sentence.
+    anchor_kind: str | None = None
+    projected_placements: list = field(default_factory=list)
 
 
 def pfam_accessions_in(architecture: str | None) -> list[str]:
@@ -212,7 +220,11 @@ def _locus_by_label(session: Session, pangenome_id: int, node_label: str) -> Loc
     return locus
 
 
-def listed_arrangement_condition(arrangement_limit: int, anchor_genome_id: int | None):
+def listed_arrangement_condition(
+    arrangement_limit: int,
+    anchor_genome_id: int | None,
+    matched_arrangement_ids: Sequence[int] | None = None,
+):
     """Which arrangements a response carries: the commonest few, OR any the anchored genome sits in.
 
     ⭐ `member_genome_ids @> ARRAY[?]` is the GIN index doing the work a binary search over a
@@ -227,11 +239,22 @@ def listed_arrangement_condition(arrangement_limit: int, anchor_genome_id: int |
     condition = LocusArrangement.rank_within_locus < arrangement_limit
     if anchor_genome_id is not None:
         condition = or_(condition, LocusArrangement.member_genome_ids.contains([anchor_genome_id]))
+    # ⭐ The same rule for a PROJECTED genome, and it has to be a different clause: a projected
+    # genome is in no `member_genome_ids`, so the array test above can never find it. Without this
+    # a reader is told their genome's neighbourhood is arrangement #37 and the response does not
+    # contain #37.
+    if matched_arrangement_ids:
+        condition = or_(condition, LocusArrangement.locus_arrangement_id.in_(list(matched_arrangement_ids)))
     return condition
 
 
 def load_listed_arrangements(
-    session: Session, *, locus_id: int, arrangement_limit: int, anchor_genome_id: int | None
+    session: Session,
+    *,
+    locus_id: int,
+    arrangement_limit: int,
+    anchor_genome_id: int | None,
+    matched_arrangement_ids: Sequence[int] | None = None,
 ) -> list[LocusArrangement]:
     """The arrangements one locus response carries, in rank order. One statement.
 
@@ -243,7 +266,9 @@ def load_listed_arrangements(
             select(LocusArrangement)
             .where(
                 LocusArrangement.locus_id == locus_id,
-                listed_arrangement_condition(arrangement_limit, anchor_genome_id),
+                listed_arrangement_condition(
+                    arrangement_limit, anchor_genome_id, matched_arrangement_ids
+                ),
             )
             .order_by(LocusArrangement.rank_within_locus)
         ).scalars()
@@ -291,11 +316,33 @@ def load_locus_detail(
     pangenome_id: int,
     node_label: str,
     anchor_genome_id: int | None = None,
+    projected_genome_id: int | None = None,
     arrangement_limit: int = ARRANGEMENT_PAGE_SIZE,
 ) -> LocusDetail:
-    """The whole locus view. One statement per table, and none of them per neighbour."""
+    """The whole locus view. One statement per table, and none of them per neighbour.
+
+    ⚠ `anchor_genome_id` and `projected_genome_id` are mutually exclusive — one genome is anchored
+    at a time, and the two are different relations to this pangenome. The route refuses both.
+    """
     locus = _locus_by_label(session, pangenome_id, node_label)
     detail = LocusDetail(locus=locus)
+
+    # ⭐ Resolved BEFORE the arrangements, because the arrangement a projected gene matched has to be
+    # listed even when it sits past the display cap — the same rule the anchor has, through a
+    # different clause.
+    matched_arrangement_ids: list[int] = []
+    if projected_genome_id is not None:
+        detail.projected_placements = load_placements_at_locus(
+            session,
+            pangenome_id=pangenome_id,
+            genome_id=projected_genome_id,
+            locus_id=locus.locus_id,
+        )
+        matched_arrangement_ids = [
+            placement.matched_locus_arrangement_id
+            for placement in detail.projected_placements
+            if placement.matched_locus_arrangement_id is not None
+        ]
 
     # ── the card's own lists ───────────────────────────────────────────────────────────────────
     entries = session.execute(
@@ -323,9 +370,13 @@ def load_locus_detail(
         locus_id=locus.locus_id,
         arrangement_limit=arrangement_limit,
         anchor_genome_id=anchor_genome_id,
+        matched_arrangement_ids=matched_arrangement_ids,
     )
     detail.arrangements_listed = len(detail.arrangements)
-    detail.is_anchored = anchor_genome_id is not None
+    detail.is_anchored = anchor_genome_id is not None or projected_genome_id is not None
+    detail.anchor_kind = (
+        "catalogue" if anchor_genome_id is not None else ("projected" if projected_genome_id is not None else None)
+    )
     if anchor_genome_id is not None:
         detail.anchor_arrangement_ranks = anchor_arrangement_ranks(
             detail.arrangements, anchor_genome_id

@@ -30,6 +30,11 @@ SPECIES_RESOLUTION = 1
 #: eight tables plus one neighbour-resolution statement.
 LOCUS_VIEW_MINIMUM = 9
 
+#: ⚠ A genome PROJECTED onto the ecoli catalogue, if one is loaded. The projection is an optional
+#: addition to a published catalogue, so these two tests skip rather than fail where none exists —
+#: a database without a projection is a valid database.
+PROJECTED_SAMPLE_ID = os.environ.get("SYNTITUDE_PROJECTED_SAMPLE_ID", "SAMN05374479")
+
 
 @pytest.fixture(scope="module")
 def application():
@@ -76,6 +81,26 @@ def test_an_ANCHORED_locus_click_adds_exactly_the_genome_lookup(application):
     )
 
 
+def test_a_PROJECTED_locus_click_adds_the_genome_lookup_and_its_placements(application):
+    """⚠ Two statements more than an unanchored click, and they are DIFFERENT statements from the
+    anchor's: a projected genome is in no `member_genome_ids`, so it is resolved from
+    `projected_genome` and its genes at this locus are read from `projected_gene_placement`. Both
+    are index scans on `(pangenome_id, …)` — the point of the budget is that neither grows with the
+    catalogue."""
+    report = _measure(
+        application, "/api/v1/species/ecoli/loci/2811", projected=PROJECTED_SAMPLE_ID
+    )
+    report.assert_at_most(
+        LOCUS_VIEW_MINIMUM + SPECIES_RESOLUTION + 2, what="one projected locus click, at the route"
+    )
+
+
+def test_the_projected_genome_LIST_is_two_statements(application):
+    """One to resolve the species, one to list. It is O(projected genomes), never O(catalogue)."""
+    report = _measure(application, "/api/v1/species/ecoli/projected-genomes")
+    report.assert_at_most(1 + SPECIES_RESOLUTION, what="the projected-genome list, at the route")
+
+
 def test_a_search_KEYSTROKE_is_two_statements(application):
     report = _measure(application, "/api/v1/species/ecoli/search", q="ligase")
     report.assert_at_most(1 + SPECIES_RESOLUTION, what="one search keystroke, at the route")
@@ -117,6 +142,7 @@ def test_an_anchor_picker_KEYSTROKE_is_two_statements_whatever_the_limit(applica
         "/api/v1/species/ecoli/search?q=ligase",
         "/api/v1/species/kp/audit/residual-loci",
         "/api/v1/species/ecoli/genomes?q=samea22",
+        "/api/v1/species/ecoli/projected-genomes",
     ],
 )
 def test_ONLY_the_shell_aggregates_over_the_catalogue(application, path):

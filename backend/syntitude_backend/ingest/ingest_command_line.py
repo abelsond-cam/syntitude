@@ -37,6 +37,7 @@ from syntitude_backend.ingest.ingest_nuna_model_registry import (
 )
 from syntitude_backend.ingest.ingest_pangenome_run import ingest_pangenome_run
 from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
+from syntitude_backend.ingest.ingest_projected_genomes import ProjectionRefused, load_projection
 from syntitude_backend.ingest.ingest_reference_vocabularies import load_pfam_reference
 from syntitude_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
 from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
@@ -273,10 +274,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model-label", default=None, help="the audit's --model-label")
     parser.add_argument("--run-id", default=None, help="the assignment stem")
     parser.add_argument("--database-url", default=os.environ.get("SYNTITUDE_DATABASE_URL"))
-    parser.add_argument("--stage", choices=("reference", "genomes", "pangenome", "all"), default="all",
+    parser.add_argument("--stage", choices=("reference", "genomes", "pangenome", "projection", "all"),
+                        default="all",
                         help="`reference` is the public vocabularies, global to every species and "
                              "model; `genomes` is model-INDEPENDENT and a new pangenome must never "
-                             "rewrite it; `pangenome` needs it already loaded")
+                             "rewrite it; `pangenome` needs it already loaded; `projection` places "
+                             "genomes the model never clustered and is DELIBERATELY not in `all` — "
+                             "it is an addition to a published catalogue, not part of building one")
+    parser.add_argument("--projection-dir", type=Path, default=None,
+                        help="where nuna wrote *_placed_windows.tsv (default: the locator's own path)")
     parser.add_argument("--publish", action="store_true",
                         help="after loading, VERIFY the catalogue and point its species at it. The "
                              "pointer is what the service reads, so this is a separate, explicit "
@@ -332,6 +338,27 @@ def main(argv: list[str] | None = None) -> int:
             session.commit()
             print(report.render())
             differences += reconcile(session, report)
+        # ⛔ NOT part of `all`. A projection is an addition to a catalogue that already exists, and
+        # folding it into the build would make every load depend on an optional feature's artifacts.
+        if args.stage == "projection":
+            pangenome_id = session.execute(
+                select(Pangenome.pangenome_id).where(Pangenome.run_id == artifacts.run_id)
+            ).scalar_one_or_none()
+            if pangenome_id is None:
+                print(f"no pangenome with run_id {artifacts.run_id} — load it first", file=sys.stderr)
+                return 2
+            try:
+                print(load_projection(
+                    session,
+                    pangenome_id=int(pangenome_id),
+                    projection_root=args.projection_dir or artifacts.projection_root,
+                ).render())
+                session.commit()
+            except ProjectionRefused as error:
+                session.rollback()
+                print(f"PROJECTION REFUSED: {error}", file=sys.stderr)
+                return 1
+            return 0
         if args.stage in ("pangenome", "all"):
             for line in load_pangenome_layer(
                 session, artifacts, species_key=args.species_key or artifacts.species_key
