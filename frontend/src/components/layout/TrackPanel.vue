@@ -282,6 +282,12 @@ function jump(locus: string): void {
              (David, 2026-08-25), so the grid places this wrapper and the own-genomes box hangs out
              of flow beneath it — `.arr-gutter`, in the ADDED section of app.css. -->
         <div class="arr-gutter">
+          <!-- ⭐ One header over both boxes (David, 2026-09-23). They are two answers to the same
+               question — which genome the neighbourhood is drawn for — and naming that question once
+               is what makes them read as a choice rather than as two unrelated controls.
+               ⚠ `.legend` is the class "CHOOSE A MICROBE TO NAVIGATE:" already uses, so the two
+               headers are the same kind of thing on the page rather than merely similar. -->
+          <span class="legend arr-gutter-head">Anchor to:</span>
           <AnchorGenomeBox :species-key="speciesKey" placement="track" />
           <OwnGenomesBox :species-key="speciesKey" />
         </div>

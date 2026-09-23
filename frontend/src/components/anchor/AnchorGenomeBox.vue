@@ -156,7 +156,7 @@ function onBlur(): void {
         type="search"
         autocomplete="off"
         spellcheck="false"
-        placeholder="Anchor to a genome — search"
+        placeholder="A genome in Syntitude"
         :aria-label="placement === 'track' ? 'Anchor the neighbourhood to one genome' : 'Anchor the sequence to one genome'"
         @focus="open"
         @input="onInput"

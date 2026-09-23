@@ -1,11 +1,12 @@
 <script setup lang="ts">
 /**
- * "+ View your own genomes" — the second box in the switcher's left gutter, under the anchor box.
+ * "+ Add my own genome" — the second of the two boxes under "Anchor to:" in the switcher's gutter.
  *
  * ⭐ **It is the anchor box's sibling, not its replacement** (David, 2026-09-22): the anchor box keeps
- * its job and its ⚓; this one brings genomes the model was never built from. Both are grey until
- * something is chosen, and **only one can be chosen at a time** — choosing here releases the anchor,
- * because the track draws one genome.
+ * its job and its ⚓; this one brings genomes the model was never built from. The two are the two
+ * answers to one question, which is why they now sit under one header (David, 2026-09-23). Both are
+ * grey until something is chosen, and **only one can be chosen at a time** — choosing here releases
+ * the anchor, because the track draws one genome.
  *
  * ⛔ **A placed genome never wears the anchor's colour.** The anchored-modelled state is orange; a
  * placed genome takes the green `--projected` accent with a dotted border, and the word "placed"
@@ -56,7 +57,7 @@ function release(): void {
       @click="open()"
     >
       <span class="own-genomes-mark" aria-hidden="true">+</span>
-      <span v-if="chosen === null" class="own-genomes-label">View your own genomes</span>
+      <span v-if="chosen === null" class="own-genomes-label">Add my own genome</span>
       <!-- ⛔ The word "placed" rides with the accession wherever it is shown: the colour is a cue,
            never the claim. -->
       <span v-else class="own-genomes-label">

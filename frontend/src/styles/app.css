@@ -3323,6 +3323,22 @@ td.fam-sym {
     grid-row: 2;
     align-self: center;
 }
+/* ⭐ One header over both boxes (David, 2026-09-23): they are two answers to the same question.
+   ⚠ A tighter gap under it than between the boxes, so the header belongs to the pair rather than
+   floating as a third row — and `.legend`'s own letter-spacing pushes the last letter past the
+   box edge, which the right padding takes back. */
+.arr-gutter-head {
+    margin-bottom: -1px;
+    padding-right: 2px;
+}
+/* ⛔ `.arr-anchor` still carries `align-self: center` from when IT was the grid item (2026-08-25).
+   Inside this wrapper that is not inert: with the column's `align-items` at `normal`, `center` makes
+   the box shrink to its intrinsic width instead of filling the column — measured 203px against its
+   sibling's 260px, which both looked wrong beside it and clipped the placeholder by three pixels.
+   The pair is centred by `.arr-gutter`'s own `align-self`; the boxes inside it stretch. */
+.arr-gutter .arr-anchor {
+    align-self: stretch;
+}
 .own-genomes-box {
     position: relative;
     display: block;

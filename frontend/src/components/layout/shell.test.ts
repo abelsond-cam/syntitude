@@ -4,6 +4,9 @@
  * The page shell's own components — the parts assembling the page added, each pinned on the claim it
  * exists to get right rather than on its markup.
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -399,6 +402,32 @@ describe("⭐ a genome PLACED on the model, anchored beside it", () => {
     anchor.setProjectedAnchor("SAMN05374479");
     anchor.setAvailability(false);
     expect(anchor.sampleId).toBe("SAMN05374479");
+  });
+});
+
+describe("⭐ one header over both boxes: “Anchor to:”", () => {
+  it("names the question once, and the boxes are its two answers (David, 2026-09-23)", () => {
+    const anchor = useAnchorGenomeStore();
+    anchor.setAvailability(true);
+    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const own = mount(OwnGenomesBox, { props: { speciesKey: "ecoli" } });
+
+    // ⚠ The two labels are the two ANSWERS, so neither repeats the question. A box reading
+    // "Anchor to a genome" under a header reading "Anchor to:" says it twice.
+    expect(box.find("input").attributes("placeholder")).toBe("A genome in Syntitude");
+    expect(own.text()).toContain("Add my own genome");
+    expect(box.find("input").attributes("placeholder")).not.toContain("Anchor");
+    expect(own.text()).not.toContain("Anchor");
+  });
+
+  it("⛔ the two boxes are the SAME WIDTH — they are a pair, and one narrower reads as subordinate", () => {
+    // `.arr-anchor` carries `align-self: center` from when it was itself the grid item; inside the
+    // wrapper that made it shrink to its intrinsic width (203px against its sibling's 260px) and
+    // clipped the placeholder. jsdom computes no layout, so this pins the RULE that fixes it.
+    // ⚠ From the project root, not `import.meta.url`: this suite runs under jsdom, where
+    // `import.meta.url` is an http URL and resolving against it fails outright.
+    const css = readFileSync(resolve(process.cwd(), "src/styles/app.css"), "utf8");
+    expect(css).toMatch(/\.arr-gutter \.arr-anchor \{\s*align-self: stretch;/);
   });
 });
 

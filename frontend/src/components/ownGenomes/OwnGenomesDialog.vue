@@ -146,7 +146,10 @@ function sentenceFor(outcome: LineOutcome): string {
     case "repeat":
       return "the same genome again";
     case "modelled-here":
-      return `already one of the 100 genomes ${speciesName.value} was modelled from — use “Anchor to a genome”`;
+      return (
+        `already one of the 100 genomes ${speciesName.value} was modelled from — ` +
+        "anchor to it with “A genome in Syntitude”"
+      );
     case "modelled-elsewhere":
       return `one of the 100 modelled genomes of ${outcome.scientificName} — switch species to anchor it`;
     case "placed-here":
