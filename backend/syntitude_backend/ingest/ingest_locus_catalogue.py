@@ -61,8 +61,8 @@ from syntitude_backend.models.locus_embedding_geometry import (
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.projected_genome import ProjectedGenome
 from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
+from syntitude_backend.models.projected_genome import ProjectedGenome
 
 #: `catalogue_map._COS` — the factor the 15 upper-triangle cosines are stored at.
 COSINE_SCALE_FACTOR = 10_000
