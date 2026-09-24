@@ -40,17 +40,26 @@ from syntitude_backend.instruments.payload_string_pool import StringPool
 from syntitude_backend.models.locus import Locus
 
 
-def _payload_constants():
-    """The constants `build_payload` itself used, imported rather than copied — code, not a memory."""
-    from nuna.tl.locus_browser.export_payload import (
-        BAND_ORDER,
-        NS_CODE,
-        OFFSETS,
-        POLICY,
-        SCHEMA_VERSION,
-    )
+#: The payload schema this database was INGESTED from, and therefore the one a rebuild reproduces.
+#:
+#: ⛔ Pinned, not imported. It used to read ``nuna.SCHEMA_VERSION`` live, which was right only while the
+#: two happened to agree: nuna bumped 14 → 16 on 2026-09-24 and this rebuild began claiming to be a
+#: schema-16 payload while carrying schema-14 rows, with the byte-identity test as the sole signal. A
+#: rebuild reproduces a SPECIFIC published artifact, so the number belongs to the artifact. It moves in
+#: the same commit as the re-ingest that changes what is in these tables — never before it.
+INGESTED_PAYLOAD_SCHEMA = 14
 
-    return SCHEMA_VERSION, tuple(OFFSETS), tuple(BAND_ORDER), dict(NS_CODE), POLICY
+
+def _payload_constants():
+    """The constants `build_payload` itself used, imported rather than copied — code, not a memory.
+
+    ⚠ ``SCHEMA_VERSION`` is deliberately NOT among them — see ``INGESTED_PAYLOAD_SCHEMA`` above. The rest
+    are genuinely shared vocabulary (band order, offsets, the policy block) and would be a second thing to
+    keep in step if copied.
+    """
+    from nuna.tl.locus_browser.export_payload import BAND_ORDER, NS_CODE, OFFSETS, POLICY
+
+    return INGESTED_PAYLOAD_SCHEMA, tuple(OFFSETS), tuple(BAND_ORDER), dict(NS_CODE), POLICY
 
 
 @dataclass
@@ -564,9 +573,10 @@ def map_representation_blocks(session: Session, pangenome_id: int, loci: list[Lo
     """
     from pathlib import Path
 
-    from nuna.tl.locus_browser.export_payload import _NOWHERE, _b64_i16, _b64_i32
+    from nuna.tl.locus_browser.export_payload import _b64_i16, _b64_i32
 
     from syntitude_backend.models.locus_embedding_geometry import (
+        NOWHERE_SENTINEL,
         LocusEmbeddingGeometry,
         LocusMapProjection,
     )
@@ -613,7 +623,12 @@ def map_representation_blocks(session: Session, pangenome_id: int, loci: list[Lo
                 "metric": projection.requested_metric,
                 "k": projection.neighbour_count,
                 "cos_scale": projection.cosine_scale_factor,
-                "nowhere": int(_NOWHERE),
+                # ⛔ This constant used to be imported from nuna, so the two could not drift. nuna
+                # DELETED its map on 2026-09-24 (schema 16) and with it `_NOWHERE`, so this side now
+                # owns the sentinel outright — there is no longer another copy to drift from. The
+                # rebuild itself is on its way out with the map; until then it must still emit the
+                # value the published schema-14 payloads carry, which is this one.
+                "nowhere": int(NOWHERE_SENTINEL),
                 "scale": {
                     "cx": projection.scale_centre_x,
                     "cy": projection.scale_centre_y,
