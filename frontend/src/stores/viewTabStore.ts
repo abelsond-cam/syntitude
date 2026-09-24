@@ -27,7 +27,7 @@ export const VIEW_TABS = [
   { id: "locus", label: "Syntolog Loci" },
   { id: "sequence", label: "Sequence" },
   { id: "function", label: "EggNOG" },
-  { id: "navigating", label: "Navigating Syntitude" },
+  { id: "navigating", label: "Navigating BacAtlas" },
 ] as const;
 
 export type ViewId = (typeof VIEW_TABS)[number]["id"];

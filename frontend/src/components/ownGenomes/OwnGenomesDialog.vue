@@ -148,7 +148,7 @@ function sentenceFor(outcome: LineOutcome): string {
     case "modelled-here":
       return (
         `already one of the 100 genomes ${speciesName.value} was modelled from — ` +
-        "anchor to it with “A genome in Syntitude”"
+        "anchor to it with “A genome in BacAtlas”"
       );
     case "modelled-elsewhere":
       return `one of the 100 modelled genomes of ${outcome.scientificName} — switch species to anchor it`;

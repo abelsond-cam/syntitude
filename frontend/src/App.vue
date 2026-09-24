@@ -116,7 +116,7 @@ watch(
 );
 
 const pageTitle = computed(() =>
-  current.value ? `${current.value.species.scientific_name} · Syntitude` : "Syntitude",
+  current.value ? `${current.value.species.scientific_name} · BacAtlas` : "BacAtlas",
 );
 watch(pageTitle, (title) => {
   document.title = title;
@@ -224,7 +224,7 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
         id="view-navigating"
         class="view-panel"
         role="tabpanel"
-        aria-label="Navigating Syntitude"
+        aria-label="Navigating BacAtlas"
         :hidden="view !== 'navigating'"
       >
         <div class="wrap">
