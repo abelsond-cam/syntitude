@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
+from syntitude_backend.ingest.allele_variant_symbols import fold_symbol_column
 from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
 
 #: The signed offsets, in display order. ⛔ `0` is absent — it is the focal gene.
@@ -201,6 +202,11 @@ def _annotation_frame(assign, products, dbxrefs, pfam, numpy):
 
     function_columns = [column for column in DBXREF_VALUE_COLS if column != "sample_id"]
     names = real_gene_names(products)
+    # ⭐ The ONE place a catalogue symbol is decided, so the fold has one home: the name vote, the
+    # locus symbol list and the cross-tab's modal symbol all read this column.
+    # `gene.bakta_gene_symbol` is loaded by the genome layer from its own source and keeps the RAW
+    # allele — see `allele_variant_symbols`, which also says why `named_member_count` cannot move.
+    names = names.assign(gene=fold_symbol_column(names["gene"]))
     frame = assign.merge(names, on=["sample_id", "flat_index"], how="left").merge(
         products[["sample_id", "flat_index", "product"]], on=["sample_id", "flat_index"], how="left"
     )
@@ -222,6 +228,31 @@ def _annotation_frame(assign, products, dbxrefs, pfam, numpy):
     else:
         frame["arch"] = numpy.nan
     return frame
+
+
+def _family_named_symbol_counts(annotation, pandas):
+    """Per (locus, UniRef50 family), how many of ITS genes carry any gene symbol — the denominator.
+
+    ⭐ **The symbol column’s missing coverage number.** `family_modal_symbols` gives the family’s
+    modal symbol and how many DISTINCT symbols it holds, and neither can say how many of its genes
+    were named at all. A family of 9 genes of which **2** carry `rfbX` reports `n_sym = 1` — one
+    distinct symbol — which the card draws with no marker and a reader reads as nine genes agreeing.
+    Measured on kp locus 3992: its 9-gene family names 2 genes, and the locus (97 genes, 7 named) is
+    called `mviN` on a vote of 5 to 2.
+
+    ⚠ This is the same distinction `pfam_annotated_member_count` exists for one column to its right
+    — *missing evidence is not different evidence* — applied to the column that never had it. **`0`
+    is a MEASURED ZERO**: the family’s genes were looked at and none was named.
+    """
+    named = annotation.dropna(subset=["uniref50", "gene"])
+    if not len(named):
+        return pandas.DataFrame(columns=["node", "uniref50", "n_named"])
+    return (
+        named.groupby(["node", "uniref50"], observed=True)
+        .size()
+        .rename("n_named")
+        .reset_index()
+    )
 
 
 # ── the catalogue ──────────────────────────────────────────────────────────────────────────────
@@ -316,7 +347,11 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
             top_families.merge(family_modal_products(annotation), on=["node", "uniref50"], how="left")
             .merge(family_pfam(annotation), on=["node", "uniref50"], how="left")
             .merge(family_modal_symbols(annotation), on=["node", "uniref50"], how="left")
+            .merge(_family_named_symbol_counts(annotation, pandas), on=["node", "uniref50"], how="left")
         )
+        # ⚠ A family no gene of which is named has no row in the join, and its denominator is a
+        # MEASURED ZERO — not an absence. Same reason `n_pfam` is written `fillna(0)`.
+        top_families["n_named"] = top_families["n_named"].fillna(0).astype("int64")
     top_architectures = top_counts(annotation, "arch", TOP_PFAM)
     # ⛔ How many members carry ANY domain. `top_counts` drops nulls, so without this denominator the
     # page cannot tell a locus whose members DISAGREE about architecture from one where most members

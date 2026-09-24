@@ -59,6 +59,9 @@ def serialise_uniref_family(family) -> dict:
 
     ⚠ `distinct_symbol_count` is a COUNT and not a list: the page shows the modal plus "+N" and
     cannot name the others, so the response must not appear to offer them.
+
+    ⚠ `named_gene_count` is that column's coverage, and `null` is *not measured* while `0` is
+    *measured and none* — the same distinction `pfam_annotated_gene_count` carries.
     """
     return {
         "rank": family.rank_within_locus,
@@ -69,6 +72,9 @@ def serialise_uniref_family(family) -> dict:
         "pfam_annotated_gene_count": family.pfam_annotated_member_count,
         "modal_symbol": family.modal_bakta_gene_symbol,
         "distinct_symbol_count": family.distinct_real_symbol_count,
+        # ⛔ The symbol column's DENOMINATOR, and it travels with the modal symbol always. Without
+        # it a family of 9 genes naming 2 reads as nine genes agreeing — kp locus 3992.
+        "named_gene_count": family.named_member_count,
     }
 
 

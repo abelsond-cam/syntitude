@@ -28,6 +28,7 @@ from tests.known_parity_exceptions import (
     AUDIT_RERUN_PAYLOAD_BLOCKS,
     RETIRED_TIER,
     exceptions_for,
+    symbol_fold_for,
 )
 
 SPECIES = ["ecoli", "kp"]
@@ -87,21 +88,109 @@ def test_the_rebuilt_payload_interns_in_the_SAME_ORDER_as_build_payload(species,
 
 # ── the exception, named exactly ───────────────────────────────────────────────────────────────
 @pytest.mark.parametrize("species", SPECIES)
-def test_EXACTLY_four_blocks_differ_and_all_four_are_the_audit_re_run(species, report):
-    """⛔ The set, not the count."""
+def test_EXACTLY_the_recorded_blocks_differ_and_each_has_a_named_cause(species, report):
+    """⛔ The set, not the count — and every member of it belongs to one of two recorded decisions.
+
+    ⭐ **Two causes now, and they are disjoint**: the 2026-09-04 audit re-run retiring `no_homology`
+    (four blocks), and the allele-variant symbol fold (three blocks, four in kp). A suite that
+    counted to seven could not tell one cause growing from the other shrinking.
+
+    ⚠ **The two species do NOT have the same set**, and that is measured: kp's `nodes.name` moves
+    and *E. coli*'s does not, because both *E. coli* loci keep their pool INDEX while the string at
+    that index changes. See `SYMBOL_FOLD_ECOLI`.
+    """
     differing = {
         line.split(" CHANGED")[0].removeprefix("⛔ ") for line in report[species].differences
     }
-    assert differing == AUDIT_RERUN_PAYLOAD_BLOCKS, report[species].render()
+    expected = AUDIT_RERUN_PAYLOAD_BLOCKS | symbol_fold_for(species).payload_blocks
+    assert differing == expected, report[species].render()
+    assert not (AUDIT_RERUN_PAYLOAD_BLOCKS & symbol_fold_for(species).payload_blocks), (
+        "the two causes have started to overlap — one of them is no longer what it says it is"
+    )
 
 
 @pytest.mark.parametrize("species", SPECIES)
 def test_every_other_block_is_BYTE_IDENTICAL_including_the_big_three(species, rebuilt):
-    """⭐ `arr` (486,717 genome memberships), `ctx` (253,909 occupants) and `lists` are where a
-    rebuild would go wrong invisibly, so they are named rather than left to the set above."""
+    """⭐ `arr` (486,717 genome memberships) and `ctx` (253,909 occupants) are where a rebuild would
+    go wrong invisibly, so they are named rather than left to the set above.
+
+    ⚠ `lists` left this clause when the symbol fold landed — **two of its nine sub-blocks move and
+    the other seven do not**, so it is asserted sub-block by sub-block below rather than dropped.
+    """
     published = _published(species)
-    for block in ("arr", "ctx", "lists", "gaps", "map_reps", "null", "schema"):
+    for block in ("arr", "ctx", "gaps", "map_reps", "null", "schema"):
         assert published[block] == rebuilt[species][block], f"{block} is not byte-identical"
+
+
+@pytest.mark.parametrize("species", SPECIES)
+def test_every_list_EXCEPT_the_two_the_fold_touches_is_byte_identical(species, rebuilt):
+    """⛔ The fold moves gene names. It must not have moved a product, a domain or a GO term."""
+    published = _published(species)["lists"]
+    mine = rebuilt[species]["lists"]
+    assert set(published) == set(mine), "the rebuild invented or dropped a list"
+    for key in set(published) - {"sym", "u50"}:
+        assert published[key] == mine[key], f"lists.{key} is not byte-identical"
+
+
+def _decoded_symbol_lists(payload):
+    """`[[(name, gene_count), …], …]` per locus — the CSR block resolved through its own pool.
+
+    ⛔ **Decoded, never as indices.** `strings.sym` loses the tagged names, so every later index
+    shifts; and one *E. coli* locus loses a symbol ROW, which shifts every later CSR element. 5,823
+    of 8,799 `lists.sym.idx` elements move while **two** loci actually changed. Comparing the raw
+    arrays could only ever be a tolerance — see `SYMBOL_FOLD_IS_INDEX_SHIFT_NOT_CONTENT`.
+    """
+    block, pool, out, low = payload["lists"]["sym"], payload["strings"]["sym"], [], 0
+    for count in block["n"]:
+        out.append([(pool[block["idx"][k]], block["cnt"][k]) for k in range(low, low + count)])
+        low += count
+    return out
+
+
+def _decoded_family_symbols(payload):
+    """`[[(family gene count, its modal name, its distinct-name count), …], …]` per locus."""
+    block, pool, out, low = payload["lists"]["u50"], payload["strings"]["sym"], [], 0
+    for count in block["n"]:
+        rows = []
+        for k in range(low, low + count):
+            symbol = block["sym"][k]
+            rows.append((block["cnt"][k], pool[symbol] if symbol >= 0 else None, block["nsym"][k]))
+        out.append(rows)
+        low += count
+    return out
+
+
+@pytest.mark.parametrize("species", SPECIES)
+@pytest.mark.parametrize("decode", [_decoded_symbol_lists, _decoded_family_symbols])
+def test_DECODED_the_symbol_blocks_move_on_exactly_the_folded_loci(species, rebuilt, decode):
+    """⭐ The claim the byte comparison cannot make: only four loci changed, in both blocks."""
+    published = _published(species)
+    labels = published["nodes"]["label"]
+    before, after = decode(published), decode(rebuilt[species])
+    moved = {labels[i] for i in range(len(labels)) if before[i] != after[i]}
+    assert moved == symbol_fold_for(species).node_labels
+
+
+@pytest.mark.parametrize("species", SPECIES)
+def test_the_symbol_POOL_loses_only_the_tagged_names(species, rebuilt):
+    """⚠ And gains only the untagged gene where the pool did not already hold it (`tufA`, `rpsJ`).
+
+    A fold that dropped a name it should have kept would shrink this pool silently — and every
+    index-based comparison in this file would report thousands of differences without saying why.
+    """
+    from syntitude_backend.ingest.allele_variant_symbols import (
+        ALLELE_VARIANT_SYMBOL,
+        fold_allele_variant,
+    )
+
+    published = set(_published(species)["strings"]["sym"])
+    mine = set(rebuilt[species]["strings"]["sym"])
+    # ⚠ Asked of the RULE, not of a checked-in list of four names: a pattern that widened would
+    # be caught here, where a hard-coded list would simply keep agreeing with itself.
+    tagged = {name for name in published if ALLELE_VARIANT_SYMBOL.match(name)}
+    assert tagged, "the frozen pool holds no allele-tagged symbol — this comparison is vacuous"
+    assert published - mine == tagged
+    assert mine - published <= {fold_allele_variant(name) for name in tagged}
 
 
 @pytest.mark.parametrize("species", SPECIES)

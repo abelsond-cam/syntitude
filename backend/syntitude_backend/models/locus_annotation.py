@@ -132,3 +132,11 @@ class LocusUnirefFamilyCrosstab(Base):
     #: not appear to. Showing the modal alone would let a family that is itself split read as agreed
     #: — the exact failure this cross-tab exists to expose.
     distinct_real_symbol_count: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    #: How many of THIS FAMILY's genes carry any gene symbol — the symbol column's DENOMINATOR, and
+    #: the twin of `pfam_annotated_member_count` above.
+    #: ⛔ Without it a family of 9 genes of which 2 are named `rfbX` reports
+    #: `distinct_real_symbol_count = 1`, draws no "+N" marker, and reads as nine genes agreeing on a
+    #: name. Measured on kp locus 3992, whose card said exactly that.
+    #: ⚠ **`0` is a MEASURED ZERO** — the family's genes were looked at and none was named. NULL is
+    #: a row written before this column existed; the re-ingest that added it left none behind.
+    named_member_count: Mapped[int | None] = mapped_column(Integer, nullable=True)

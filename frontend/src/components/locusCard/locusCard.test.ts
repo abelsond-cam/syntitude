@@ -230,6 +230,7 @@ function family(overrides: Partial<UnirefFamily> = {}): UnirefFamily {
     pfam_annotated_gene_count: 60,
     modal_symbol: "lysR",
     distinct_symbol_count: 1,
+    named_gene_count: 60,
     ...overrides,
   };
 }
@@ -253,8 +254,8 @@ const PFAM_REFERENCE: Record<string, PfamFamilyReference> = {
   },
 };
 
-function symbol(term: string, count: number): AnnotationEntry {
-  return { rank: 0, term, name: null, gene_count: count };
+function symbol(term: string, count: number, rank = 0): AnnotationEntry {
+  return { rank, term, name: null, gene_count: count };
 }
 
 function mountDiversity(
@@ -578,5 +579,115 @@ describe("⭐ the null strip is what makes a raw similarity readable", () => {
     // …and the rails and the separation row are still there: an absent baseline is not an absent
     // measurement.
     expect(noBaseline.findAll(".pair:not(.sep)").length).toBe(4);
+  });
+});
+
+// ── the vote that names the locus ─────────────────────────────────────────────────────
+describe("⭐ the counts the NAME came from", () => {
+  /** kp locus 3992 as it really is: 97 genes, 7 named, `mviN` 5 against `rfbX` 2. */
+  function mviN() {
+    return mountDiversity({
+      locus: { gene_count: 97, named_gene_count: 7, display_name: "mviN", bakta_gene_symbol: "mviN" },
+      symbols: [symbol("mviN", 5), symbol("rfbX", 2, 1)],
+    });
+  }
+
+  it("⭐ shows each NAME's gene count — the numbers the locus was named on", () => {
+    // ⛔ The bug this answers: the only counts beside a gene name were the FAMILY gene counts in
+    // the table below, so this locus read as "9 genes are rfbX and 4 are mviN" off two family rows.
+    const vote = mviN().find(".sym-vote");
+    expect(vote.text()).toContain("mviN 5");
+    expect(vote.text()).toContain("rfbX 2");
+  });
+
+  it("⛔ counts the UNNAMED genes as their own remainder — no name is not a rival name", () => {
+    expect(mviN().find(".sym-vote").text()).toContain("90 unnamed");
+  });
+
+  it("marks the winner, and only the winner", () => {
+    const won = mviN().findAll(".sym-vote-item.won");
+    expect(won).toHaveLength(1);
+    expect(won[0]!.text()).toContain("mviN");
+  });
+
+  it("⛔ keeps the two remainders apart: outside the top-N cut, and named at all", () => {
+    // 80 named, 60 of them listed — so 20 carry a name this card does not show, and 20 more carry
+    // none. One combined "other 40" would let missing annotation read as a rival name.
+    const vote = mountDiversity({
+      locus: { gene_count: 100, named_gene_count: 80 },
+      symbols: [symbol("lysR", 40), symbol("ybeF", 20, 1)],
+    }).find(".sym-vote");
+    expect(vote.text()).toContain("20 under names not listed");
+    expect(vote.text()).toContain("20 unnamed");
+  });
+
+  it("⛔ says NOTHING where one name covers every gene — the headline already said it", () => {
+    expect(
+      mountDiversity({
+        locus: { gene_count: 100, named_gene_count: 100 },
+        symbols: [symbol("lysR", 100)],
+      }).find(".sym-vote").exists(),
+    ).toBe(false);
+  });
+
+  it("⚠ names a TIE as a tie — 29 ecoli and 12 kp loci were settled by the alphabet", () => {
+    const card = mountDiversity({
+      locus: { gene_count: 100, named_gene_count: 60, display_name: "aaaA", bakta_gene_symbol: "aaaA" },
+      symbols: [symbol("aaaA", 30), symbol("zzzZ", 30, 1)],
+    });
+    expect(card.find(".sym-vote-note").text()).toContain("alphabetical order alone");
+  });
+
+  it("⛔ marks no winner where the name did NOT come from this vote", () => {
+    // An inferred name is a display fallback. Marking a symbol as its source would dress a Pfam
+    // short name as a Bakta annotation — the one thing the inferred-name rule must never do.
+    const card = mountDiversity({
+      locus: { gene_count: 97, named_gene_count: 7, display_name_source: "pfam_architecture" },
+      symbols: [symbol("mviN", 5), symbol("rfbX", 2, 1)],
+    });
+    expect(card.findAll(".sym-vote-item.won")).toHaveLength(0);
+    expect(card.find(".sym-vote-note").exists()).toBe(false);
+  });
+});
+
+// ── the family symbol column's denominator ────────────────────────────────────────────
+describe("⛔ a family's modal gene name travels with its coverage", () => {
+  it("says how many of the family's genes are NAMED where that differs from its size", () => {
+    // kp 3992's 9-gene family names TWO genes `rfbX`. It reported `distinct_symbol_count = 1` — one
+    // distinct name, no "+N" marker — and read as nine genes agreeing.
+    const card = mountDiversity({
+      families: [family({ gene_count: 9, named_gene_count: 2, modal_symbol: "rfbX", distinct_symbol_count: 1 })],
+    });
+    expect(card.find(".fam-sym .fam-cov").text()).toBe("2/9 named");
+    expect(card.find(".fam-sym .alt-n").exists()).toBe(false);
+  });
+
+  it("stays silent where every gene in the family carries a name", () => {
+    expect(
+      mountDiversity({ families: [family({ gene_count: 60, named_gene_count: 60 })] })
+        .find(".fam-sym .fam-cov").exists(),
+    ).toBe(false);
+  });
+
+  it("⛔ `null` is NOT MEASURED and shows nothing; a measured ZERO is the loudest case", () => {
+    expect(
+      mountDiversity({ families: [family({ named_gene_count: null })] })
+        .find(".fam-sym .fam-cov").exists(),
+    ).toBe(false);
+    // 0 of 60 named, with a modal symbol that cannot exist — the row shows its coverage rather
+    // than a bare name, which is what a `v-if` on the NUMBER would have hidden.
+    expect(
+      mountDiversity({ families: [family({ named_gene_count: 0 })] })
+        .find(".fam-sym .fam-cov").text(),
+    ).toBe("0/60 named");
+  });
+
+  it("quotes the denominator in the +N marker only where it says something", () => {
+    const split = mountDiversity({
+      families: [family({ gene_count: 9, named_gene_count: 2, distinct_symbol_count: 2 })],
+    });
+    expect(split.find(".fam-sym .alt-n").attributes("title")).toContain("2 named genes of 9");
+    const whole = mountDiversity({ families: [family({ distinct_symbol_count: 3 })] });
+    expect(whole.find(".fam-sym .alt-n").attributes("title")).toContain("this family's 60 genes");
   });
 });

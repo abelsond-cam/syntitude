@@ -87,6 +87,15 @@ export interface UnirefFamily {
   readonly modal_symbol: string | null;
   /** ⚠ A COUNT, not a list. The card shows the modal plus "+N" and cannot name the others. */
   readonly distinct_symbol_count: number | null;
+  /**
+   * How many of THIS family's genes carry any gene name — the modal symbol's DENOMINATOR.
+   *
+   * ⛔ Without it a family of 9 genes of which **2** are named `rfbX` reports
+   * `distinct_symbol_count = 1`, draws no "+N", and reads as nine genes agreeing on a name (kp
+   * locus 3992). ⚠ Nullable like `pfam_annotated_gene_count` and for the same reason: `null` is
+   * *not measured*, `0` is *measured and none named*, and the card must test `!== null`.
+   */
+  readonly named_gene_count: number | null;
 }
 
 export interface Arrangement {

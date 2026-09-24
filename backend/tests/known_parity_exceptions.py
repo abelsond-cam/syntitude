@@ -68,10 +68,113 @@ AUDIT_TIER_RETIREMENT_KP = ParityException(
     reason=AUDIT_TIER_RETIREMENT.reason.replace("Two loci", "Six loci"),
 )
 
+# ── the allele-variant symbol fold ──────────────────────────────────────────────────
+@dataclass(frozen=True)
+class SymbolFoldException:
+    """The loci an allele-variant fold renames, and the payload blocks that carries.
+
+    ⭐ **Why the ingest folds at all.** A locus is named for its commonest Bakta symbol counted as an
+    EXACT STRING, and a substitution-tagged symbol is a different string from its own gene: kp 3878
+    read `ompC` 28, `ompK36_T333N` 26, `ompK36` 10 and was named **`ompC` on a plurality of 28 while
+    36 genes said OmpK36**. `ingest.allele_variant_symbols` folds the tag away before the count.
+
+    ⚠ **Four loci in 33,201, and they are the only four**: every tagged symbol in both catalogues.
+    Verified against the pre-fold database on 2026-09-24 — `display_name`, `display_name_source` and
+    `best_product` over all 33,201 loci, four rows differing and no `best_product` moving at all.
+    """
+
+    species_key: str
+    #: `(node_label, what the frozen page shows, what the fold makes it)` — values, never a count.
+    renamed: tuple[tuple[str, str, str], ...]
+    #: ⚠ Measured per species and NOT the same set. See `SYMBOL_FOLD_PAYLOAD_BLOCKS` below.
+    payload_blocks: frozenset[str]
+    reason: str
+
+    @property
+    def node_labels(self) -> frozenset[str]:
+        return frozenset(label for label, _, _ in self.renamed)
+
+
+_FOLD_REASON = (
+    "An allele-variant symbol (`ompK36_T333N`) is folded onto the gene it is an allele of before "
+    "the name vote, so one gene cannot split its own vote. The published page predates the fold."
+)
+
+#: ⛔ **`tufA` and `rpsJ` are STRAIGHT suffix strips** — the locus keeps the gene it always named and
+#: loses a substitution tag that was never a locus-level fact. **`lon` is the same**, and additionally
+#: merges `lon_P403L` 92 with `lon` 8 into one row of 100. **kp 3878 is the only one that changes
+#: which GENE is named**, and everything else about that locus already said OmpK36: its modal product
+#: (`OmpK36`, 34), its `best_product` (*outer membrane porin OmpK36*) and both major UniRef50
+#: families' modal symbols.
+SYMBOL_FOLD_ECOLI = SymbolFoldException(
+    species_key="ecoli",
+    renamed=(("2740", "lon_P403L", "lon"), ("17511", "tufA_E379K", "tufA")),
+    # ⚠ **`nodes.name` is ABSENT here and present for kp**, and that is measured, not an oversight:
+    # both *E. coli* loci keep the same pool INDEX while the string at that index changes, so the
+    # index array is byte-identical and the decoded name is not. A suite asserting `nodes.name`
+    # identical for ecoli would pass and mean nothing — which is why the decoded check exists.
+    payload_blocks=frozenset({"lists.sym", "lists.u50", "strings.sym"}),
+    reason=_FOLD_REASON,
+)
+
+SYMBOL_FOLD_KP = SymbolFoldException(
+    species_key="kp",
+    renamed=(("2512", "rpsJ_V57L", "rpsJ"), ("3878", "ompC", "ompK36")),
+    payload_blocks=frozenset({"lists.sym", "lists.u50", "strings.sym", "nodes.name"}),
+    reason=_FOLD_REASON,
+)
+
+SYMBOL_FOLDS: dict[str, SymbolFoldException] = {
+    "ecoli": SYMBOL_FOLD_ECOLI,
+    "kp": SYMBOL_FOLD_KP,
+}
+
+#: ⚠ **The raw index arrays differ far more widely than the four loci, and that is arithmetic.**
+#: The `sym` string pool loses the tagged names (5,261 → 5,260 ecoli; 3,942 → 3,941 kp), so every
+#: later index shifts by one; and ecoli 2740's symbol list loses a ROW (`lon_P403L` + `lon` become
+#: one `lon`), which shifts every later element of the flat CSR arrays. Measured: 5,823 of 8,799
+#: `lists.sym.idx` elements "differ" in *E. coli* while **two** loci actually changed.
+#: ⛔ So the suite compares the symbol blocks DECODED, never as indices. A byte comparison here
+#: could only ever be a tolerance.
+SYMBOL_FOLD_IS_INDEX_SHIFT_NOT_CONTENT = (
+    "`strings.sym` shrinks by one and one CSR row is removed, so thousands of indices move while "
+    "the decoded content moves on four loci. Compare decoded."
+)
+
+
+def symbol_fold_for(species_key: str) -> SymbolFoldException:
+    """The fold exception for one species. ⚠ Both species have one; there is no `None` case."""
+    return SYMBOL_FOLDS[species_key]
+
+
+#: The same fold, as the `bakta_gene_symbol` column — so the interned-string comparison consults one
+#: registry rather than growing a second way to be excused. ⚠ `frozen_value`/`current_value` name the
+#: RULE here because the four loci carry four different pairs; `SYMBOL_FOLDS` holds those pairs and
+#: `test_T5_the_symbol_fold_renames_EXACTLY_the_loci_it_names` asserts every one of them.
+SYMBOL_FOLD_COLUMN_ECOLI = ParityException(
+    species_key="ecoli",
+    column="bakta_gene_symbol",
+    node_labels=SYMBOL_FOLD_ECOLI.node_labels,
+    frozen_value="the allele-tagged symbol",
+    current_value="the gene it is an allele of",
+    reason=_FOLD_REASON,
+)
+
+SYMBOL_FOLD_COLUMN_KP = ParityException(
+    species_key="kp",
+    column="bakta_gene_symbol",
+    node_labels=SYMBOL_FOLD_KP.node_labels,
+    frozen_value="the allele-tagged symbol",
+    current_value="the gene it is an allele of",
+    reason=_FOLD_REASON,
+)
+
 #: Everything, indexed for a suite to consult.
 KNOWN_PARITY_EXCEPTIONS: tuple[ParityException, ...] = (
     AUDIT_TIER_RETIREMENT,
     AUDIT_TIER_RETIREMENT_KP,
+    SYMBOL_FOLD_COLUMN_ECOLI,
+    SYMBOL_FOLD_COLUMN_KP,
 )
 
 

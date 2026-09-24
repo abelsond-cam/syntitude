@@ -624,6 +624,7 @@ def _load_uniref_crosstab(session, frames, locus_id_by_label) -> int:
         "pfam_annotated_member_count",
         "modal_bakta_gene_symbol",
         "distinct_real_symbol_count",
+        "named_member_count",
     )
 
     def rows():
@@ -640,6 +641,9 @@ def _load_uniref_crosstab(session, frames, locus_id_by_label) -> int:
                 _int_or_zero(getattr(row, "n_pfam", None)),
                 _clean(getattr(row, "gene", None)),
                 _int_or_zero(getattr(row, "n_sym", None)),
+                # ⚠ A measured zero for a family no gene of which is named — the whole point of
+                # the column. Same `fillna(0)` reasoning as `n_pfam` two lines up.
+                _int_or_zero(getattr(row, "n_named", None)),
             )
 
     return copy_rows(session, LocusUnirefFamilyCrosstab.__table__, columns, rows())

@@ -35,7 +35,7 @@ from syntitude_backend.models.locus_arrangement import LocusArrangement
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
 from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR
-from tests.known_parity_exceptions import exceptions_for
+from tests.known_parity_exceptions import exceptions_for, symbol_fold_for
 from tests.payload_oracle import OFFSETS, load_catalogue
 
 #: The `lists.<key>` → `AnnotationKind` map, so one comparison serves all seven vocabularies.
@@ -225,6 +225,7 @@ def test_T5_the_only_tier_difference_is_the_named_allowlist_and_it_is_exactly_tw
 
 def test_T5_the_annotation_lists_match_row_for_row_in_every_vocabulary(parity):
     catalogue, session, loci, pangenome, entry = parity
+    species_key = entry.species_key  # ⚠ the loop below rebinds `entry` to an ORM row
     rows = session.execute(
         select(LocusAnnotationEntry, Locus.catalogue_ordinal)
         .join(Locus, Locus.locus_id == LocusAnnotationEntry.locus_id)
@@ -237,9 +238,15 @@ def test_T5_the_annotation_lists_match_row_for_row_in_every_vocabulary(parity):
         # GO carries three interleaved rank sequences; the payload emits them namespace-major.
         value.sort(key=lambda entry: (entry.gene_ontology_namespace or 0, entry.rank_within_locus))
 
+    # ⛔ Named loci, never a tolerance: the four the allele-variant fold renames hold a DIFFERENT
+    # symbol list from the frozen page by decision, and `test_T5_the_symbol_fold_renames_EXACTLY…`
+    # below asserts every value of it. Every other list on those loci is still compared.
+    folded = symbol_fold_for(species_key).node_labels
     examined, differing = 0, []
     for list_key, kind in ANNOTATION_KIND_BY_LIST_KEY.items():
         for index in range(catalogue.n_loci):
+            if list_key == "sym" and catalogue.label(index) in folded:
+                continue
             expected = catalogue.annotation_rows(list_key, index)
             actual = held.get((index, kind), [])
             examined += max(len(expected), len(actual))
@@ -251,7 +258,12 @@ def test_T5_the_annotation_lists_match_row_for_row_in_every_vocabulary(parity):
                     differing.append((list_key, catalogue.label(index), want.term, entry.term_value))
                 if list_key == "go" and entry.gene_ontology_namespace != want.namespace:
                     differing.append((list_key, catalogue.label(index), "namespace", entry.rank_within_locus))
-    assert examined == sum(len(block) for block in held.values()), (
+    skipped = sum(
+        len(held.get((index, ANNOTATION_KIND_BY_LIST_KEY["sym"]), []))
+        for index in range(catalogue.n_loci)
+        if catalogue.label(index) in folded
+    )
+    assert examined == sum(len(block) for block in held.values()) - skipped, (
         f"examined {examined:,} annotation rows over {catalogue.n_loci:,} loci"
     )
     assert examined > 50_000, f"examined only {examined:,} annotation rows"
@@ -260,6 +272,8 @@ def test_T5_the_annotation_lists_match_row_for_row_in_every_vocabulary(parity):
 
 def test_T5_the_uniref_crosstab_matches_including_its_five_extra_columns(parity):
     catalogue, session, loci, pangenome, entry = parity
+    species_key = entry.species_key  # ⚠ the loop below rebinds `entry` to an ORM row
+    folded = symbol_fold_for(species_key).node_labels
     rows = session.execute(
         select(LocusUnirefFamilyCrosstab, Locus.catalogue_ordinal)
         .join(Locus, Locus.locus_id == LocusUnirefFamilyCrosstab.locus_id)
@@ -286,14 +300,48 @@ def test_T5_the_uniref_crosstab_matches_including_its_five_extra_columns(parity)
                 (entry.modal_bakta_product, want.modal_product),
                 (entry.modal_pfam_architecture, want.modal_architecture),
                 (entry.pfam_annotated_member_count, want.pfam_annotated_count),
-                (entry.modal_bakta_gene_symbol, want.modal_symbol),
-                (entry.distinct_real_symbol_count, want.distinct_symbol_count),
             )
+            # ⛔ The two SYMBOL columns move on the folded loci by decision, and nowhere else —
+            # so they are compared on every other locus rather than dropped from the suite.
+            if catalogue.label(index) not in folded:
+                checks += (
+                    (entry.modal_bakta_gene_symbol, want.modal_symbol),
+                    (entry.distinct_real_symbol_count, want.distinct_symbol_count),
+                )
             for left, right in checks:
                 if not _same(left, right):
                     differing.append((catalogue.label(index), left, right))
     assert examined > 15_000, f"examined {examined:,} cross-tab rows"
     assert not differing, differing[:5]
+
+
+def test_T5_the_symbol_fold_renames_EXACTLY_the_loci_it_names_and_no_others(parity):
+    """⛔ The other half of every exclusion above: what the excused loci actually hold now.
+
+    An exception that only says *"do not look here"* is a tolerance wearing a name. This asserts
+    the frozen value, the current value and the set — so a fold that reached one locus further,
+    or stopped reaching one, fails here rather than passing quietly everywhere else.
+    """
+    catalogue, _, loci, _, entry = parity
+    fold = symbol_fold_for(entry.species_key)
+    by_label = {locus.node_label: locus for locus in loci}
+    for label, frozen_value, current in fold.renamed:
+        locus = by_label[label]
+        index = next(i for i in range(catalogue.n_loci) if catalogue.label(i) == label)
+        published = catalogue.string("sym", catalogue.nodes["name"][index])
+        assert published == frozen_value, f"{label}: the frozen page says {published!r}"
+        assert locus.bakta_gene_symbol == current, f"{label}: the database says {locus.bakta_gene_symbol!r}"
+        assert locus.display_name == current
+
+    # ⚠ And the set: every OTHER locus keeps the name the frozen page gave it. The interned-string
+    # comparison above already skips the folded four, so without this clause a fold that renamed a
+    # thousand loci would be invisible to both.
+    renamed = {
+        locus.node_label
+        for index, locus in enumerate(loci)
+        if not _same(locus.bakta_gene_symbol, catalogue.string("sym", catalogue.nodes["name"][index]))
+    }
+    assert renamed == fold.node_labels
 
 
 # ── T7 · EggNOG ────────────────────────────────────────────────────────────────────────────────

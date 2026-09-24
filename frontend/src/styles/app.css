@@ -1900,6 +1900,59 @@ td.acc .acc-link {
     letter-spacing: -0.01em;
 }
 
+/* the vote that names the locus: counts of genes carrying each NAME, not of genes in a family.
+   Laid out as chips rather than a table because it is one line of evidence under the sentence it
+   explains, and a second table beside the family table is what made the two confusable. */
+.sym-vote {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin: calc(-1 * var(--s2)) 0 var(--s3);
+}
+
+.sym-vote-lead {
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.sym-vote-item {
+    font-size: 12.5px;
+    color: var(--ink-2);
+    white-space: nowrap;
+}
+
+.sym-vote-item .acc {
+    font-family: var(--mono);
+    color: var(--ink);
+}
+
+/* the one the locus is named for — the same mono-bold the lede gives a name */
+.sym-vote-item.won .acc {
+    font-weight: 700;
+}
+
+.sym-vote-item.won {
+    color: var(--ink);
+}
+
+/* a remainder is not a name: it never gets the mono face a symbol wears */
+.sym-vote-item.rest {
+    color: var(--ink-3);
+    font-style: italic;
+}
+
+.sym-vote-note {
+    margin-top: 0;
+}
+
+.sym-vote-note b,
+.sym-vote-note .acc {
+    font-family: var(--mono);
+}
+
 /* per-family gene-name cell: the name THIS family's members carry, and a marker where they disagree */
 .fam-sym-in {
     display: inline-flex;
