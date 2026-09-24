@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * "Navigating Syntitude" — the site's own documentation, and the loci worth starting from.
+ * "Navigating BacAtlas" — the site's own documentation, and the loci worth starting from.
  *
  * The prose is the published page's, carried across unchanged (`template.html`, `#view-navigating`);
  * only the example chips are per catalogue. ⚠ A chip is a JUMP, so it faces forward.

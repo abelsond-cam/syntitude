@@ -5,7 +5,7 @@
  * ⭐ **The ship sits here, beside the wordmark (David, 2026-09-22)** — it used to stand on the species
  * strip, centred over the evidence column. Inlined rather than an `<img>` so the stylesheet can size
  * it, and `aria-hidden` because the wordmark beside it already names the site: read aloud, it would
- * announce "Syntitude" twice.
+ * announce "BacAtlas" twice.
  */
 import logoMarkup from "@/assets/logo.svg?raw";
 import LocusSearchBox from "@/components/search/LocusSearchBox.vue";
@@ -28,7 +28,7 @@ const emit = defineEmits<{ go: [locusLabel: string] }>();
         <div class="bar-logo" aria-hidden="true" v-html="logoMarkup" />
         <!-- ⚠ One line, as the published template has it: Vue drops whitespace that spans a line break
              between two tags, and split here the rule lost its space ("—NAVIGATE"). -->
-        <div class="mark">Syntitude<span>.org</span> <span class="mark-rule">—</span> <span class="mark-sub">Navigate your Pangenome</span></div>
+        <div class="mark">BacAtlas<span>.org</span> <span class="mark-rule">—</span> <span class="mark-sub">Navigate your Microbe</span></div>
       </div>
       <LocusSearchBox
         :species-key="speciesKey"

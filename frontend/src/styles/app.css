@@ -46,7 +46,7 @@
     --gold: #8a5f10;
     --rust: #a83a2a;
     --focus: #1657d5;
-    /* ⛔ The focal locus is the SAIL ORANGE from the Syntitude mark (David, 2026-08-24) — hull `#E2794C`,
+    /* ⛔ The focal locus is the SAIL ORANGE from the BacAtlas mark (David, 2026-08-24) — hull `#E2794C`,
        sails `#EFBD97` / `#FADFC7`. It outlines the focal block, fills it, and carries through to the chosen
        arrangement chip, its fan line and its row in the A0 card: one colour for one relationship.
 
@@ -3196,7 +3196,7 @@ td.fam-sym {
 /* ---- the instrument bar: the ship beside the wordmark, and a shorter search (David, 2026-09-22) ----
    The mark moved up from the species strip (the ported `.brand-mark` rules above now match nothing), and
    the search stopped filling the bar. `.brand` is a flex row of its own so that `.mark` keeps flowing as
-   text: made a flex container itself, the spaces between "Syntitude", ".org" and the rule would collapse. */
+   text: made a flex container itself, the spaces between "BacAtlas", ".org" and the rule would collapse. */
 .brand {
     display: flex;
     align-items: center;
