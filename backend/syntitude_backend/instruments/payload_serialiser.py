@@ -805,9 +805,17 @@ def meta_block(
     contested = policy["contested_pfclass"]
     return {
         "species": species.scientific_name,
-        # ⚠ `species_key` is the BROWSER key. It coincides with the export's `--dset` token for
-        # these two species and is a different vocabulary from the parquets' `species` column
-        # (`kpneumoniae`), so this equality is a fact about this cohort, not a rule.
+        # ⚠ `species_key` is the BROWSER key, and it is a different vocabulary from the parquets'
+        # `species` column (`kpneumoniae`). It coincided with the export's `--dset` token only while
+        # each species had exactly ONE published catalogue — a fact about that cohort, never a rule.
+        #
+        # ⛔ THAT HAS NOW ENDED. nuna5 is published alongside nuna4 rather than over it, so E. coli has
+        # two catalogues and nuna's exporter gives the second its own key (`--dset ecoli-nuna5`); the
+        # key distinguishes CATALOGUES, and a species key cannot. Nothing on the ingest path reads
+        # `meta.dset`, so this is inert for now — but `test_the_rest_of_meta_is_identical_…` compares
+        # it, so the day a nuna5 catalogue is added to the parity fixtures this line reports `ecoli`
+        # against a payload saying `ecoli-nuna5` and the test fails. The fix then is a browser key on
+        # the PANGENOME defaulting to the species', not a loosened comparison.
         "dset": species.species_key,
         "model_id": pangenome.run_id,
         "model_label": model_label,
