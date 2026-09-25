@@ -39,7 +39,7 @@ def application():
         published = session.execute(
             select(func.count())
             .select_from(PathogenSpecies)
-            .where(PathogenSpecies.published_pangenome_id.is_not(None))
+            .where(PathogenSpecies.default_pangenome_id.is_not(None))
         ).scalar_one()
     if published < 2:
         pytest.skip(

@@ -48,7 +48,7 @@ def species_key_for_parquet_value(value: str) -> str:
 def ingest_pathogen_species(session: Session, species_keys: list[str] | None = None) -> dict[str, int]:
     """Ensure a row per species; return `{species_key: pathogen_species_id}`.
 
-    Idempotent by `species_key`, and it never updates an existing row's `published_pangenome_id` —
+    Idempotent by `species_key`, and it never updates an existing row's `default_pangenome_id` —
     that pointer is flipped by `publish_pangenome`, in its own transaction, and an ingest that
     touched it here could unpublish a live catalogue as a side effect of loading a new one.
     """

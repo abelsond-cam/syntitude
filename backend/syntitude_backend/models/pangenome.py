@@ -36,6 +36,10 @@ class Pangenome(Base):
     __tablename__ = "pangenome"
     __table_args__ = (
         UniqueConstraint("run_id", "ingest_generation"),
+        # `uq_pangenome__catalogue_key` — 27 chars, well inside Postgres' 63-byte identifier limit.
+        # A name over that is truncated with a hash while Alembic compares against the name it ASKED
+        # for, so the table reports as drifted from its own migration forever.
+        UniqueConstraint("catalogue_key"),
         # ⛔ THE `-excl` PREFIX HAZARD, made unrepresentable. `-excl` is a prefix of `-exclLOGP`,
         # and four readers got this wrong silently in one day. A row that disagrees with its own
         # token cannot exist, so no query downstream has to be careful.
@@ -51,6 +55,20 @@ class Pangenome(Base):
 
     #: The on-disk assignment stem.
     run_id: Mapped[str] = mapped_column(String(256), nullable=False)
+
+    #: ⭐ **How a reader addresses this catalogue** — short, URL-safe and stable: `ecoli-nuna4`,
+    #: `ecoli-nuna5`, `kp-nuna5`. It is the same key nuna's exporter writes as `--dset` into
+    #: `meta.dset`, so one vocabulary spans the static pages and this service.
+    #:
+    #: ⛔ **The keys must be PREFIX-FREE, and the separator is a HYPHEN for that reason.** nuna's
+    #: payload lookup globs `locus_browser_<key>_*.json` and takes the newest match, so a key that is
+    #: a prefix of another's payload name silently steals it — `ecoli` would match a
+    #: `locus_browser_ecoli_nuna5_*.json` and, being the later export, win. No species token contains
+    #: a hyphen, so `ecoli-nuna5` is safe where `ecoli_nuna5` is not. Same trap as `-excl` being a
+    #: prefix of `-exclLOGP`, in a second vocabulary.
+    #:
+    #: ⚠ A species key alone cannot serve here: one species holds several catalogues.
+    catalogue_key: Mapped[str] = mapped_column(String(64), nullable=False)
 
     #: ⭐ A re-ingest of the same run_id bumps this rather than mutating rows in place. 889k loci
     #: with 49M arrangements cannot be diffed row-by-row cheaply, and a half-applied upsert leaves a
@@ -108,6 +126,10 @@ class Pangenome(Base):
     git_sha: Mapped[str | None] = mapped_column(String(40), nullable=True)
     built_at: Mapped[str | None] = mapped_column(String(32), nullable=True)
     ingested_at: Mapped[object | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    #: ⛔ **Visibility, NOT "the one we serve".** True means *offer this catalogue in the picker*; a
+    #: species may have several true at once. Which one answers a bare species request is
+    #: `pathogen_species.default_pangenome_id`. The two were the same fact only while each species
+    #: had exactly one catalogue.
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     steps: Mapped[list[PangenomeStep]] = relationship(

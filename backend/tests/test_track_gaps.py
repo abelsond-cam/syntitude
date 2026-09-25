@@ -64,7 +64,7 @@ def test_every_region_the_track_draws_is_in_the_response(application, species_ke
     client = application.test_client()
     with Session(engine) as session:
         pangenome_id = session.execute(
-            select(PathogenSpecies.published_pangenome_id).where(PathogenSpecies.species_key == species_key)
+            select(PathogenSpecies.default_pangenome_id).where(PathogenSpecies.species_key == species_key)
         ).scalar_one()
         labels = [
             label

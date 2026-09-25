@@ -29,6 +29,7 @@ from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
 from syntitude_backend.models.enumerations import RosterLineage
 from syntitude_backend.models.genome import Genome
 from syntitude_backend.models.genome_collection import GenomeCollection, GenomeCollectionMembership
+from syntitude_backend.models.pangenome import Pangenome
 
 
 class RosterError(RuntimeError):
@@ -116,6 +117,51 @@ def ingest_genome_collection(
             "collection with holes in it would address every arrangement's membership one genome "
             "off. Load the genome layer for this species first."
         )
+
+    # ⛔ **THE ONE ROW TWO MODELS SHARE.** `genome_collection` is unique on
+    # `(pathogen_species_id, collection_key)`, so nuna4 and nuna5 over the same 100 genomes share a
+    # single collection — and the membership below is deleted and rewritten on EVERY pangenome
+    # ingest, with `collection_genome_ordinal = enumerate(samples)`. That ordinal is what
+    # `meta.genomes` is ordered by, and `arr.gid` indexes into `meta.genomes`. So if a second
+    # model's roster lists the same genomes in a different ORDER, this rewrite silently renames
+    # every genome on every arrangement of the model that was already loaded — and every name it
+    # then shows is a real genome, so nothing downstream can detect it. The existing parity suite
+    # says exactly this: "one element out of place renames every genome on every arrangement."
+    #
+    # The check above already refuses HOLES. This refuses REORDERING, which only became reachable
+    # when a species was allowed to hold more than one catalogue (2026-09-25).
+    established = [
+        sample_id
+        for (sample_id,) in session.execute(
+            select(GenomeCollectionMembership.requested_sample_id)
+            .where(GenomeCollectionMembership.genome_collection_id == collection.genome_collection_id)
+            .order_by(GenomeCollectionMembership.collection_genome_ordinal)
+        ).all()
+    ]
+    if established and established != samples:
+        dependants = session.execute(
+            select(Pangenome.catalogue_key)
+            .where(Pangenome.genome_collection_id == collection.genome_collection_id)
+            .order_by(Pangenome.catalogue_key)
+        ).scalars().all()
+        if dependants:
+            first = next(
+                (i for i, (a, b) in enumerate(zip(established, samples, strict=False)) if a != b),
+                min(len(established), len(samples)),
+            )
+            raise RosterError(
+                f"collection {key!r} already holds a DIFFERENT roster, and "
+                f"{len(dependants)} catalogue(s) are built on the order it has: "
+                f"{', '.join(dependants)}.\n"
+                f"  first difference at ordinal {first}: "
+                f"{established[first] if first < len(established) else '(end)'} → "
+                f"{samples[first] if first < len(samples) else '(end)'}\n"
+                f"  ({len(established)} genomes stored, {len(samples)} offered)\n"
+                "  An ordinal is a position in this exact list, and `arr.gid` indexes into it, so "
+                "rewriting it would rename every genome on every arrangement of those catalogues "
+                "while leaving each name a real genome. Load this model under its own "
+                "--collection-key, or reconcile the rosters first."
+            )
 
     session.query(GenomeCollectionMembership).filter(
         GenomeCollectionMembership.genome_collection_id == collection.genome_collection_id

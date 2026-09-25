@@ -47,7 +47,7 @@ def application():
         published = session.execute(
             select(func.count())
             .select_from(PathogenSpecies)
-            .where(PathogenSpecies.published_pangenome_id.is_not(None))
+            .where(PathogenSpecies.default_pangenome_id.is_not(None))
         ).scalar_one()
         if published < 2:
             pytest.skip(f"only {published} species are published in {url}")
@@ -181,7 +181,7 @@ def test_the_per_genome_counts_are_COUNT_DISTINCT_and_add_up_to_the_locus_side(a
     engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
     with Session(engine) as session:
         for pangenome_id in session.execute(
-            select(PathogenSpecies.published_pangenome_id)
+            select(PathogenSpecies.default_pangenome_id)
         ).scalars():
             per_genome = session.execute(
                 select(func.sum(PangenomeGenomeLocusCount.locus_count)).where(
@@ -212,7 +212,7 @@ def test_the_stored_counts_are_the_ingest_definition_recomputed(application):
     with Session(engine) as session:
         examined = 0
         for pangenome_id in session.execute(
-            select(PathogenSpecies.published_pangenome_id)
+            select(PathogenSpecies.default_pangenome_id)
         ).scalars():
             stored = {
                 genome_id: (present, arranged)

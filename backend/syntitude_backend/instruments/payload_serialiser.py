@@ -869,7 +869,7 @@ def build_payload_from_database(session: Session, species_key: str) -> dict:
 
     schema_version, _, _, _, _ = _payload_constants()
     pangenome_id = session.execute(
-        select(PathogenSpecies.published_pangenome_id).where(
+        select(PathogenSpecies.default_pangenome_id).where(
             PathogenSpecies.species_key == species_key
         )
     ).scalar_one()

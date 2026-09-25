@@ -48,8 +48,11 @@ from syntitude_backend.services.projected_genome_service import (
 )
 from syntitude_backend.services.species_catalogue_service import (
     SpeciesNotPublished,
+    list_catalogues,
     list_published_species,
+    load_catalogue,
     load_species_catalogue,
+    resolve_catalogue,
     resolve_published_pangenome,
 )
 
@@ -98,7 +101,9 @@ def get_species():
                         "genome_count": pangenome.genome_count if pangenome else None,
                         "gene_count": pangenome.gene_count if pangenome else None,
                         "locus_count": pangenome.locus_count if pangenome else None,
-                        "model_label": None,
+                        # ⚠ Was a hardcoded `None`, which read as "this species is on no model".
+                        # It is the DEFAULT catalogue's key; the full menu is `GET /catalogues`.
+                        "model_label": pangenome.catalogue_key if pangenome else None,
                     }
                     for species, pangenome in rows
                 ]
@@ -107,12 +112,63 @@ def get_species():
         )
 
 
+@species_blueprint.get("/catalogues")
+def get_catalogues():
+    """Every catalogue on offer — what the model picker is built from.
+
+    ⭐ A species appears once per catalogue it holds, so E. coli on nuna4 and nuna5 is two rows.
+    `is_default` marks the one a bare species request resolves to; `key` is what a URL should carry
+    to pin this clustering.
+
+    ⚠ Listed from `pangenome.is_published`, which means *offer this one*, NOT
+    `default_pangenome_id`. A catalogue that is loaded but not offered is reachable by key and absent
+    from the menu — which is how a model is staged before anyone is shown it.
+    """
+    with _session() as session:
+        rows = list_catalogues(session)
+        return _immutable(
+            {
+                "catalogues": [
+                    {
+                        "key": pangenome.catalogue_key,
+                        "species": {
+                            "key": species.species_key,
+                            "scientific_name": species.scientific_name,
+                        },
+                        "model": None
+                        if model is None
+                        else {
+                            "key": model.model_key,
+                            "label": model.label,
+                            "step_count": model.step_count,
+                            "exclusivity_form": model.exclusivity_form.value,
+                        },
+                        "is_default": species.default_pangenome_id == pangenome.pangenome_id,
+                        "genome_count": pangenome.genome_count,
+                        "gene_count": pangenome.gene_count,
+                        "locus_count": pangenome.locus_count,
+                        "run_id": pangenome.run_id,
+                    }
+                    for pangenome, species, model in rows
+                ]
+            },
+            None,
+        )
+
+
+@species_blueprint.get("/catalogues/<species_key>")
 @species_blueprint.get("/species/<species_key>")
 def get_species_catalogue(species_key: str):
     """The census, the model provenance and the landing locus — everything before a locus."""
     with _session() as session:
         try:
-            catalogue = load_species_catalogue(session, species_key)
+            # A hyphen means a catalogue key and pins the model; a bare species follows its default.
+            # Same rule as `_resolve_pangenome`, and the two must not drift apart.
+            catalogue = (
+                load_catalogue(session, species_key)
+                if "-" in species_key
+                else load_species_catalogue(session, species_key)
+            )
         except SpeciesNotPublished as error:
             return _not_found(str(error))
         pangenome = catalogue.pangenome
@@ -200,6 +256,7 @@ def get_species_catalogue(species_key: str):
         )
 
 
+@species_blueprint.get("/catalogues/<species_key>/audit/residual-loci")
 @species_blueprint.get("/species/<species_key>/audit/residual-loci")
 def get_audit_residual_loci(species_key: str):
     """Every locus grouped on context alone, and every Pfam conflict — two lists, each clickable.
@@ -267,7 +324,22 @@ def _resolve_catalogue_genome(session, pangenome, sample_id: str) -> int | None:
 
 
 def _resolve_pangenome(session, species_key: str):
-    # ⛔ One statement. See `resolve_published_pangenome` for what this used to cost every route.
+    """The catalogue this request addresses — a catalogue key if it is one, else a species' default.
+
+    ⭐ **Both forms share one path segment, and they cannot collide.** `ecoli-nuna5` names a
+    catalogue exactly; `ecoli` names a species and gets whatever that species currently serves.
+    Catalogue keys always contain a hyphen and species keys never do — which is the same property
+    that makes the keys prefix-free, doing a second job here.
+
+    ⚠ The difference is not cosmetic: a request naming a catalogue is PINNED and keeps meaning the
+    same clustering after the default moves, which is the whole point of putting the model in the
+    URL. A request naming a species deliberately follows the default.
+
+    ⛔ One statement either way. See `resolve_published_pangenome` for what this used to cost every
+    route.
+    """
+    if "-" in species_key:
+        return resolve_catalogue(session, species_key)
     return resolve_published_pangenome(session, species_key)
 
 
@@ -279,6 +351,7 @@ def _resolve_pangenome(session, species_key: str):
 # control, so a re-render under the same id had to be able to invalidate it.
 
 
+@species_blueprint.get("/catalogues/<species_key>/loci/<path:locus_label>")
 @species_blueprint.get("/species/<species_key>/loci/<path:locus_label>")
 def get_locus(species_key: str, locus_label: str):
     """⭐ The hot path. One round trip, and the popover is then offline.
@@ -340,6 +413,7 @@ def get_locus(species_key: str, locus_label: str):
         return _immutable(payload, pangenome.pangenome_id)
 
 
+@species_blueprint.get("/catalogues/<species_key>/loci/<path:locus_label>/arrangements")
 @species_blueprint.get("/species/<species_key>/loci/<path:locus_label>/arrangements")
 def get_locus_arrangements(species_key: str, locus_label: str):
     """Arrangements past the display cut — the full scroller, paged."""
@@ -374,6 +448,7 @@ def get_locus_arrangements(species_key: str, locus_label: str):
         )
 
 
+@species_blueprint.get("/catalogues/<species_key>/loci/<path:locus_label>/function")
 @species_blueprint.get("/species/<species_key>/loci/<path:locus_label>/function")
 def get_locus_function(species_key: str, locus_label: str):
     """The EggNOG tab — fetched on tab open, not on every walk."""
@@ -432,6 +507,7 @@ def _verdict_value(verdict):
     return verdict.value if verdict is not None else None
 
 
+@species_blueprint.get("/catalogues/<species_key>/genomes/<sample_id>/loci/<path:locus_label>/sequence")
 @species_blueprint.get("/species/<species_key>/genomes/<sample_id>/loci/<path:locus_label>/sequence")
 def get_gene_sequence(species_key: str, sample_id: str, locus_label: str):
     """⭐ The Sequence tab — a gene's DNA, its flanks and its protein, sliced from the original GFF.
@@ -504,6 +580,7 @@ def get_gene_sequence(species_key: str, sample_id: str, locus_label: str):
         )
 
 
+@species_blueprint.get("/catalogues/<species_key>/search")
 @species_blueprint.get("/species/<species_key>/search")
 def get_search(species_key: str):
     """Substring search, with the same semantics the page has today. Replaces the 3.0 MB `HAY`."""
@@ -543,6 +620,7 @@ def get_search(species_key: str):
         )
 
 
+@species_blueprint.get("/catalogues/<species_key>/genomes")
 @species_blueprint.get("/species/<species_key>/genomes")
 def get_genomes(species_key: str):
     """The anchor control's list — `meta.genomes` + `anchorSearch` + `GENOME_N`, as one query.
@@ -595,6 +673,7 @@ def get_genomes(species_key: str):
         )
 
 
+@species_blueprint.get("/catalogues/<species_key>/projected-genomes")
 @species_blueprint.get("/species/<species_key>/projected-genomes")
 def get_projected_genomes(species_key: str):
     """⭐ Genomes placed on this catalogue after the model was built — never members of it.

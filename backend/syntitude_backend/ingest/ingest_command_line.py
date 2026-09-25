@@ -35,7 +35,7 @@ from syntitude_backend.ingest.ingest_nuna_model_registry import (
     ingest_model_registry,
     model_key_for_audit_label,
 )
-from syntitude_backend.ingest.ingest_pangenome_run import ingest_pangenome_run
+from syntitude_backend.ingest.ingest_pangenome_run import catalogue_key_for, ingest_pangenome_run
 from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
 from syntitude_backend.ingest.ingest_projected_genomes import ProjectionRefused, load_projection
 from syntitude_backend.ingest.ingest_reference_vocabularies import load_pfam_reference
@@ -176,7 +176,9 @@ def reconcile(session: Session, report: GenomeLayerReport) -> list[str]:
     ]
 
 
-def load_pangenome_layer(session: Session, artifacts: CatalogueArtifacts, *, species_key: str) -> list[str]:
+def load_pangenome_layer(
+    session: Session, artifacts: CatalogueArtifacts, *, species_key: str, catalogue_key: str | None = None
+) -> list[str]:
     """Model registry → roster → run → catalogue, in the one order the foreign keys allow.
 
     ⚠ **The genome layer must already be loaded**, and this refuses rather than loading a partial
@@ -215,6 +217,9 @@ def load_pangenome_layer(session: Session, artifacts: CatalogueArtifacts, *, spe
         # ⚠ Zero until the loci exist; `ingest_locus_catalogue` sets the real count in the same
         # transaction, so a committed row never claims a locus count it does not hold.
         locus_count=0,
+        # ⭐ How a reader addresses this catalogue. Defaults to `{species}-{model}`, which is also
+        # what nuna's exporter writes as `--dset`, so one key spans both surfaces.
+        catalogue_key=catalogue_key_for(species_key, model_key, catalogue_key),
     )
     catalogue_report = ingest_locus_catalogue(
         session,
@@ -224,6 +229,7 @@ def load_pangenome_layer(session: Session, artifacts: CatalogueArtifacts, *, spe
         genome_id_by_ordinal=genome_id_by_ordinal(session, collection_id),
     )
     return [
+        f"catalogue: {catalogue_key_for(species_key, model_key, catalogue_key)}",
         f"model: {model_key} ({model.step_count} steps, {model.exclusivity_form.value})",
         f"collection: {roster.collection_key} — {roster.genome_count} genomes, "
         f"{roster.genes_in_universe:,} genes in the universe",
@@ -243,8 +249,14 @@ def reconcile_pangenome(session: Session, artifacts: CatalogueArtifacts) -> list
     entry = next((e for e in PUBLISHED_CATALOGUES if e.run_id == artifacts.run_id), None)
     if entry is None:
         return []
+    # ⚠ `run_id` alone is NOT unique — `uq_pangenome__run_id_ingest_generation` is the key, and a
+    # re-ingest bumps the generation rather than mutating rows. Unqualified, this raised
+    # `MultipleResultsFound` the first time anyone re-ingested. Newest generation is the live one.
     pangenome = session.execute(
-        select(Pangenome).where(Pangenome.run_id == artifacts.run_id)
+        select(Pangenome)
+        .where(Pangenome.run_id == artifacts.run_id)
+        .order_by(Pangenome.ingest_generation.desc())
+        .limit(1)
     ).scalar_one()
     held_loci = session.execute(
         select(func.count()).select_from(Locus).where(Locus.pangenome_id == pangenome.pangenome_id)
@@ -289,6 +301,11 @@ def build_parser() -> argparse.ArgumentParser:
                              "step: a load that is not published changes nothing a reader can see")
     parser.add_argument("--species-key", default=None,
                         help="the browser key (`ecoli` | `kp`); defaults to the artifacts' own")
+    parser.add_argument("--catalogue-key", default=None,
+                        help="how a reader addresses THIS catalogue (`ecoli-nuna5`). Defaults to "
+                             "`{species}-{model}`, which is also what nuna's exporter writes as "
+                             "`--dset`. ⛔ Hyphen, never underscore: the keys must stay prefix-free "
+                             "or one catalogue's payloads match another's key")  # fmt: skip
     parser.add_argument("--limit", type=int, help="stop after N genomes (a smoke run, not a mode)")
     parser.add_argument("--only", nargs="*", help="load only these sample ids")
     return parser
@@ -341,8 +358,13 @@ def main(argv: list[str] | None = None) -> int:
         # ⛔ NOT part of `all`. A projection is an addition to a catalogue that already exists, and
         # folding it into the build would make every load depend on an optional feature's artifacts.
         if args.stage == "projection":
+            # ⚠ Newest generation, for the reason recorded in `reconcile_pangenome`: `run_id` is
+            # unique only WITH `ingest_generation`, so this threw once a second generation existed.
             pangenome_id = session.execute(
-                select(Pangenome.pangenome_id).where(Pangenome.run_id == artifacts.run_id)
+                select(Pangenome.pangenome_id)
+                .where(Pangenome.run_id == artifacts.run_id)
+                .order_by(Pangenome.ingest_generation.desc())
+                .limit(1)
             ).scalar_one_or_none()
             if pangenome_id is None:
                 print(f"no pangenome with run_id {artifacts.run_id} — load it first", file=sys.stderr)
@@ -361,7 +383,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.stage in ("pangenome", "all"):
             for line in load_pangenome_layer(
-                session, artifacts, species_key=args.species_key or artifacts.species_key
+                session,
+                artifacts,
+                species_key=args.species_key or artifacts.species_key,
+                catalogue_key=args.catalogue_key,
             ):
                 print(line)
             session.commit()

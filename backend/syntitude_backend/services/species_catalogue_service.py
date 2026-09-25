@@ -1,9 +1,16 @@
 """The species list and one species' census — everything the page needs before a locus.
 
-⭐ **`published_pangenome_id` is the only pointer that decides what a species serves.** Ingest builds
-a new generation alongside the live one and never touches it; `publish_pangenome` flips it in its own
-transaction. That is what makes a re-ingest safe on a running service: the new catalogue is complete
-and verified before anything points at it, and a rollback is the same one-row update backwards.
+⭐ **`default_pangenome_id` decides what a species serves when the URL names no model.** Ingest
+builds a new generation alongside the live one and never touches it; `publish_pangenome` flips it in
+its own transaction. That is what makes a re-ingest safe on a running service: the new catalogue is
+complete and verified before anything points at it, and a rollback is the same one-row update
+backwards.
+
+⛔ **It is a DEFAULT, not the only catalogue a species has.** A species may hold several at once —
+nuna4 beside nuna5, or a sensitive model beside a less-sensitive one — and each is addressed
+directly by `pangenome.catalogue_key` (`ecoli-nuna5`). `resolve_catalogue` is that path;
+`resolve_published_pangenome` is the bare-species path and returns the default. Keep them distinct:
+collapsing them is how a link that pins a model quietly stops pinning it.
 
 ⚠ **The census is read, not counted per request.** `pangenome.genome_count` / `gene_count` /
 `locus_count` are written by ingest and reconciled against the checked-in published triple, so the
@@ -49,6 +56,15 @@ class SpeciesNotPublished(LookupError):
     """The species exists, or does not, and either way it has nothing to serve."""
 
 
+class CatalogueNotFound(SpeciesNotPublished):
+    """No catalogue carries this key.
+
+    ⚠ Subclasses `SpeciesNotPublished` deliberately, so every route that already turns that into a
+    404 keeps doing so. It is a distinct class only so a caller CAN tell "no such catalogue" from
+    "this species serves nothing" when it wants to.
+    """
+
+
 @dataclass
 class SpeciesCatalogue:
     """One species' published pangenome, and everything the shell renders before a locus."""
@@ -83,7 +99,7 @@ def list_published_species(session: Session) -> list[tuple[PathogenSpecies, Pang
     """
     rows = session.execute(
         select(PathogenSpecies, Pangenome)
-        .outerjoin(Pangenome, Pangenome.pangenome_id == PathogenSpecies.published_pangenome_id)
+        .outerjoin(Pangenome, Pangenome.pangenome_id == PathogenSpecies.default_pangenome_id)
         .order_by(PathogenSpecies.species_key)
     ).all()
     return [(species, pangenome) for species, pangenome in rows]
@@ -100,8 +116,8 @@ def resolve_published_pangenome(session: Session, species_key: str) -> Pangenome
     it is an aggregation over the whole catalogue on the hot path.
     """
     row = session.execute(
-        select(PathogenSpecies.published_pangenome_id, Pangenome)
-        .outerjoin(Pangenome, Pangenome.pangenome_id == PathogenSpecies.published_pangenome_id)
+        select(PathogenSpecies.default_pangenome_id, Pangenome)
+        .outerjoin(Pangenome, Pangenome.pangenome_id == PathogenSpecies.default_pangenome_id)
         .where(PathogenSpecies.species_key == species_key)
     ).one_or_none()
     if row is None:
@@ -114,19 +130,73 @@ def resolve_published_pangenome(session: Session, species_key: str) -> Pangenome
     return row.Pangenome
 
 
+def resolve_catalogue(session: Session, catalogue_key: str) -> Pangenome:
+    """The pangenome a catalogue key names — ONE statement, and no species indirection.
+
+    ⛔ This is the path that makes a link PIN a model. `resolve_published_pangenome` answers "what
+    does this species serve by default"; this answers "give me exactly this catalogue", which is what
+    a URL carrying `ecoli-nuna5` is asking for. A reader who shared that link and a reader who opens
+    it must see the same clustering even after the default moves.
+    """
+    pangenome = session.execute(
+        select(Pangenome).where(Pangenome.catalogue_key == catalogue_key)
+    ).scalar_one_or_none()
+    if pangenome is None:
+        raise CatalogueNotFound(
+            f"no catalogue {catalogue_key!r}. ⚠ Keys are `{{species}}-{{model}}` with a HYPHEN — "
+            "`ecoli-nuna5`, never `ecoli_nuna5`."
+        )
+    return pangenome
+
+
+def list_catalogues(session: Session) -> list[tuple[Pangenome, PathogenSpecies, NunaModel | None]]:
+    """Every catalogue offered in the picker, with the species and model that identify it.
+
+    ⚠ Filtered on `pangenome.is_published`, which means *offer this one* — NOT
+    `default_pangenome_id`, which is one per species. A catalogue that is loaded but not offered is
+    reachable by its key and simply absent from the menu, which is how a model is staged before it is
+    shown to anyone.
+    """
+    rows = session.execute(
+        select(Pangenome, PathogenSpecies, NunaModel)
+        .join(PathogenSpecies, PathogenSpecies.pathogen_species_id == Pangenome.pathogen_species_id)
+        .outerjoin(NunaModel, NunaModel.nuna_model_id == Pangenome.nuna_model_id)
+        .where(Pangenome.is_published.is_(True))
+        .order_by(PathogenSpecies.species_key, Pangenome.catalogue_key)
+    ).all()
+    return [(pangenome, species, model) for pangenome, species, model in rows]
+
+
+def load_catalogue(session: Session, catalogue_key: str) -> SpeciesCatalogue:
+    """The whole shell for ONE named catalogue — the model-pinned twin of `load_species_catalogue`."""
+    pangenome = resolve_catalogue(session, catalogue_key)
+    species = session.get(PathogenSpecies, pangenome.pathogen_species_id)
+    return _load_catalogue_shell(session, species, pangenome)
+
+
 def load_species_catalogue(session: Session, species_key: str) -> SpeciesCatalogue:
-    """The whole species shell in a fixed number of statements, none of them per locus."""
+    """The whole species shell in a fixed number of statements, none of them per locus.
+
+    Serves the species' DEFAULT catalogue. `load_catalogue` serves a named one.
+    """
     species = session.execute(
         select(PathogenSpecies).where(PathogenSpecies.species_key == species_key)
     ).scalar_one_or_none()
     if species is None:
         raise SpeciesNotPublished(f"no species {species_key!r}")
-    if species.published_pangenome_id is None:
+    if species.default_pangenome_id is None:
         raise SpeciesNotPublished(
             f"{species_key!r} has no published pangenome. ⚠ That is a distinct state from 'no such "
             "species', and the picker says so rather than omitting it."
         )
-    pangenome = session.get(Pangenome, species.published_pangenome_id)
+    pangenome = session.get(Pangenome, species.default_pangenome_id)
+    return _load_catalogue_shell(session, species, pangenome)
+
+
+def _load_catalogue_shell(
+    session: Session, species: PathogenSpecies, pangenome: Pangenome
+) -> SpeciesCatalogue:
+    """The shell itself, once the catalogue is decided. Both entry points share it exactly."""
     catalogue = SpeciesCatalogue(species=species, pangenome=pangenome)
 
     if pangenome.nuna_model_id is not None:

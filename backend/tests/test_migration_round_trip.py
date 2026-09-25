@@ -3,7 +3,7 @@
 ⛔ Three properties, and each was broken on the first attempt — none of which reading the generated
 file would have shown:
 
-1. Autogenerate **omitted the circular foreign key** `pathogen_species.published_pangenome_id →
+1. Autogenerate **omitted the circular foreign key** `pathogen_species.default_pangenome_id →
    pangenome`. It can only be created by ALTER after both tables exist, and Alembic dropped that
    edge on the floor. The column is the publish-flip pointer, so without the constraint nothing
    stops it naming a pangenome that does not exist.
@@ -100,7 +100,7 @@ def test_the_circular_publish_pointer_foreign_key_exists(probe_engine):
                 "WHERE t.relname = 'pathogen_species' AND c.contype = 'f'"
             )
         ).scalars().all()
-    assert any("pangenome" in d and "published_pangenome_id" in d for d in definition), (
+    assert any("pangenome" in d and "default_pangenome_id" in d for d in definition), (
         f"the publish-flip pointer has no referential integrity: {definition}"
     )
     # DEFERRABLE is required: the flip and the partition attach share one transaction.

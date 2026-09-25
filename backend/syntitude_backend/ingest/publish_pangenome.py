@@ -249,7 +249,7 @@ def publish_pangenome(
         run_id=run_id,
         pangenome_id=pangenome.pangenome_id,
         species_key=species.species_key,
-        previous_pangenome_id=species.published_pangenome_id,
+        previous_pangenome_id=species.default_pangenome_id,
     )
     report.checks_passed, report.failures = verify_pangenome_is_servable(session, pangenome)
 
@@ -262,7 +262,7 @@ def publish_pangenome(
     session.execute(
         update(PathogenSpecies)
         .where(PathogenSpecies.pathogen_species_id == species.pathogen_species_id)
-        .values(published_pangenome_id=pangenome.pangenome_id)
+        .values(default_pangenome_id=pangenome.pangenome_id)
     )
     session.execute(
         update(Pangenome)

@@ -118,6 +118,9 @@ def _build_seed(session):
 
     pangenome = Pangenome(
         run_id="probe_run_res0.1_seed0",
+        # The key a reader addresses this catalogue by — `{species}-{model}`, hyphenated so the keys
+        # stay prefix-free. The seed species is `probe`.
+        catalogue_key="probe-nuna4",
         ingest_generation=1,
         pathogen_species_id=species.pathogen_species_id,
         genome_collection_id=collection.genome_collection_id,

@@ -281,6 +281,32 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def catalogue_key_for(species_key: str, model_key: str, override: str | None = None) -> str:
+    """`{species_key}-{model_key}`, or `override` — the string a reader addresses this catalogue by.
+
+    ⛔ **The separator is a HYPHEN, and the guard below is the whole reason.** Catalogue keys must be
+    PREFIX-FREE: nuna's payload lookup globs `locus_browser_<key>_*.json` and takes the newest match,
+    so a key that is a prefix of another key's payload name silently steals it — `ecoli` matches a
+    `locus_browser_ecoli_nuna5_*.json` and, being the later export, wins. The live page then renders
+    a different model's catalogue with nothing in any output saying so. No species token contains a
+    hyphen, so `ecoli-nuna5` cannot be captured by `ecoli` the way `ecoli_nuna5` can.
+
+    This is the same shape as `-excl` being a prefix of `-exclLOGP` in the run_id tokens, which four
+    readers got wrong in one day. Refuse it here rather than write a comment asking people not to.
+    """
+    key = override or f"{species_key}-{model_key}"
+    if key != species_key and key.startswith(f"{species_key}_"):
+        raise PangenomeIngestError(
+            f"catalogue key {key!r} joins the species with an underscore. `{species_key}` would then "
+            f"also match this catalogue's payloads, and the newest export would win — silently "
+            f"serving one model's catalogue under another's key. Use a hyphen: "
+            f"{species_key}-{key[len(species_key) + 1:]}"
+        )
+    if not key or any(c.isspace() for c in key) or "/" in key:
+        raise PangenomeIngestError(f"catalogue key {key!r} is not URL-safe; it goes in a path segment.")
+    return key
+
+
 def ingest_pangenome_run(
     session: Session,
     artifacts: CatalogueArtifacts,
@@ -292,6 +318,7 @@ def ingest_pangenome_run(
     genome_count: int,
     gene_count: int,
     locus_count: int,
+    catalogue_key: str,
     ingest_generation: int = 1,
 ) -> tuple[int, PangenomeRunReport]:
     """Record the run and everything that describes it; return `(pangenome_id, report)`.
@@ -333,6 +360,7 @@ def ingest_pangenome_run(
         existing = Pangenome(run_id=run_id, ingest_generation=ingest_generation)
         session.add(existing)
 
+    existing.catalogue_key = catalogue_key
     existing.pathogen_species_id = pathogen_species_id
     existing.genome_collection_id = genome_collection_id
     existing.nuna_model_id = nuna_model_id

@@ -67,6 +67,7 @@ def test_the_exclusivity_constraint_REJECTS_a_token_that_disagrees_with_its_form
     session.add(
         Pangenome(
             run_id="wrong_token_run",
+            catalogue_key="probe-wrong-token",
             pathogen_species_id=seeded["species"].pathogen_species_id,
             genome_collection_id=seeded["collection"].genome_collection_id,
             exclusivity_form=ExclusivityForm.EXCLUSION,       # standard …
@@ -89,6 +90,7 @@ def test_the_exclusivity_constraint_ACCEPTS_each_token_with_its_own_form(session
     session.add(
         Pangenome(
             run_id=f"ok_{token}",
+            catalogue_key=f"probe-ok{token}",
             pathogen_species_id=seeded["species"].pathogen_species_id,
             genome_collection_id=seeded["collection"].genome_collection_id,
             exclusivity_form=form,

@@ -232,8 +232,8 @@ def species_setup(request):
         species = session.execute(
             select(PathogenSpecies).where(PathogenSpecies.species_key == species_key)
         ).scalar_one_or_none()
-        _require(species is not None and species.published_pangenome_id, f"{species_key} has no published pangenome")
-        pangenome = session.get(Pangenome, species.published_pangenome_id)
+        _require(species is not None and species.default_pangenome_id, f"{species_key} has no published pangenome")
+        pangenome = session.get(Pangenome, species.default_pangenome_id)
         # ⛔ The page and the database must describe the SAME model, or every locus compares two answers
         # to different questions.
         assert pangenome.run_id == payload["meta"]["model_id"], (

@@ -152,7 +152,7 @@ def choose_sequences(session: Session, pangenome_id: int) -> dict[str, tuple[str
 def record_species(client, session: Session, species_key: str) -> dict:
     """Every response one species' fixture carries, each asserted to have been answered."""
     pangenome_id = session.execute(
-        select(PathogenSpecies.published_pangenome_id).where(PathogenSpecies.species_key == species_key)
+        select(PathogenSpecies.default_pangenome_id).where(PathogenSpecies.species_key == species_key)
     ).scalar_one()
 
     def get(path, **query):

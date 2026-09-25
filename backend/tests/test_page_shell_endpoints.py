@@ -34,7 +34,7 @@ def application():
         published = session.execute(
             select(func.count())
             .select_from(PathogenSpecies)
-            .where(PathogenSpecies.published_pangenome_id.is_not(None))
+            .where(PathogenSpecies.default_pangenome_id.is_not(None))
         ).scalar_one()
     if published < 2:
         pytest.skip(f"only {published} species are published in {url}; run the loader with --publish")
@@ -50,7 +50,7 @@ def _pangenome_id(application, species_key):
     engine = application.extensions["syntitude_database"].engine
     with Session(engine) as session:
         return session.execute(
-            select(PathogenSpecies.published_pangenome_id).where(PathogenSpecies.species_key == species_key)
+            select(PathogenSpecies.default_pangenome_id).where(PathogenSpecies.species_key == species_key)
         ).scalar_one()
 
 

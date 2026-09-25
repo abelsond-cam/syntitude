@@ -45,8 +45,14 @@ down_revision: str | None = '167f47ef6e68'
 branch_labels = None
 depends_on = None
 
-_OLD_UNIQUE = op.f('uq_intergenic_gap__pangenome_id_flanking_locus_id_low_f_2e90')
-_NEW_UNIQUE = op.f('uq_intergenic_gap__pangenome_id_flanking_locus_id_a_flanking_locus_id_b')
+# ⛔ PLAIN STRINGS, wrapped in `op.f()` at each USE SITE rather than here. `op.f` needs the
+# `Operations` proxy, which only exists while a migration is running — calling it at module level
+# raises `NameError: Can't invoke function 'f', as the proxy object has not yet been established`
+# the moment anything imports every revision. That broke `alembic history`, `alembic heads` and
+# `alembic revision --autogenerate` outright, while leaving `alembic current` working, so the
+# breakage only showed when someone tried to add a migration. Found 2026-09-25.
+_OLD_UNIQUE = 'uq_intergenic_gap__pangenome_id_flanking_locus_id_low_f_2e90'
+_NEW_UNIQUE = 'uq_intergenic_gap__pangenome_id_flanking_locus_id_a_flanking_locus_id_b'
 
 
 def upgrade() -> None:
@@ -63,7 +69,7 @@ def upgrade() -> None:
     # Constraints and indexes are dropped FIRST: Postgres renames them automatically with the
     # column, to names that no longer match the convention, and a later migration referring to the
     # convention's name would then fail on a database that had taken this path.
-    op.drop_constraint(_OLD_UNIQUE, 'intergenic_gap', type_='unique')
+    op.drop_constraint(op.f(_OLD_UNIQUE), 'intergenic_gap', type_='unique')
     op.drop_constraint(op.f('ck_intergenic_gap__flanking_pair_is_sorted'), 'intergenic_gap', type_='check')
     op.drop_index(op.f('ix_intergenic_gap__flanking_locus_id_low'), table_name='intergenic_gap')
     op.drop_index(op.f('ix_intergenic_gap__flanking_locus_id_high'), table_name='intergenic_gap')
@@ -76,7 +82,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_intergenic_gap__flanking_locus_id_a'), 'intergenic_gap', ['flanking_locus_id_a'])
     op.create_index(op.f('ix_intergenic_gap__flanking_locus_id_b'), 'intergenic_gap', ['flanking_locus_id_b'])
     op.create_unique_constraint(
-        _NEW_UNIQUE, 'intergenic_gap', ['pangenome_id', 'flanking_locus_id_a', 'flanking_locus_id_b']
+        op.f(_NEW_UNIQUE), 'intergenic_gap', ['pangenome_id', 'flanking_locus_id_a', 'flanking_locus_id_b']
     )
     op.create_foreign_key(
         op.f('fk_intergenic_gap__flanking_locus_id_a__locus'), 'intergenic_gap', 'locus',
@@ -96,7 +102,7 @@ def downgrade() -> None:
     op.drop_constraint(op.f('ck_intergenic_gap__flanking_pair_is_two_distinct_loci'), 'intergenic_gap', type_='check')
     op.drop_constraint(op.f('fk_intergenic_gap__flanking_locus_id_b__locus'), 'intergenic_gap', type_='foreignkey')
     op.drop_constraint(op.f('fk_intergenic_gap__flanking_locus_id_a__locus'), 'intergenic_gap', type_='foreignkey')
-    op.drop_constraint(_NEW_UNIQUE, 'intergenic_gap', type_='unique')
+    op.drop_constraint(op.f(_NEW_UNIQUE), 'intergenic_gap', type_='unique')
     op.drop_index(op.f('ix_intergenic_gap__flanking_locus_id_b'), table_name='intergenic_gap')
     op.drop_index(op.f('ix_intergenic_gap__flanking_locus_id_a'), table_name='intergenic_gap')
 
@@ -106,7 +112,7 @@ def downgrade() -> None:
     op.create_index(op.f('ix_intergenic_gap__flanking_locus_id_low'), 'intergenic_gap', ['flanking_locus_id_low'])
     op.create_index(op.f('ix_intergenic_gap__flanking_locus_id_high'), 'intergenic_gap', ['flanking_locus_id_high'])
     op.create_unique_constraint(
-        _OLD_UNIQUE, 'intergenic_gap', ['pangenome_id', 'flanking_locus_id_low', 'flanking_locus_id_high']
+        op.f(_OLD_UNIQUE), 'intergenic_gap', ['pangenome_id', 'flanking_locus_id_low', 'flanking_locus_id_high']
     )
     op.create_foreign_key(
         op.f('fk_intergenic_gap__flanking_locus_id_low__locus'), 'intergenic_gap', 'locus',
