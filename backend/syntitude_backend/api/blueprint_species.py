@@ -49,7 +49,6 @@ from syntitude_backend.services.projected_genome_service import (
 from syntitude_backend.services.species_catalogue_service import (
     SpeciesNotPublished,
     list_published_species,
-    load_scatter_sprite,
     load_species_catalogue,
     resolve_published_pangenome,
 )
@@ -168,33 +167,30 @@ def get_species_catalogue(species_key: str):
                 # "per genome" line, and its three parts sum to the whole by construction.
                 "prevalence_gene_census": catalogue.prevalence_gene_census,
                 "audit_headline": catalogue.audit_headline,
-                "map_projections": [
+                # ⛔ `map_projections` was REPLACED, not renamed. It carried a UMAP over every
+                # locus's MEDOID, that fit's extent and scale, a whole-catalogue sprite descriptor,
+                # and a null baseline sampled over random pairs of MEDOIDS. All of it described a
+                # construction that reduced a locus to one member.
+                "similarity_baselines": [
                     {
-                        "representation": projection.representation.value,
-                        "method": projection.projection_method,
-                        "requested_metric": projection.requested_metric,
-                        "extent": [
-                            projection.extent_min_x,
-                            projection.extent_min_y,
-                            projection.extent_max_x,
-                            projection.extent_max_y,
-                        ],
-                        "cosine_scale_factor": projection.cosine_scale_factor,
-                        # ⚠ Without the null baseline a cosine has no meaning: ESM's random pairs sit
-                        # at ~0.645 and Bacformer's at ~0.065, so the same "inter" reads oppositely.
-                        "null_mean_cosine": projection.null_mean_cosine,
-                        "null_bin_lower_edge": projection.null_bin_lower_edge,
-                        "null_bin_width": projection.null_bin_width,
-                        "null_bin_counts": projection.null_bin_counts,
+                        "representation": baseline.representation.value,
+                        "form": baseline.similarity_form,
+                        # ⛔ The random GENE-pair floor, and NOT the retired medoid null: on the
+                        # published ecoli catalogue those sit at 0.0587 and 0.0651, close enough to
+                        # look interchangeable and not be. Without it a cosine has no scale — ESM's
+                        # floor is ~0.742 and Bacformer's ~0.059, so the same 0.41 reads oppositely.
+                        "floor_median": baseline.floor_median,
+                        # ⭐ Its spread, so the card can draw a box rather than a bare tick: a median
+                        # alone cannot say whether 0.41 sits far outside random or inside its
+                        # shoulder. `null` where the run's audit JSON was not beside its CSV.
+                        "floor_p25": baseline.floor_p25,
+                        "floor_p75": baseline.floor_p75,
+                        "floor_p99": baseline.floor_p99,
                         # ⭐ The other half of "p12 of 12,104 loci".
-                        "separation_measurable_locus_count": projection.separation_measurable_locus_count,
-                        # ⭐ The whole-catalogue dust, which is a PICTURE — the descriptor only, and
-                        # `null` where this representation has no sprite. Its bytes come from
-                        # `/map/{rep}/scatter.png`; the viewport in here is what the client projects
-                        # the six foreground dots with, and it must not compute one of its own.
-                        "scatter_sprite": catalogue.scatter_sprites.get(projection.representation.value),
+                        "measurable_locus_count": baseline.measurable_locus_count,
+                        "neighbour_knn_k": baseline.neighbour_knn_k,
                     }
-                    for projection in catalogue.map_projections
+                    for baseline in catalogue.similarity_baselines
                 ],
                 "landing_locus": catalogue.landing_locus_label,
                 "example_loci": catalogue.example_locus_labels,
@@ -230,8 +226,12 @@ def get_audit_residual_loci(species_key: str):
                     "syntenic_a5": entry.syntenic_a5,
                     # ⚠ DISTANCES, as stored. The footer has always shown similarities; the client
                     # converts, exactly as it does for the locus card, so there is one conversion.
-                    "esm_within_medoid_distance": entry.esm_within_medoid_distance,
-                    "esm_nearest_medoid_distance": entry.esm_nearest_medoid_distance,
+                    # ⛔ SIMILARITIES now, not distances: the client used to convert with
+                    # `1 − d` and there is nothing left to convert. The numbers behind them are a
+                    # median over every within-locus gene pair and the highest such median against
+                    # another locus, not a member's distance to one gene.
+                    "esm_within_similarity": entry.esm_within_similarity,
+                    "esm_nearest_similarity": entry.esm_nearest_similarity,
                 }
                 for entry in entries
             ]
@@ -271,49 +271,12 @@ def _resolve_pangenome(session, species_key: str):
     return resolve_published_pangenome(session, species_key)
 
 
-@species_blueprint.get("/species/<species_key>/map/<representation>/scatter.png")
-def get_catalogue_scatter_sprite(species_key: str, representation: str):
-    """⭐ The whole catalogue as one picture — the only endpoint that does not return JSON.
-
-    Every other thing the map needs is a number. The dust behind the six dots is the one part that
-    is O(catalogue): 889,160 positions at the design target, sent to draw a texture out of which no
-    reader ever reads a value.
-
-    ⚠ **Its ETag is the CONTENT digest, not the pangenome id.** Every JSON response here is keyed on
-    the build because a build is what changes it; an image, though, is cached hard and for a long
-    time by browsers and proxies we do not control, so a re-render under the same pangenome id has
-    to be able to invalidate it. The client also appends the digest as `?v=`, which makes the URL
-    itself immutable and the cache entry permanent.
-    """
-    if representation not in {member.value for member in EmbeddingRepresentation}:
-        return _not_found(f"no representation {representation!r}")
-
-    with _session() as session:
-        try:
-            pangenome = _resolve_pangenome(session, species_key)
-        except SpeciesNotPublished as error:
-            return _not_found(str(error))
-
-        sprite = load_scatter_sprite(session, pangenome.pangenome_id, representation)
-        # ⛔ A missing sprite is a 404 that SAYS SO, never an empty 200 and never a blank PNG: a
-        # blank square reads as "this catalogue has no loci anywhere", which is a different claim
-        # and a false one.
-        if sprite is None:
-            return _not_found(
-                f"{species_key} has no {representation} scatter sprite — its catalogue map was "
-                "never built for that representation"
-            )
-
-        etag = f'"{sprite.content_digest}"'
-        if request.if_none_match.contains_weak(sprite.content_digest):
-            response = current_app.response_class(status=304)
-        else:
-            response = current_app.response_class(sprite.image_png, mimetype=sprite.image_media_type)
-        response.headers["ETag"] = etag
-        # `immutable` on top of the year: the URL carries the digest, so this exact URL can never
-        # describe different bytes.
-        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-        return response
+# ⛔ `GET /species/<key>/map/<rep>/scatter.png` was DELETED on 2026-09-24 with the whole-catalogue
+# sprite it served. It was the only endpoint here that did not return JSON.
+#
+# ⚠ Worth keeping if a catalogue-wide picture ever returns: its ETag was the CONTENT digest and not the
+# pangenome id, because an image is cached hard and for a long time by browsers and proxies we do not
+# control, so a re-render under the same id had to be able to invalidate it.
 
 
 @species_blueprint.get("/species/<species_key>/loci/<path:locus_label>")

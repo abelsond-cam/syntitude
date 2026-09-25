@@ -27,8 +27,10 @@ from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
 SPECIES_RESOLUTION = 1
 
 #: `test_api_endpoints.test_a_locus_view_issues_ONE_statement_PER_TABLE_and_no_more` derives this:
-#: eight tables plus one neighbour-resolution statement.
-LOCUS_VIEW_MINIMUM = 9
+#: NINE tables plus one neighbour-resolution statement. ⚠ It was 9 until 2026-09-24, when the medoid
+#: geometry's single table became two — the per-locus similarities and the ranked nearest loci, which
+#: have different cardinalities and so are deliberately not joined into one statement.
+LOCUS_VIEW_MINIMUM = 10
 
 #: ⚠ A genome PROJECTED onto the ecoli catalogue, if one is loaded. The projection is an optional
 #: addition to a published catalogue, so these two tests skip rather than fail where none exists —

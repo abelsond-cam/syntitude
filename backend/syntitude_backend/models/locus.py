@@ -53,14 +53,7 @@ class Locus(Base):
             "uniref50_impurity",
             "uniref50_coverage",
             "resolved_threshold",
-            "esm_within_medoid_distance",
-            "esm_nearest_medoid_distance",
-            "bacformer_within_medoid_distance",
-            "bacformer_nearest_medoid_distance",
-            "embed_within_over_nearest",
             "seqid_coverage",
-            "separation_percentile_esm",
-            "separation_percentile_bacformer",
             "interest_score",
         ),
     )
@@ -144,20 +137,18 @@ class Locus(Base):
     resolved_threshold: Mapped[float | None] = measurement()
     seqid_coverage: Mapped[float | None] = measurement()
 
-    # ── embedding geometry ────────────────────────────────────────────────────────────────────
-    esm_within_medoid_distance: Mapped[float | None] = measurement()
-    esm_nearest_medoid_distance: Mapped[float | None] = measurement()
-    bacformer_within_medoid_distance: Mapped[float | None] = measurement()
-    bacformer_nearest_medoid_distance: Mapped[float | None] = measurement()
-    embed_within_over_nearest: Mapped[float | None] = measurement()
+    # ── the representative member ─────────────────────────────────────────────────────────────
+    #: ⛔ The four `*_medoid_distance` columns, `embed_within_over_nearest` and the two
+    #: `separation_percentile_*` went on 2026-09-24. Each measured a locus by reducing it to the
+    #: member below — its MEDOID — and then measuring that one point; the replacement measures the
+    #: whole set and lives in `locus_cluster_similarity`, at a grain (locus, representation) that
+    #: four columns per quantity could not express.
+    #:
+    #: These two stay because they are not a geometry: they NAME the representative member, which is
+    #: an ordinary fact about the locus and survives the construction that used it. ⚠ Nothing reads
+    #: them today; they are kept for an exemplar view, not because anything is waiting for them.
     medoid_genome_id: Mapped[int | None] = mapped_column(ForeignKey("genome.genome_id"), nullable=True)
     medoid_flat_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
-    #: ⭐ Precomputed MIDRANK over **measurable loci only** — not over the catalogue. The card
-    #: prints "p12 of 12,104 loci" and both halves of that are assertions. ⚠ Singletons are NULL and
-    #: must read *not measurable*, never `0.000`.
-    separation_percentile_esm: Mapped[float | None] = measurement()
-    separation_percentile_bacformer: Mapped[float | None] = measurement()
 
     # ── function block ────────────────────────────────────────────────────────────────────────
     cog_annotated_member_count: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -87,19 +87,23 @@ def test_uniref50_impurity_is_LOADED_and_its_NULL_means_what_it_says(loaded_sess
     )
 
 
-def test_the_five_other_cluster_table_columns_are_loaded_too(loaded_session):
-    """Each was declared, documented, present in the source, and 100 % NULL."""
+def test_the_other_cluster_table_columns_are_loaded_too(loaded_session):
+    """Each was declared, documented, present in the source, and 100 % NULL.
+
+    ⚠ `embed_within_over_nearest` left this list on 2026-09-24. It was the ratio of a locus's two
+    MEDOID distances, so it went with them; `medoid_genome_id` and `medoid_flat_index` stayed,
+    because they NAME the representative member rather than measuring anything from it.
+    """
     filled = loaded_session.execute(
         select(
             func.count(Locus.uniref50_coverage),
-            func.count(Locus.embed_within_over_nearest),
             func.count(Locus.medoid_genome_id),
             func.count(Locus.medoid_flat_index),
         ).select_from(Locus)
     ).one()
     total = loaded_session.execute(select(func.count()).select_from(Locus)).scalar_one()
     assert all(value == total for value in filled), dict(zip(
-        ("uniref50_coverage", "embed_within_over_nearest", "medoid_genome_id", "medoid_flat_index"),
+        ("uniref50_coverage", "medoid_genome_id", "medoid_flat_index"),
         filled, strict=True,
     ))
 

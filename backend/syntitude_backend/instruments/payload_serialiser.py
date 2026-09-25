@@ -150,10 +150,9 @@ def node_block(loci: list[Locus], pools: CataloguePools) -> dict[str, list]:
         # ⚠ -1, not null: `_Intern` never saw this column — `build_payload` wrote the sentinel itself.
         "n_arch": [-1 if locus.pfam_architecture_count is None else locus.pfam_architecture_count for locus in loci],
         "resolved": [locus.resolved_threshold for locus in loci],
-        "esm_d_intra": [locus.esm_within_medoid_distance for locus in loci],
-        "esm_d_near": [locus.esm_nearest_medoid_distance for locus in loci],
-        "bac_d_intra": [locus.bacformer_within_medoid_distance for locus in loci],
-        "bac_d_near": [locus.bacformer_nearest_medoid_distance for locus in loci],
+        # ⛔ `esm_d_intra` / `esm_d_near` / `bac_d_intra` / `bac_d_near` went on 2026-09-24 with the
+        # card that read them. They were cosine DISTANCES to a locus's medoid; `sim` carries medians
+        # over the whole set, in a block of its own rather than four columns here.
         "n_cog": [locus.cog_annotated_member_count for locus in loci],
         "cog_n": [locus.cog_distinct_id_count for locus in loci],
         # ⛔ Bakta writes a SET of COG categories as a letter run (`MV`, `KG`, `DN`), which the
@@ -461,8 +460,6 @@ def context_block(session: Session, pangenome_id: int, loci: list[Locus]) -> dic
 VARIANCE_SCALE = 1000
 VARIANCE_CLIP = 2.0
 
-#: `null_block` rounds its three floats to 6 dp before shipping them.
-NULL_BASELINE_DECIMALS = 6
 
 
 def _rounded(value: float | None, decimals: int) -> float | None:
@@ -551,119 +548,15 @@ def gaps_block(session: Session, pangenome_id: int, loci: list[Locus]) -> dict:
     }
 
 
-def map_representation_blocks(session: Session, pangenome_id: int, loci: list[Locus]) -> list[dict]:
-    """The ``map_reps`` block — one entry per representation, **as a LIST because order is meaning**.
-
-    The page renders the representations as tabs in a fixed order (Bacformer first — it is the axis
-    the method is about), so this is a list and not a dict.
-
-    ⛔⛔ **``x``, ``y``, ``near`` and ``cos6`` are base64-packed binary, not JSON arrays.** They are
-    emitted through nuna's own ``_b64_i16``/``_b64_i32``, imported rather than reimplemented — a
-    second little-endian packer is a second thing to get wrong, and an endianness mistake produces
-    a valid base64 string, a valid picture, and the wrong loci.
-
-    ⚠ ``near`` is ``n_loci × k`` **raveled**, and a neighbour outside the catalogue is ``-1``, which
-    **drops its slot rather than its rank** — the surviving slot indices are what address ``cos6``.
-    Reading ``near`` by rank instead draws one locus's distances on another, and the picture still
-    looks like a picture.
-
-    ⚠ ``nowhere`` (−32768) is *no medoid*, and it is **not** ``-1``. Both catalogues happen to place
-    every locus, so the sentinel never appears in them — which is precisely why it must be carried
-    from the constant rather than inferred from the data.
-    """
-    from pathlib import Path
-
-    from nuna.tl.locus_browser.export_payload import _b64_i16, _b64_i32
-
-    from syntitude_backend.models.locus_embedding_geometry import (
-        NOWHERE_SENTINEL,
-        LocusEmbeddingGeometry,
-        LocusMapProjection,
-    )
-
-    projections = list(
-        session.execute(
-            select(LocusMapProjection)
-            .where(LocusMapProjection.pangenome_id == pangenome_id)
-            .order_by(LocusMapProjection.locus_map_projection_id)
-        ).scalars()
-    )
-    if not projections:
-        return []
-
-    blocks = []
-    for projection in projections:
-        rows = session.execute(
-            select(LocusEmbeddingGeometry, Locus.catalogue_ordinal)
-            .join(Locus, Locus.locus_id == LocusEmbeddingGeometry.locus_id)
-            .where(
-                Locus.pangenome_id == pangenome_id,
-                LocusEmbeddingGeometry.representation == projection.representation,
-            )
-            .order_by(Locus.catalogue_ordinal)
-        ).all()
-        if len(rows) != len(loci):
-            raise ValueError(
-                f"{projection.representation.value}: {len(rows):,} geometry rows for "
-                f"{len(loci):,} loci — x/y are positional, so a missing row shifts the whole map"
-            )
-        x = [geometry.map_x for geometry, _ in rows]
-        y = [geometry.map_y for geometry, _ in rows]
-        near: list[int] = []
-        cosines: list[int] = []
-        for geometry, _ in rows:
-            near.extend(geometry.nearest_locus_ordinals)
-            cosines.extend(geometry.pairwise_cosine_scaled)
-        blocks.append(
-            {
-                "rep": projection.representation.value,
-                # The projection NAME and metric travel with the coordinates, so a t-SNE fallback
-                # can never be captioned as a UMAP and a euclidean fit never as a cosine one.
-                "how": projection.projection_method,
-                "metric": projection.requested_metric,
-                "k": projection.neighbour_count,
-                "cos_scale": projection.cosine_scale_factor,
-                # ⛔ This constant used to be imported from nuna, so the two could not drift. nuna
-                # DELETED its map on 2026-09-24 (schema 16) and with it `_NOWHERE`, so this side now
-                # owns the sentinel outright — there is no longer another copy to drift from. The
-                # rebuild itself is on its way out with the map; until then it must still emit the
-                # value the published schema-14 payloads carry, which is this one.
-                "nowhere": int(NOWHERE_SENTINEL),
-                "scale": {
-                    "cx": projection.scale_centre_x,
-                    "cy": projection.scale_centre_y,
-                    "span": projection.scale_span,
-                    "unit": projection.scale_unit,
-                },
-                "x": _b64_i16(x),
-                "y": _b64_i16(y),
-                "near": _b64_i32(near),
-                "cos6": _b64_i16(cosines),
-                # ⚠ The basename, as the payload carries it — the column holds the absolute path
-                # the ingest read, which is a fact about this machine and not about the catalogue.
-                "source": Path(projection.source_csv_path).name,
-            }
-        )
-    return blocks
-
-
-#: ⚠ Where each `meta` field comes from, stated per field rather than left to the reader. Three of
-#: them are **not in the database at all** — they are properties of the *export*, not of the
-#: pangenome — so the instrument takes them from nuna's constants or the checked-in catalogue
-#: registry and says so, rather than quietly inventing a column's worth of authority.
-META_FIELD_SOURCES: dict[str, str] = {
-    "n_genomes": "database", "n_genes": "database", "n_loci": "database",
-    "genomes": "database", "model_id": "database", "species": "database",
-    "omitted": "database", "provenance": "database", "audit": "database",
-    "built": "database (volatile — excluded by the oracle)",
-    "git_sha": "database (volatile — excluded by the oracle)",
-    "offsets": "nuna constant", "bands": "nuna constant", "policy": "nuna constant",
-    "top_neighbours": "nuna constant — NOT STORED",
-    "top_arrangements": "nuna constant — NOT STORED",
-    "seq": "export setting — NOT STORED",
-    "model_label": "database (pangenome_evaluation.detail WHERE metric_name = 'label')",
-    "dset": "database (pathogen_species.species_key)",
-}  # fmt: skip
+# ⛔ `map_representation_blocks` was DELETED on 2026-09-24 with the neighbourhood map it rebuilt: a UMAP
+# over every locus's MEDOID plus that medoid's 6×6 local geometry. `similarity_block` below is what
+# replaced it, and it is a different measurement rather than a renaming.
+#
+# ⚠ Two things that block knew, worth keeping if any packed array returns here. The base64 arrays went
+# through nuna's own `_b64_i16`/`_b64_i32` rather than a second little-endian packer, because an
+# endianness mistake produces a valid base64 string, a valid picture, and the wrong loci. And its `-1`
+# dropped a SLOT rather than a rank, so the surviving slot indices were what addressed the triangle —
+# reading by rank drew one locus's distances on another, and the picture still looked like a picture.
 
 
 def _headline_value(metric_name: str, value):
@@ -719,39 +612,118 @@ def _arrangement_cap(loci: list[Locus], listed_counts: list[int]) -> int:
     return cap
 
 
-def null_baseline_block(session: Session, pangenome_id: int, *, model_label: str) -> dict:
-    """The `null` block — the random-pair baseline per representation, **keyed by rep, not a list**.
+def similarity_block(session: Session, pangenome_id: int, loci: list[Locus], *, model_label: str) -> dict:
+    """The `sim` block — set-to-set similarity per representation, **keyed by rep, not a list**.
 
-    Top-level in the payload on purpose: the card needs it in every render, whereas `map_reps` is
-    optional and comes from a GPU job.
+    ⛔ **This replaced `map_representation_blocks` and `null_baseline_block` together**, because in
+    the payload they replaced one card and its axis. The old pair emitted a UMAP over every locus's
+    MEDOID, that medoid's 6×6 local geometry, and a distribution of random MEDOID pairs.
 
-    ⚠ `source` is the CSV's filename, which is a fact about the export rather than about the
-    baseline, so it is rebuilt from the model label rather than stored — see
-    :data:`META_FIELD_SOURCES` for the same distinction applied to `meta`.
+    ⚠ The two base64 arrays are emitted through nuna's own `_b64_i16`/`_b64_i32`, imported rather
+    than reimplemented — a second little-endian packer is a second thing to get wrong, and an
+    endianness mistake produces a valid base64 string and the wrong loci.
+
+    ⚠ `near_i` is `n_loci × k` **raveled** and **-1 means absent**, which here is a genuinely ragged
+    list rather than the retired slot-dropping sentinel: a locus whose shortlist held fewer than `k`
+    others simply has fewer rows in `locus_nearest_locus`, and the remaining slots pad.
     """
-    from syntitude_backend.models.locus_embedding_geometry import LocusMapProjection
+    from nuna.tl.locus_browser.export_payload import _b64_i16, _b64_i32
 
+    from syntitude_backend.models.locus_similarity import (
+        NEAREST_LOCUS_COUNT,
+        LocusNearestLocus,
+        LocusSimilarity,
+        PangenomeSimilarityBaseline,
+    )
+
+    baselines = list(
+        session.execute(
+            select(PangenomeSimilarityBaseline)
+            .where(PangenomeSimilarityBaseline.pangenome_id == pangenome_id)
+            .order_by(PangenomeSimilarityBaseline.pangenome_similarity_baseline_id)
+        ).scalars()
+    )
+    if not baselines:
+        return {}
+
+    ordinal_of = {locus.locus_id: locus.catalogue_ordinal for locus in loci}
     out: dict[str, dict] = {}
-    for projection in session.execute(
-        select(LocusMapProjection)
-        .where(LocusMapProjection.pangenome_id == pangenome_id)
-        .order_by(LocusMapProjection.locus_map_projection_id)
-    ).scalars():
-        if projection.null_bin_counts is None:
-            continue
-        rep = projection.representation.value
-        # ⛔ The payload rounds all three to 6 dp and the columns hold the unrounded values — which
-        # is the right way round: the database keeps what was measured and the emitter applies the
-        # payload's convention. Without this, `w` ships as 0.010000000000000009 (a float subtraction
-        # of two bin edges) and `mean` at 8 dp — both correct numbers, neither the published one.
+    for baseline in baselines:
+        representation = baseline.representation
+        rep = representation.value
+        rows = session.execute(
+            select(LocusSimilarity, Locus.catalogue_ordinal)
+            .join(Locus, Locus.locus_id == LocusSimilarity.locus_id)
+            .where(Locus.pangenome_id == pangenome_id, LocusSimilarity.representation == representation)
+            .order_by(Locus.catalogue_ordinal)
+        ).all()
+        if len(rows) != len(loci):
+            raise ValueError(
+                f"{rep}: {len(rows):,} similarity rows for {len(loci):,} loci — every array in this "
+                "block is positional, so a missing row shifts the whole catalogue by one"
+            )
+
+        columns = {
+            "within": [row.within_similarity for row, _ in rows],
+            "near": [row.nearest_similarity for row, _ in rows],
+            "weak_in": [row.weak_own_similarity for row, _ in rows],
+            "weak_out": [row.weak_other_similarity for row, _ in rows],
+            "own": [row.own_neighbour_fraction for row, _ in rows],
+        }
+
+        near_index = [-1] * (len(loci) * NEAREST_LOCUS_COUNT)
+        near_value = [0] * (len(loci) * NEAREST_LOCUS_COUNT)
+        for nearest, ordinal in session.execute(
+            select(LocusNearestLocus, Locus.catalogue_ordinal)
+            .join(Locus, Locus.locus_id == LocusNearestLocus.locus_id)
+            .where(Locus.pangenome_id == pangenome_id, LocusNearestLocus.representation == representation)
+        ).all():
+            slot = ordinal * NEAREST_LOCUS_COUNT + (nearest.rank - 1)
+            near_index[slot] = ordinal_of[nearest.neighbour_locus_id]
+            near_value[slot] = _quantised_cosine(nearest.cross_similarity)
+
         out[rep] = {
-            "lo": _rounded(projection.null_bin_lower_edge, NULL_BASELINE_DECIMALS),
-            "w": _rounded(projection.null_bin_width, NULL_BASELINE_DECIMALS),
-            "count": list(projection.null_bin_counts),
-            "mean": _rounded(projection.null_mean_cosine, NULL_BASELINE_DECIMALS),
-            "source": f"{model_label}_null_{rep}.csv",
+            "form": baseline.similarity_form,
+            "k": baseline.nearest_locus_count,
+            "cos_scale": COSINE_SCALE_FACTOR,
+            **{key: _floats(values) for key, values in columns.items()},
+            "near_i": _b64_i32(near_index),
+            "near_v": _b64_i16(near_value),
+            "floor": _rounded(baseline.floor_median, SIMILARITY_FLOOR_DECIMALS),
+            "floor_q": (
+                None
+                if baseline.floor_p25 is None
+                else [
+                    _rounded(baseline.floor_p25, SIMILARITY_FLOOR_DECIMALS),
+                    _rounded(baseline.floor_p75, SIMILARITY_FLOOR_DECIMALS),
+                    _rounded(baseline.floor_p99, SIMILARITY_FLOOR_DECIMALS),
+                ]
+            ),
+            "n_measurable": baseline.measurable_locus_count,
+            "knn_k": baseline.neighbour_knn_k,
+            # ⚠ A fact about the EXPORT rather than about the measurement, so it is rebuilt from the
+            # model label rather than stored — the same distinction `META_FIELD_SOURCES` applies.
+            "source": f"{model_label}_cluster_similarity_{rep}.csv",
         }
     return out
+
+
+#: The payload stores cosines as int16 hundredths-of-a-basis-point; nuna's `_COS`, restated so this
+#: side does not import a private name that has already been deleted once.
+COSINE_SCALE_FACTOR = 10_000
+SIMILARITY_FLOOR_DECIMALS = 6
+
+
+def _quantised_cosine(value: float | None) -> int:
+    if value is None:
+        return 0
+    scaled = round(float(value) * COSINE_SCALE_FACTOR)
+    return max(-COSINE_SCALE_FACTOR, min(COSINE_SCALE_FACTOR, scaled))
+
+
+def _floats(values, decimals: int = 4) -> list[float | None]:
+    """Round to `decimals` places; `None` stays `None` — the payload's own `_floats` convention."""
+    return [None if value is None else round(float(value), decimals) for value in values]
 
 
 def meta_block(
@@ -902,7 +874,6 @@ def build_payload_from_database(session: Session, species_key: str) -> dict:
     # ⚠ None of the blocks below intern, so their order is free — `arr` is built first only because
     # `meta.top_arrangements` is recovered from what it listed.
     arrangements = arrangement_block(session, pangenome_id, loci)
-    maps = map_representation_blocks(session, pangenome_id, loci)
     gaps = gaps_block(session, pangenome_id, loci)
 
     payload = {
@@ -918,15 +889,15 @@ def build_payload_from_database(session: Session, species_key: str) -> dict:
         "nodes": nodes,
         "lists": lists,
         "arr": arrangements,
-        **({"map_reps": maps} if maps else {}),
+
         "ctx": context_block(session, pangenome_id, loci),
         **({"gaps": gaps} if gaps else {}),
     }
-    baseline = null_baseline_block(
-        session, pangenome_id, model_label=payload["meta"]["model_label"]
+    similarity = similarity_block(
+        session, pangenome_id, loci, model_label=payload["meta"]["model_label"]
     )
-    if baseline:
-        payload["null"] = baseline
+    if similarity:
+        payload["sim"] = similarity
     failures = verify_intern_walk(payload)
     if failures:
         raise ValueError(

@@ -34,7 +34,7 @@ from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, Locu
 from syntitude_backend.models.locus_arrangement import LocusArrangement
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
-from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR
+from tests.conftest import NUNA_DATA_ROOT, PUBLISHED_SITE_CATALOGUE_DIR
 from tests.known_parity_exceptions import exceptions_for, symbol_fold_for
 from tests.payload_oracle import OFFSETS, load_catalogue
 
@@ -116,6 +116,12 @@ def _same(left, right) -> bool:
 
 # ── T5 · locus information ─────────────────────────────────────────────────────────────────────
 #: `(locus column, payload nodes key, how to read the payload value)`. Every scalar the card shows.
+#:
+#: ⛔ **The four `*_medoid_distance` rows went on 2026-09-24 and are NOT replaced here**, because the
+#: published payload this table compares against is FROZEN at schema 14 and has no `sim` block to
+#: compare to. Dropping four comparisons without saying so would be exactly the silent loss of
+#: coverage this file's fixture asserts against, so the replacement measurement is compared against
+#: its own oracle — the artifact it was ingested from — in `test_T5b` below.
 SCALAR_COLUMNS = (
     ("member_gene_count", "size", None),
     ("member_genome_count", "genomes", None),
@@ -126,10 +132,6 @@ SCALAR_COLUMNS = (
     ("pfam_annotated_member_count", "n_pfam", None),
     ("syntenic_a5", "a5", None),
     ("resolved_threshold", "resolved", None),
-    ("esm_within_medoid_distance", "esm_d_intra", None),
-    ("esm_nearest_medoid_distance", "esm_d_near", None),
-    ("bacformer_within_medoid_distance", "bac_d_intra", None),
-    ("bacformer_nearest_medoid_distance", "bac_d_near", None),
     ("cog_annotated_member_count", "n_cog", None),
     ("cog_distinct_id_count", "cog_n", None),
     ("ec_annotated_member_count", "n_ec", None),
@@ -583,3 +585,59 @@ def test_T3a_the_observed_denominator_is_counted_before_the_top_N_cut(parity):
         if any(count < locus.member_gene_count for count in observed):
             truncated += 1
     assert truncated > 0, "no locus shows contig-edge truncation — implausible for draft assemblies"
+
+
+def test_T5b_every_similarity_matches_the_artifact_it_was_INGESTED_from(parity):
+    """The set-to-set numbers, against the CSV rather than the payload.
+
+    ⛔ **This is not a weaker oracle than T5, it is a different one.** T5 compares the database to a
+    published payload, which is the right check for anything that shipped. These numbers have not
+    shipped yet — the published payload is frozen at schema 14 — so their oracle is the artifact
+    `build_cluster_similarity` wrote, read here independently of the ingest that loaded it.
+
+    ⚠ Coverage is asserted before any difference is reported: every locus, both representations, all
+    five stored quantities. A loop that skipped a missing column would report "0 differ" while
+    comparing nothing, which is the failure mode this suite exists to refuse.
+    """
+    pandas = pytest.importorskip("pandas", reason="the ingest extra")
+    catalogue, session, loci, _, entry = parity
+
+    from syntitude_backend.ingest.artifact_locator import REPRESENTATIONS, CatalogueArtifacts
+    from syntitude_backend.ingest.catalogue_frames import SIMILARITY_COLUMNS
+    from syntitude_backend.models.enumerations import EmbeddingRepresentation
+    from syntitude_backend.models.locus_similarity import LocusSimilarity
+
+    artifacts = CatalogueArtifacts(
+        data_root=NUNA_DATA_ROOT, set_key=entry.set_key,
+        model_label=entry.model_label, run_id=entry.run_id,
+    )  # fmt: skip
+    examined, differing = 0, {}
+    for representation in REPRESENTATIONS:
+        frame = pandas.read_csv(artifacts.cluster_similarity(representation), dtype={"node": str})
+        by_label = frame.set_index("node")
+        stored = {
+            row.locus_id: row
+            for row in session.execute(
+                select(LocusSimilarity).where(
+                    LocusSimilarity.representation == EmbeddingRepresentation(representation),
+                    LocusSimilarity.locus_id.in_([locus.locus_id for locus in loci]),
+                )
+            ).scalars()
+        }
+        assert len(stored) == len(loci), (
+            f"{representation}: {len(stored):,} similarity rows for {len(loci):,} loci — a "
+            "comparison over a subset would report agreement it never checked"
+        )
+        for locus in loci:
+            row = stored[locus.locus_id]
+            source = by_label.loc[locus.node_label]
+            for column, stem in SIMILARITY_COLUMNS.items():
+                examined += 1
+                expected = source[f"{stem}_raw"]
+                expected = None if expected != expected else float(expected)  # NaN → None
+                if not _same(getattr(row, column), expected):
+                    differing.setdefault(f"{representation}.{column}", []).append(
+                        (locus.node_label, getattr(row, column), expected)
+                    )
+    assert examined == len(REPRESENTATIONS) * len(SIMILARITY_COLUMNS) * catalogue.n_loci
+    assert not differing, {key: value[:3] for key, value in differing.items()}

@@ -64,49 +64,91 @@ def _round_or_none(value, decimals: int) -> float | None:
 
 
 @dataclass(frozen=True)
-class SeparationIndex:
-    """One representation's separations and their midrank percentiles."""
+class SimilarityIndex:
+    """One representation's three ranked views, and the one denominator behind all of them.
 
-    #: `d_near − d_intra` per locus, `None` where either distance is absent.
-    separation: list[float | None]
-    #: The midrank in [0, 1] over the measurable loci, `None` where the separation is.
-    percentile: list[float | None]
+    ⛔ **Three percentiles, not one, because the three views are not three pictures of one thing.**
+    Flagging by each — worst decile of separation, negative weak margin, own fraction below 1 — only
+    34 % (ecoli/bacformer) and 18 % (esm) of flagged loci are flagged by all three, and of the
+    median's worst decile only 50 % / 22 % have a negative margin. Rank ρ is 0.79–0.93: they agree
+    overall and part at the tail, which is exactly where flagging happens.
+    """
+
+    #: Midrank in [0, 1] over the measurable loci, `None` where the quantity is.
+    separation_percentile: list[float | None]
+    weak_margin_percentile: list[float | None]
+    own_fraction_percentile: list[float | None]
     #: ⭐ The denominator the card prints — *"of 12,104 loci"*. Its own assertion.
     measurable_count: int
 
 
-def separation_index(
-    within_distance: list[float | None], nearest_distance: list[float | None]
-) -> SeparationIndex:
-    """`app.js::sepIndex`, on DISTANCES — separation is `d_near − d_intra`, directly.
+def midrank_percentiles(values: list[float | None]) -> tuple[list[float | None], int]:
+    """Midrank in [0, 1] per value, plus how many were measurable → `app.js::simRank`, exactly.
 
-    ⚠ The page holds similarities and subtracts them the other way round; the two are the same
-    number because `(1 − d_intra) − (1 − d_near) = d_near − d_intra`. Working in distances here
-    avoids a round trip through `1 − x`, which at ESM's ~1e-5 median distance is where precision goes.
+    ⚠ The percentile is a MIDRANK and not a left rank. ESM has few distinct values at the artifact's
+    precision, so `first index of this value` would hand a whole tie block the percentile of its
+    bottom — most of the ESM catalogue would read p3. The midrank splits the block.
     """
-    separation: list[float | None] = []
-    measurable: list[float] = []
-    for intra, near in zip(within_distance, nearest_distance, strict=True):
-        if intra is None or near is None or math.isnan(intra) or math.isnan(near):
-            separation.append(None)
-            continue
-        value = float(near) - float(intra)
-        separation.append(value)
-        measurable.append(value)
-
+    measurable = [float(value) for value in values if value is not None and not math.isnan(float(value))]
     ordered = sorted(measurable)
     count = len(ordered)
-    percentile: list[float | None] = []
-    for value in separation:
-        if value is None or not count:
-            percentile.append(None)
+    out: list[float | None] = []
+    for value in values:
+        if value is None or math.isnan(float(value)) or not count:
+            out.append(None)
             continue
-        # The midrank: the mean of the first and last positions this value could occupy, normalised.
-        # ⚠ `bisect` over a sorted list is `sepIndex`'s two binary searches, exactly.
-        low = _bisect_left(ordered, value)
-        high = _bisect_right(ordered, value)
-        percentile.append((low + high - 1) / 2 / (count - 1 or 1))
-    return SeparationIndex(separation=separation, percentile=percentile, measurable_count=count)
+        # the mean of the first and last positions this value could occupy, normalised.
+        # ⚠ `bisect` over a sorted list is `simRank`'s two binary searches, exactly.
+        low = _bisect_left(ordered, float(value))
+        high = _bisect_right(ordered, float(value))
+        out.append((low + high - 1) / 2 / (count - 1 or 1))
+    return out, count
+
+
+def _difference(left: list[float | None], right: list[float | None]) -> list[float | None]:
+    """`left − right` per locus, `None` where either is absent — never a silent 0.0."""
+    out: list[float | None] = []
+    for a, b in zip(left, right, strict=True):
+        if a is None or b is None or math.isnan(float(a)) or math.isnan(float(b)):
+            out.append(None)
+        else:
+            out.append(float(a) - float(b))
+    return out
+
+
+def similarity_index(
+    within: list[float | None],
+    nearest: list[float | None],
+    weak_own: list[float | None],
+    weak_other: list[float | None],
+    own_fraction: list[float | None],
+) -> SimilarityIndex:
+    """The three midranks a locus is ranked on, from the five stored similarities.
+
+    ⚠ These are SIMILARITIES, not the distances the retired medoid index worked in, so separation is
+    `within − nearest` directly — the same subtraction the page does, in the same direction.
+
+    ⛔ **The three measurable sets must be the SAME set**, and that is asserted rather than assumed.
+    A singleton has no pair inside its locus, no weakest link and no own-neighbour question, so all
+    three are absent together; `nearest` alone is present for one, which is why it is not the guard.
+    A disagreement means the artifact's columns are not describing one catalogue, and the card would
+    print three different denominators under three views of one locus.
+    """
+    separation_pct, separation_n = midrank_percentiles(_difference(within, nearest))
+    margin_pct, margin_n = midrank_percentiles(_difference(weak_own, weak_other))
+    own_pct, own_n = midrank_percentiles(own_fraction)
+    if not separation_n == margin_n == own_n:
+        raise ValueError(
+            f"the three views disagree about how many loci are measurable — separation {separation_n:,}, "
+            f"weak margin {margin_n:,}, own fraction {own_n:,}. They are absent together by "
+            "construction (a singleton has none of them), so this is not one catalogue."
+        )
+    return SimilarityIndex(
+        separation_percentile=separation_pct,
+        weak_margin_percentile=margin_pct,
+        own_fraction_percentile=own_pct,
+        measurable_count=separation_n,
+    )
 
 
 def _bisect_left(ordered: list[float], value: float) -> int:

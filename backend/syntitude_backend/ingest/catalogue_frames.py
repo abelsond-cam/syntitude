@@ -3,7 +3,7 @@
 ⛔ **This calls nuna's own functions and reimplements none of them.** `node_order`, `top_counts`,
 `family_pfam`, `family_modal_symbols`, `family_modal_products`, `oriented_windows`, `arrangements`,
 `neighbour_counts`, `near_synteny_agreement`, `gap_table` and even the two rounding helpers
-(`_floats`, `_sigfigs`) are the science; a second implementation of any of them would be a second
+(`_floats`) are the science; a second implementation of any of them would be a second
 thing to keep in step, and the two would agree until the day they did not. What this module does is
 **assemble** their outputs into rows rather than into the payload's columnar, string-interned,
 run-length-encoded blocks.
@@ -73,10 +73,8 @@ class CatalogueFrames:
     gene_memberships: object
     #: `(a, b, …)` keyed by node LABEL, canonicalised the way `gene_adjacencies` canonicalises.
     gaps: object
-    #: `{representation: {"info": …, "geometry": frame}}`.
-    geometry: dict
-    #: `{representation: null-baseline dict}`.
-    null_baselines: dict
+    #: `{representation: {"info", "form", "source", "loci", "nearest", "floor"}}` — set-to-set similarity.
+    similarity: dict
 
     #: The genome vocabulary `arr.gid` indexes into, and the ordinal every membership is a position in.
     samples: list = field(default_factory=list)
@@ -275,7 +273,6 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
         TOP_PRODUCTS,
         TOP_SYMBOLS,
         _floats,
-        _sigfigs,
         family_modal_products,
         family_modal_symbols,
         family_pfam,
@@ -461,9 +458,10 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
             "the audit ran with --skip-seqid-to-medoid, so member-vs-medoid identity was never "
             "measured — seqid_coverage is NULL for every locus, and that is a fact about the RUN"
         )
-    loci["embed_within_over_nearest"] = _floats(evidence_column("embed_within_over_nearest"), nd=6)
     #: ⚠ The medoid is a GENE — one real member, named by its genome and its flat_index — and not a
-    #: centroid. Carried so the page can say WHICH gene the geometry is measured from.
+    #: centroid. ⛔ The four `*_medoid_distance` columns and `embed_within_over_nearest` went on
+    #: 2026-09-24 with the card that showed them; these two stay because they NAME the representative
+    #: member, which is an ordinary fact about a locus rather than a geometry measured from it.
     loci["medoid_sample_id"] = evidence_column("medoid_sample_id").to_numpy()
     loci["medoid_flat_index"] = [
         None if not numpy.isfinite(float(value)) else int(value)
@@ -473,12 +471,6 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
     loci["collapse_tier"] = evidence_column("tier").to_numpy()
     loci["collapse_bucket"] = evidence_column("bucket").to_numpy()
     loci["resolved_threshold"] = _floats(evidence_column("resolved_threshold"), nd=RESOLVED_DECIMALS)
-    # ⛔ DISTANCES, not similarities, at significant figures. The audit hands over `1 − d`, and
-    # storing that at 3 dp threw the resolution away exactly where it matters.
-    loci["esm_within_medoid_distance"] = _sigfigs(1.0 - evidence_column("esm_intra_sim"))
-    loci["esm_nearest_medoid_distance"] = _sigfigs(1.0 - evidence_column("esm_inter_sim"))
-    loci["bacformer_within_medoid_distance"] = _sigfigs(1.0 - evidence_column("bacformer_intra_sim"))
-    loci["bacformer_nearest_medoid_distance"] = _sigfigs(1.0 - evidence_column("bacformer_inter_sim"))
     loci["pfam_concordance_class"] = concordance_column("class_clan", None).to_numpy()
     loci["pfam_architecture_count"] = [
         None if not numpy.isfinite(float(value)) else int(value)
@@ -535,8 +527,7 @@ def build_catalogue_frames(artifacts: CatalogueArtifacts) -> CatalogueFrames:
         offset_occupants=occupants,
         gene_memberships=gene_memberships,
         gaps=gaps,
-        geometry=_map_geometry(artifacts, node_position, pandas),
-        null_baselines=_null_baselines(artifacts, n_loci),
+        similarity=_cluster_similarity(artifacts, node_position, n_loci, pandas),
         samples=samples,
         n_genes=source["n_genes"],
         audit_summary=audit["audit_summary"],
@@ -726,90 +717,127 @@ def _gene_memberships(assign, windows, arrangement_frame, slot_of, numpy, pandas
     )[["node", "sample_id", "flat_index", "arrangement_rank"]]
 
 
-def _map_geometry(artifacts: CatalogueArtifacts, node_position, pandas):
-    """Per representation, the projection's own metadata plus one geometry row per mapped locus.
+#: The five per-locus quantities, by the stem they carry in the CSV (each suffixed with the FORM).
+#: ⛔ `sep` and `weak_margin` are in the CSV and deliberately NOT read: each is the difference of two
+#: columns that ARE, the API subtracts, and a separately-rounded difference drifting from the two
+#: rounded numbers printed beside it is the class of quiet disagreement this card was rebuilt to end.
+SIMILARITY_COLUMNS = {
+    "within_similarity": "within",
+    "nearest_similarity": "near",
+    "weak_own_similarity": "weak_intra",
+    "weak_other_similarity": "weak_inter",
+    "own_neighbour_fraction": "nn_own_frac",
+}
 
-    ⛔ **The siblings are addressed relative to the map**, `export_payload._sibling`'s own rule, so a
-    map can never be paired with another run's neighbours or another run's cos6.
+
+def _cluster_similarity(artifacts: CatalogueArtifacts, node_position, n_loci: int, pandas) -> dict:
+    """Per representation: one row per locus, the ranked nearest loci, and the gene-pair baseline.
+
+    ⛔ **What this replaced on 2026-09-24.** ``_map_geometry`` read a UMAP over every locus's MEDOID
+    plus that medoid's 6×6 local geometry; ``_null_baselines`` read the distribution of random MEDOID
+    pairs. Both described a construction that reduced a locus to one member. These numbers are
+    medians over every gene pair *inside* a locus, and over every gene pair *spanning* two loci.
+
+    ⛔ **The nearest-loci CSV is addressed relative to the similarity CSV**, ``_nearest_sibling``'s own
+    rule, so one run's medians can never be paired with another run's neighbour list.
     """
     from syntitude_backend.ingest.artifact_locator import REPRESENTATIONS
 
     out: dict[str, dict] = {}
     locus_sets: dict[str, set] = {}
     for representation in REPRESENTATIONS:
-        map_csv = artifacts.catalogue_map(representation)
-        metadata_path = artifacts.catalogue_map_metadata(representation)
+        csv_path = artifacts.cluster_similarity(representation)
+        metadata_path = artifacts.cluster_similarity_metadata(representation)
         info = dict(
-            line.split("=", 1)
-            for line in metadata_path.read_text().splitlines()
-            if "=" in line
+            line.split("=", 1) for line in metadata_path.read_text().splitlines() if "=" in line
         )
         if not info.get("rep"):
             raise CatalogueFrameError(
                 f"{metadata_path.name} names no `rep=` — with two representations on one card an "
-                "unlabelled map would be attached to whichever tab came first"
+                "unlabelled artifact would be attached to whichever came first"
             )
-        coordinates = pandas.read_csv(map_csv, dtype={"node": str})
-        neighbours = pandas.read_csv(
-            artifacts.map_sibling(representation, "node_neighbours"),
-            dtype={"node": str, "neighbour": str},
-        )
-        cosines = pandas.read_csv(
-            artifacts.map_sibling(representation, "locus_cos6"), dtype={"node": str}
-        )
-        unknown = set(coordinates["node"]) - set(node_position)
-        if unknown:
-            raise CatalogueFrameError(
-                f"{map_csv.name} carries {len(unknown):,} loci this catalogue does not have (e.g. "
-                f"{sorted(unknown)[:3]}) — it was built from a different model or assignment."
-            )
-        locus_sets[representation] = set(coordinates["node"])
-        first = next(iter(locus_sets))
-        if locus_sets[representation] != locus_sets[first]:
-            difference = len(locus_sets[representation] ^ locus_sets[first])
-            raise CatalogueFrameError(
-                f"the {representation} and {first} maps disagree about {difference:,} loci — they "
-                "are not two views of one catalogue, so the tabs would compare different models"
-            )
-        out[representation] = {
-            "info": info,
-            "source": str(map_csv),
-            "coordinates": coordinates,
-            "neighbours": neighbours,
-            "cosines": cosines,
-        }
-    return out
-
-
-def _null_baselines(artifacts: CatalogueArtifacts, n_loci: int) -> dict:
-    """The random-pair baseline per representation, guarded on model identity.
-
-    ⚠ Without it a cosine has no meaning: ESM's random pairs sit at ~0.645 and Bacformer's at
-    ~0.065, so the same "inter" reads oppositely in the two.
-    """
-    import pandas
-
-    from syntitude_backend.ingest.artifact_locator import REPRESENTATIONS
-
-    out: dict[str, dict] = {}
-    for representation in REPRESENTATIONS:
-        csv_path = artifacts.null_baseline(representation)
-        metadata_path = artifacts.null_baseline_metadata(representation)
-        info = dict(
-            line.split("=", 1) for line in metadata_path.read_text().splitlines() if "=" in line
-        )
         declared = info.get("n_loci")
         if declared and int(declared) != n_loci:
             raise CatalogueFrameError(
                 f"{csv_path.name} was computed over {int(declared):,} loci but this catalogue has "
-                f"{n_loci:,} — it is a different model. Re-run the null for this one."
+                f"{n_loci:,} — it is a different model. Re-run the similarity for this one."
             )
-        histogram = pandas.read_csv(csv_path)
+        # ⛔ Which form the card shows is a DECISION of record (raw — David, 2026-09-24), so a
+        # two-form diagnostic run is refused rather than silently halved.
+        forms = [form for form in (info.get("forms") or "").split(",") if form]
+        if len(forms) != 1:
+            raise CatalogueFrameError(
+                f"{metadata_path.name} names forms={info.get('forms')!r} — the card shows one. "
+                "Ingest the run you mean (`build_cluster_similarity --forms raw`)."
+            )
+        form = forms[0]
+
+        loci = pandas.read_csv(csv_path, dtype={"node": str})
+        unknown = set(loci["node"]) - set(node_position)
+        if unknown:
+            raise CatalogueFrameError(
+                f"{csv_path.name} carries {len(unknown):,} loci this catalogue does not have (e.g. "
+                f"{sorted(unknown)[:3]}) — it was built from a different model or assignment."
+            )
+        missing = [
+            f"{stem}_{form}" for stem in SIMILARITY_COLUMNS.values() if f"{stem}_{form}" not in loci
+        ]
+        if missing:
+            raise CatalogueFrameError(
+                f"{csv_path.name} has no {', '.join(missing)} — it is not a form={form} artifact"
+            )
+
+        locus_sets[representation] = set(loci["node"])
+        first = next(iter(locus_sets))
+        if locus_sets[representation] != locus_sets[first]:
+            difference = len(locus_sets[representation] ^ locus_sets[first])
+            raise CatalogueFrameError(
+                f"the {representation} and {first} similarity runs disagree about {difference:,} "
+                "loci — they are not two views of one catalogue"
+            )
+
+        nearest = pandas.read_csv(
+            artifacts.cluster_nearest(representation), dtype={"node": str, "neighbour": str}
+        )
+        nearest = nearest[nearest["form"] == form]
+
         out[representation] = {
-            "lower_edge": float(histogram["lo"].iloc[0]),
-            "width": float(histogram["hi"].iloc[0] - histogram["lo"].iloc[0]),
-            "counts": [int(value) for value in histogram["count"]],
-            "mean": float(info["mean"]) if info.get("mean") else None,
+            "info": info,
+            "form": form,
             "source": str(csv_path),
+            "loci": loci,
+            "nearest": nearest,
+            "floor": _similarity_floor(artifacts, representation, form, info),
         }
     return out
+
+
+def _similarity_floor(artifacts: CatalogueArtifacts, representation: str, form: str, info: dict) -> dict:
+    """The random GENE-pair baseline: a median from the `.meta`, its quartiles from the audit JSON.
+
+    ⛔ **Not the retired medoid null.** On the published *E. coli* catalogue the gene-pair floor is
+    **0.0587** and the medoid one was **0.0651** — close enough to look interchangeable and not be.
+
+    ⚠ The quartiles are optional by design: without the audit JSON the card draws a bare tick instead
+    of a p25–p75 box, which is a degradation rather than a failure.
+    """
+    import json
+
+    floor = {
+        "median": float(info[f"floor_{form}"]) if info.get(f"floor_{form}") else None,
+        "p25": None,
+        "p75": None,
+        "p99": None,
+        "measurable_locus_count": int(info["n_measurable"]) if info.get("n_measurable") else None,
+        "knn_k": int(info["k"]) if info.get("k") else None,
+    }
+    audit_path = artifacts.cluster_similarity_audit(representation)
+    if audit_path.exists():
+        forms = json.loads(audit_path.read_text()).get("forms") or {}
+        block = (forms.get(form) or {}).get("floor") or {}
+        for key, source in (("p25", "floor_p25"), ("p75", "floor_p75"), ("p99", "floor_p99")):
+            if source in block:
+                floor[key] = float(block[source])
+        if floor["median"] is None and "floor" in block:
+            floor["median"] = float(block["floor"])
+    return floor

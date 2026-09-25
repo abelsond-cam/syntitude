@@ -18,10 +18,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
+from syntitude_backend.models.enumerations import EmbeddingRepresentation
 from syntitude_backend.models.locus import Locus
+from syntitude_backend.models.locus_similarity import LocusSimilarity
 
 #: ⛔ **Vendored from `nuna.tl.locus_browser.export_payload.POLICY`** — the serving side must not
 #: import `nuna`, a private repo the med-school server does not have. The tiers the audit counts
@@ -43,8 +45,12 @@ class ResidualLocus:
     uniref50_family_count: int | None
     pfam_architecture_count: int | None
     syntenic_a5: float | None
-    esm_within_medoid_distance: float | None
-    esm_nearest_medoid_distance: float | None
+    #: ⛔ Similarities now, not the `1 − d` distances the medoid card stored. A residual row shows
+    #: "ESM 0.98/0.61" either way, but the numbers behind it are a median over every within-locus
+    #: gene pair and the highest such median against another locus — not a member's distance to one
+    #: gene. The client no longer converts; there is nothing to convert.
+    esm_within_similarity: float | None
+    esm_nearest_similarity: float | None
 
 
 @dataclass(frozen=True)
@@ -66,10 +72,19 @@ def load_audit_residuals(session: Session, *, pangenome_id: int) -> AuditResidua
             Locus.uniref50_family_count,
             Locus.pfam_architecture_count,
             Locus.syntenic_a5,
-            Locus.esm_within_medoid_distance,
-            Locus.esm_nearest_medoid_distance,
+            LocusSimilarity.within_similarity,
+            LocusSimilarity.nearest_similarity,
             Locus.collapse_tier,
             Locus.pfam_concordance_class,
+        )
+        # ⚠ An OUTER join: a singleton has no similarity row at all, and an inner one would drop it
+        # from its own residual list — a locus the audit flagged, silently absent from the footer.
+        .outerjoin(
+            LocusSimilarity,
+            and_(
+                LocusSimilarity.locus_id == Locus.locus_id,
+                LocusSimilarity.representation == EmbeddingRepresentation.ESM,
+            ),
         )
         .where(
             Locus.pangenome_id == pangenome_id,
@@ -97,8 +112,8 @@ def load_audit_residuals(session: Session, *, pangenome_id: int) -> AuditResidua
                 else None
             ),
             syntenic_a5=row.syntenic_a5,
-            esm_within_medoid_distance=row.esm_within_medoid_distance,
-            esm_nearest_medoid_distance=row.esm_nearest_medoid_distance,
+            esm_within_similarity=row.within_similarity,
+            esm_nearest_similarity=row.nearest_similarity,
         )
         if row.collapse_tier in FAILURE_TIERS:
             context_alone.append(entry)

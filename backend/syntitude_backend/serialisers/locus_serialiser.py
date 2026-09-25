@@ -27,7 +27,6 @@ from syntitude_backend.services.locus_detail_service import (
     SIGNED_OFFSETS,
     LocusDetail,
     membership_is_complete,
-    resolve_cosine_matrix,
 )
 
 #: What a slot's absence means, when it has one. ⛔ A contig end is an OBSERVATION — the member
@@ -221,10 +220,21 @@ def serialise_projected_placement(placement, detail) -> dict:
     }
 
 
-def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10_000) -> dict:
-    """The whole locus response — one round trip, and the popover is then offline."""
+def serialise_locus_detail(detail: LocusDetail) -> dict:
+    """The whole locus response — one round trip, and the popover is then offline.
+
+    ⚠ `cosine_scale_factor` went with the map on 2026-09-24. The 6×6 cosines were stored as scaled
+    int16 and had to be divided back; the similarities are plain floats, so nothing is scaled and
+    nothing needs a factor travelling beside it to be read.
+    """
     locus = detail.locus
     neighbours = detail.neighbour_display_rows
+    # ⛔ The card's nearest loci are stored as real `locus_id`s but SERVED as catalogue ordinals, so
+    # the client resolves them through `neighbour_display_rows` like every other neighbour address —
+    # one index on the page rather than two over the same small integers. A neighbour the fan-out did
+    # not resolve is DROPPED rather than served with a null address: the list is already ragged, so a
+    # missing entry is a shape the client handles, and a null id is one it would have to guess at.
+    ordinal_of = {row.locus_id: row.catalogue_ordinal for row in neighbours.all_rows()}
     # ⛔ EVERY resolved row, both key spaces: a gap between two arrangement occupants that are not
     # marginal modes is flanked by loci reached only by catalogue ordinal, and keyed on `by_locus_id`
     # alone its labels come back `null` — so the gap is dropped client-side and two genes read as
@@ -276,33 +286,55 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
                 "resolved_threshold": locus.resolved_threshold,
                 "resolved_threshold_is_capped_at_50_members": True,
             },
-            "geometry": {
-                representation: {
-                    "within_medoid_distance": getattr(
-                        locus, f"{'esm' if representation == 'esm' else 'bacformer'}_within_medoid_distance"
-                    ),
-                    "nearest_medoid_distance": getattr(
-                        locus, f"{'esm' if representation == 'esm' else 'bacformer'}_nearest_medoid_distance"
-                    ),
-                    "separation_percentile": getattr(
-                        locus, f"separation_percentile_{'esm' if representation == 'esm' else 'bacformer'}"
-                    ),
-                    "map_position": (
-                        [geometry.map_x, geometry.map_y] if geometry is not None else None
-                    ),
-                    "nearest_locus_ordinals": (
-                        list(geometry.nearest_locus_ordinals) if geometry is not None else None
-                    ),
-                    # ⛔ Resolved server-side, `-1` slot-drops already applied: slots are not ranks.
-                    "cosine_matrix": (
-                        resolve_cosine_matrix(geometry, cosine_scale_factor)
-                        if geometry is not None
-                        else None
-                    ),
-                }
-                for representation, geometry in (
-                    ("esm", detail.geometry.get("esm")),
-                    ("bacformer", detail.geometry.get("bacformer")),
+            # ⛔ `geometry` was REPLACED, not renamed. Every field it carried measured a locus by
+            # reducing it to its MEDOID — `within_medoid_distance` was its members' distance to that
+            # one gene, `cosine_matrix` the six medoids' pairwise geometry, `map_position` where that
+            # gene sat on a UMAP of medoids. These are measured over the whole SET, or anchored on a
+            # POINT, and a client that read one as the other would be plausible and wrong.
+            #
+            # ⚠ `separation` and `weak_margin` are NOT here although the card prints both: each is
+            # the difference of two fields that ARE, and the client subtracts. A separately-rounded
+            # difference drifting from the two rounded numbers printed beside it is the exact class
+            # of quiet disagreement this card was rebuilt to end.
+            "similarity": {
+                representation: (
+                    None
+                    if row is None
+                    else {
+                        "within_similarity": row.within_similarity,
+                        "nearest_similarity": row.nearest_similarity,
+                        "weak_own_similarity": row.weak_own_similarity,
+                        "weak_other_similarity": row.weak_other_similarity,
+                        "own_neighbour_fraction": row.own_neighbour_fraction,
+                        # ⭐ One midrank per VIEW, because the three views are not three pictures of
+                        # one thing — only 18–34 % of flagged loci are flagged by all three.
+                        # ⚠ Each is NULL for a singleton and must read *not measurable*, never 0.000.
+                        "separation_percentile": row.separation_percentile,
+                        "weak_margin_percentile": row.weak_margin_percentile,
+                        # ⛔ At an own fraction of exactly 1.0 this is a midrank inside a tie block
+                        # covering 88.5 % of the catalogue — "p53" reading as *better than half the
+                        # catalogue* when it means *tied with nearly all of it*. Served because below
+                        # 1.0 it means what it looks like; the CARD is what must decline to print it.
+                        "own_fraction_percentile": row.own_fraction_percentile,
+                        # ⭐ The five nearest OTHER loci in THIS representation — a different five
+                        # from the other's (their separations correlate at rho ~0.47). Ragged: a
+                        # locus whose shortlist held fewer simply has fewer entries, never padding.
+                        # ⚠ `catalogue_ordinal`, so the client resolves them through
+                        # `neighbour_display_rows` like every other neighbour address.
+                        "nearest_loci": [
+                            {
+                                "rank": nearest.rank,
+                                "catalogue_ordinal": ordinal_of.get(nearest.neighbour_locus_id),
+                                "cross_similarity": nearest.cross_similarity,
+                            }
+                            for nearest in detail.nearest_loci.get(representation, ())
+                            if nearest.neighbour_locus_id in ordinal_of
+                        ],
+                    }
+                )
+                for representation, row in (
+                    ("esm", detail.similarity.get("esm")),
+                    ("bacformer", detail.similarity.get("bacformer")),
                 )
             },
             "interest_score": locus.interest_score,
@@ -400,18 +432,10 @@ def serialise_locus_detail(detail: LocusDetail, *, cosine_scale_factor: int = 10
                 # ⭐ For the MAP legend, not the track — the locus number is not what tells a reader
                 # whether a neighbour belongs there; the product is.
                 "best_product": row.best_product,
-                # ⭐ The map's RING, per representation — each locus's own members' median distance
-                # from its centre, at true scale, so a ring reaching a neighbour is a spread that
-                # reaches it. ⚠ DISTANCES as stored; the client converts, exactly as for the card.
-                "within_medoid_distance": {
-                    "esm": row.esm_within_medoid_distance,
-                    "bacformer": row.bacformer_within_medoid_distance,
-                },
-                # ⭐ Where this locus sits on the whole-catalogue SPRITE, per representation —
-                # quantised `map_x`/`map_y`, `null` where it has no medoid and so is not on the
-                # picture. ⚠ Here rather than in a second request because the "these loci" ↔ "whole
-                # catalogue" switch must be zero-fetch, like every other thing the popover does.
-                "map_position": row.map_position,
+                # ⛔ `within_medoid_distance` and `map_position` went on 2026-09-24 with the map
+                # they served — the first was its ring radius, the second its sprite position. A
+                # neighbour row carries what NAMES a locus; the similarity relating it to the focal
+                # one is on `similarity[rep].nearest_loci`, because it is a property of the PAIR.
                 "display_name": row.display_name,
                 "display_name_source": row.display_name_source,
                 "genome_count": row.member_genome_count,

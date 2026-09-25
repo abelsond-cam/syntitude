@@ -85,18 +85,26 @@ def test_the_footer_quotes_the_audit_headline_it_was_given(client):
     assert "over_merge_gene_rate" in headline
 
 
-def test_both_map_representations_ship_with_their_own_null_baseline(client):
-    """⚠ Without it a cosine has no meaning: ESM's random pairs sit at ~0.645, Bacformer's ~0.065."""
-    projections = {
+def test_both_representations_ship_with_their_own_gene_pair_floor(client):
+    """⚠ Without it a cosine has no scale: ESM's random GENE pairs sit at ~0.742 and Bacformer's at
+    ~0.059, so the same 0.41 reads oppositely in the two.
+
+    ⛔ This is NOT the retired `null` baseline, which sampled random pairs of MEDOIDS — on this
+    catalogue those sit at 0.0651 against the gene-pair 0.0587, close enough to look interchangeable
+    and not be. The quartiles are what let the card draw a box rather than a bare tick.
+    """
+    baselines = {
         entry["representation"]: entry
-        for entry in client.get("/api/v1/species/ecoli").get_json()["map_projections"]
+        for entry in client.get("/api/v1/species/ecoli").get_json()["similarity_baselines"]
     }
-    assert set(projections) == {"esm", "bacformer"}
-    assert projections["esm"]["null_mean_cosine"] > 0.5
-    assert projections["bacformer"]["null_mean_cosine"] < 0.2
-    for entry in projections.values():
-        assert entry["separation_measurable_locus_count"] == 12_104
-        assert len(entry["null_bin_counts"]) == 200
+    assert set(baselines) == {"esm", "bacformer"}
+    assert baselines["esm"]["floor_median"] > 0.5
+    assert baselines["bacformer"]["floor_median"] < 0.2
+    for entry in baselines.values():
+        assert entry["measurable_locus_count"] == 12_104
+        assert entry["form"] == "raw", "raw is the published form (David, 2026-09-24)"
+        assert entry["floor_p25"] < entry["floor_median"] < entry["floor_p75"] < entry["floor_p99"]
+        assert entry["neighbour_knn_k"] == 200
 
 
 def test_an_unpublished_species_is_a_NAMED_404_and_never_an_empty_200(client):
@@ -135,35 +143,50 @@ def test_the_landing_locus_carries_its_name_its_product_and_its_neighbours(clien
                 assert occupant["locus"] in labelled, f"occupant {occupant['locus']} has no row"
 
 
-def test_the_MAPs_nearest_loci_are_resolved_too_and_they_are_a_DIFFERENT_set(client, application):
-    """⭐ The map legend names five loci per representation, and they are not the track's neighbours.
+def test_the_CARDs_nearest_loci_are_resolved_too_and_they_are_a_DIFFERENT_set(client, application):
+    """⭐ The card lists five loci per representation, and they are not the track's neighbours.
 
-    ⛔ They were not resolved at all: the fan-out collected arrangement slot ordinals and marginal
-    occupant locus ids, and the map's `nearest_locus_ordinals` are a third source in the **ordinal**
-    space. Without them the legend has a swatch and a number and no name to put beside it.
+    ⛔ They were once not resolved at all: the fan-out collected arrangement slot ordinals and
+    marginal occupant locus ids, and the card's nearest loci are a third source. Without them the
+    list has a similarity and a number and no name to put beside it.
 
     ⚠ And the two representations disagree with each other — their separations correlate at only
-    rho ~0.47 — so this also asserts the two sets are not the same five loci, which is the reason
-    switching the map's tab changes the legend as well as the picture.
+    rho ~0.47 — so this also asserts the two sets are not the same five loci, which is why the card
+    shows BOTH at once rather than hiding one behind a tab.
     """
     payload = client.get("/api/v1/species/ecoli/loci/2811").get_json()
     ordinals = {row["catalogue_ordinal"] for row in payload["neighbour_display_rows"]}
 
     seen: dict[str, set[int]] = {}
     for representation in ("bacformer", "esm"):
-        nearest = payload["locus"]["geometry"][representation]["nearest_locus_ordinals"]
+        nearest = payload["locus"]["similarity"][representation]["nearest_loci"]
         assert nearest, f"{representation} has no nearest loci, so this test proves nothing"
-        # ⛔ `-1` is "outside the catalogue" and drops its SLOT, not its rank — never resolved.
-        present = {ordinal for ordinal in nearest if ordinal >= 0}
+        # ⚠ 1-based and RAGGED: a locus whose shortlist held fewer than five simply has fewer
+        # entries. There is no padding and no sentinel to filter — that went with the ordinal array.
+        assert [entry["rank"] for entry in nearest] == list(range(1, len(nearest) + 1))
+        present = {entry["catalogue_ordinal"] for entry in nearest}
         assert present <= ordinals, (
             f"{representation}'s nearest loci {sorted(present - ordinals)} have no display row"
         )
         seen[representation] = present
 
     assert seen["bacformer"] != seen["esm"], (
-        "the two representations name the same five loci here, so this locus cannot show that "
-        "switching the map tab changes the legend"
+        "the two representations name the same five loci here, so this locus cannot show that they "
+        "disagree about which loci are confusable"
     )
+
+
+def test_rank_one_of_the_list_IS_the_nearest_similarity_the_card_prints(client):
+    """⛔ The headline number is served twice — as a scalar so the card renders without reading the
+    list, and as rank 1 of the list itself. The ingest refuses a run where they differ; this is the
+    same assertion on the wire, because a client reading one and drawing the other is exactly the
+    drift this card was rebuilt to end."""
+    similarity = client.get("/api/v1/species/ecoli/loci/2811").get_json()["locus"]["similarity"]
+    for representation in ("esm", "bacformer"):
+        block = similarity[representation]
+        assert block["nearest_loci"][0]["cross_similarity"] == pytest.approx(
+            block["nearest_similarity"]
+        ), representation
 
 
 def test_a_slot_is_null_plus_a_REASON_and_never_a_bare_minus_one(client, application):
@@ -368,16 +391,40 @@ def test_the_incomplete_loci_are_the_share_the_published_page_measured(client, a
     ] is True
 
 
-def test_the_cosine_matrix_is_resolved_server_side_and_is_symmetric_with_a_unit_diagonal(client):
-    """⛔ Slots are not ranks. Resolving it here retires a two-sided contract entirely."""
-    geometry = client.get("/api/v1/species/ecoli/loci/2811").get_json()["locus"]["geometry"]
+def test_a_singleton_is_NULL_on_every_view_and_never_a_measured_zero(client):
+    """⚠ 5,427 of E. coli's 17,531 loci have one gene, which has no pair inside its locus, no
+    weakest link and no own-neighbour question. A 0.0 would claim its members are unrelated to each
+    other. ⛔ `nearest_similarity` is the exception and is PRESENT: that question is well posed for
+    one gene, which is why it cannot be the field a client tests for measurability."""
+    payload = client.get("/api/v1/species/ecoli/loci/11718").get_json()
+    assert payload["locus"]["gene_count"] == 1, "11718 is a singleton; pick another if not"
     for representation in ("esm", "bacformer"):
-        matrix = geometry[representation]["cosine_matrix"]
-        assert len(matrix) == 6 and all(len(row) == 6 for row in matrix)
-        assert all(matrix[index][index] == 1.0 for index in range(6))
-        for a in range(6):
-            for b in range(6):
-                assert matrix[a][b] == matrix[b][a]
+        block = payload["locus"]["similarity"][representation]
+        for field in (
+            "within_similarity",
+            "weak_own_similarity",
+            "weak_other_similarity",
+            "own_neighbour_fraction",
+            "separation_percentile",
+            "weak_margin_percentile",
+            "own_fraction_percentile",
+        ):
+            assert block[field] is None, f"{representation}.{field}"
+        assert block["nearest_similarity"] is not None
+
+
+def test_the_two_DIFFERENCES_the_card_prints_are_NOT_served(client):
+    """⛔ `separation` and `margin` are each the difference of two fields that ARE served, and the
+    client subtracts. A separately-rounded difference drifting from the two rounded numbers printed
+    beside it is the exact class of quiet disagreement this card was rebuilt to end."""
+    block = client.get("/api/v1/species/ecoli/loci/2811").get_json()["locus"]["similarity"]["esm"]
+    assert "separation" not in block and "weak_margin" not in block
+    assert set(block) == {
+        "within_similarity", "nearest_similarity",
+        "weak_own_similarity", "weak_other_similarity", "own_neighbour_fraction",
+        "separation_percentile", "weak_margin_percentile", "own_fraction_percentile",
+        "nearest_loci",
+    }  # fmt: skip
 
 
 def test_a_gap_is_keyed_by_its_two_LABELS_and_never_by_an_index(client):
@@ -655,11 +702,17 @@ def test_the_statement_count_of_a_locus_view_does_NOT_grow_with_the_neighbour_co
 def test_a_locus_view_issues_ONE_statement_PER_TABLE_and_no_more(application):
     """The logical minimum, computed from the response rather than recorded from a run.
 
-    ⭐ Eight tables contribute to a locus view — `locus`, its annotation entries, its UniRef50
-    cross-tab, its arrangements, its offset occupants, its gaps, its geometry and the Pfam reference
-    its chips are resolved from — plus one for the neighbour block that fixes the fan-out. Nine is
-    therefore the minimum a correct implementation can issue, and the bound is that number, derived
-    here and not remembered.
+    ⭐ NINE tables contribute to a locus view — `locus`, its annotation entries, its UniRef50
+    cross-tab, its arrangements, its offset occupants, its gaps, its similarity, its nearest loci
+    and the Pfam reference its chips are resolved from — plus one for the neighbour block that fixes
+    the fan-out. Ten is therefore the minimum a correct implementation can issue, and the bound is
+    that number, derived here and not remembered.
+
+    ⚠ **It was nine until 2026-09-24**, when the medoid geometry's single table became two: the
+    per-locus similarities and the ranked nearest loci. They are deliberately NOT one statement —
+    the two have different cardinalities (one row per representation against up to five), so a join
+    would multiply every similarity row by its own neighbour list and then need de-duplicating,
+    which is a larger cost than the statement it saves.
 
     ⚠ The Pfam lookup is the one statement a locus may legitimately skip, on the 22 % that mention
     no accession. That makes nine a ceiling rather than an equality, which is what `assert_at_most`
@@ -667,7 +720,7 @@ def test_a_locus_view_issues_ONE_statement_PER_TABLE_and_no_more(application):
     """
     from syntitude_backend.services.locus_detail_service import load_locus_detail
 
-    tables_a_locus_view_reads = 8
+    tables_a_locus_view_reads = 9
     neighbour_resolution_statements = 1
     budget = tables_a_locus_view_reads + neighbour_resolution_statements
 
@@ -687,150 +740,12 @@ def test_search_is_ONE_statement_however_many_hits_it_returns(application):
     report.assert_at_most(1, what="a search over 17,531 loci")
 
 
-# ── the whole-catalogue sprite ─────────────────────────────────────────────────────────────────
-def _sprite_descriptor(client, species_key: str, representation: str):
-    payload = client.get(f"/api/v1/species/{species_key}").get_json()
-    for projection in payload["map_projections"]:
-        if projection["representation"] == representation:
-            return projection["scatter_sprite"]
-    raise AssertionError(f"no {representation} projection for {species_key}")
-
-
-def test_the_species_response_describes_the_sprite_WITHOUT_carrying_its_bytes(client):
-    """⚠ A megabyte of PNG must not ride in the JSON that every page load fetches."""
-    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
-    assert descriptor["pixel_size"] == 1200
-    assert len(descriptor["content_digest"]) == 64
-    assert "image_png" not in descriptor
-
-
-def test_the_sprite_counts_ACCOUNT_for_every_locus_in_the_catalogue(client):
-    """⭐ The honest denominator, checked as a sum rather than trusted as a label.
-
-    The published caption quoted the catalogue size; a locus with no medoid is not on the picture.
-    Plotted + unplotted must be the catalogue, or one of the two numbers means something else.
-    """
-    catalogue = client.get("/api/v1/species/ecoli").get_json()
-    locus_count = catalogue["pangenome"]["locus_count"]
-    for representation in ("bacformer", "esm"):
-        descriptor = _sprite_descriptor(client, "ecoli", representation)
-        total = descriptor["plotted_locus_count"] + descriptor["unplotted_locus_count"]
-        assert total == locus_count, f"{representation}: {total} vs {locus_count} loci"
-
-
-def test_the_sprite_endpoint_serves_a_png_that_is_cacheable_FOREVER(client):
-    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
-    response = client.get("/api/v1/species/ecoli/map/bacformer/scatter.png")
-    assert response.status_code == 200
-    assert response.mimetype == "image/png"
-    assert response.data[:8] == b"\x89PNG\r\n\x1a\n"
-    # ⚠ The ETag is the CONTENT digest, not the pangenome id like every JSON response here: an
-    # image is cached hard by caches we do not control, so a re-render must be able to invalidate it.
-    assert response.headers["ETag"] == f'"{descriptor["content_digest"]}"'
-    assert "immutable" in response.headers["Cache-Control"]
-
-
-def test_an_unchanged_sprite_answers_304_rather_than_resending_a_megabyte(client):
-    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
-    response = client.get(
-        "/api/v1/species/ecoli/map/bacformer/scatter.png",
-        headers={"If-None-Match": f'"{descriptor["content_digest"]}"'},
-    )
-    assert response.status_code == 304
-    assert not response.data
-
-
-def test_the_two_representations_are_DIFFERENT_pictures(client):
-    """⚠ They are different spaces; one sprite served for both would be a plausible wrong answer."""
-    bacformer = client.get("/api/v1/species/ecoli/map/bacformer/scatter.png").data
-    esm = client.get("/api/v1/species/ecoli/map/esm/scatter.png").data
-    assert bacformer != esm
-    assert len(bacformer) > 1000 and len(esm) > 1000
-
-
-def test_an_unknown_representation_is_a_NAMED_404_and_never_a_blank_image(client):
-    """⛔ A blank PNG reads as "this catalogue has no loci anywhere" — a claim, and a false one."""
-    response = client.get("/api/v1/species/ecoli/map/bacformerr/scatter.png")
-    assert response.status_code == 404
-    assert "bacformerr" in response.get_json()["detail"]
-
-
-def test_an_unpublished_species_says_which_thing_was_missing(client):
-    response = client.get("/api/v1/species/nosuchspecies/map/esm/scatter.png")
-    assert response.status_code == 404
-    assert response.get_json()["error"] == "not_found"
-
-
-def test_a_REAL_locus_projected_with_the_SERVED_viewport_lands_on_LIT_dust(client, application):
-    """⛔⛔ **The end-to-end version of the whole contract, on the real catalogue.**
-
-    Three artifacts have to agree: the PNG, the viewport the species endpoint publishes, and the
-    positions the locus endpoint publishes. If any pair disagrees every dot still draws — over dust
-    that looks exactly like dust — so nothing on the page could contradict it. This takes only what
-    a browser gets and checks the pixel underneath the dot.
-    """
-    import numpy
-    from sqlalchemy.orm import Session as OrmSession
-
-    from syntitude_backend.models.enumerations import EmbeddingRepresentation
-    from syntitude_backend.models.locus_embedding_geometry import LocusEmbeddingGeometry
-
-    from .test_catalogue_scatter_sprite import decode_greyscale_alpha_png
-
-    descriptor = _sprite_descriptor(client, "ecoli", "bacformer")
-    image = client.get("/api/v1/species/ecoli/map/bacformer/scatter.png").data
-    _, alpha = decode_greyscale_alpha_png(image)
-
-    engine = application.extensions["syntitude_database"].engine
-    with OrmSession(engine) as session:
-        positions = session.execute(
-            select(LocusEmbeddingGeometry.map_x, LocusEmbeddingGeometry.map_y)
-            .join(Locus, Locus.locus_id == LocusEmbeddingGeometry.locus_id)
-            .where(
-                Locus.pangenome_id == 1,
-                LocusEmbeddingGeometry.representation == EmbeddingRepresentation.BACFORMER,
-            )
-            .limit(2_000)
-        ).all()
-    assert len(positions) == 2_000, f"only {len(positions)} positions to check"
-
-    centre_x, centre_y = descriptor["viewport_centre"]
-    size = descriptor["pixel_size"]
-    scale = size / descriptor["viewport_span"]
-    x = numpy.array([row.map_x for row in positions], dtype=numpy.float64)
-    y = numpy.array([row.map_y for row in positions], dtype=numpy.float64)
-    pixel_x = numpy.floor((x - centre_x) * scale + size / 2).astype(int)
-    pixel_y = numpy.floor(size / 2 - (y - centre_y) * scale).astype(int)
-
-    unlit = int((alpha[pixel_y, pixel_x] == 0).sum())
-    assert unlit == 0, (
-        f"{unlit} of {len(positions)} real loci would be drawn over empty ground — the sprite, its "
-        "viewport and the stored positions are not all the same numbers"
-    )
-
-
-def test_the_publish_gate_NAMES_the_sprite_checks_and_they_pass(application):
-    """⛔ A gate whose checks are silent is a gate that has told you nothing.
-
-    The published page's "whole catalogue" zoom is unavailable without a sprite, and nothing a
-    reader sees would say why — so publishing verifies one exists per representation AND that its
-    two counts account for every locus. A sprite rendered from a partial geometry load is a picture
-    missing loci that says nothing about it, which is the failure this table exists to prevent.
-    """
-    from sqlalchemy.orm import Session as OrmSession
-
-    from syntitude_backend.ingest.publish_pangenome import verify_pangenome_is_servable
-    from syntitude_backend.models.pangenome import Pangenome
-
-    engine = application.extensions["syntitude_database"].engine
-    with OrmSession(engine) as session:
-        pangenome = session.get(Pangenome, 1)
-        passed, failed = verify_pangenome_is_servable(session, pangenome)
-
-    assert failed == []
-    assert "both catalogue scatter sprites are present" in passed
-    for representation in ("esm", "bacformer"):
-        assert f"the {representation} sprite accounts for every locus" in passed
+# ⛔ The whole-catalogue sprite's ten tests were DELETED on 2026-09-24 with the sprite itself — a
+# pre-rendered PNG of every locus's MEDOID, which went with the medoid geometry it was a picture of.
+# They covered: the descriptor shipping without its bytes, both counts accounting for every locus,
+# immutable caching, the 304 against its own ETag, the two representations being different pictures,
+# a named 404 for an unknown representation, and a real locus projected with the SERVED viewport
+# landing on its own lit dust. The publish gate's sprite checks went with them.
 
 
 # ── the function block ─────────────────────────────────────────────────────────────────────────

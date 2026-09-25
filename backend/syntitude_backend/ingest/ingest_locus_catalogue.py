@@ -37,10 +37,10 @@ from syntitude_backend.ingest.derive_locus_ranking import (
     landing_index,
     pfam_concordance,
     ranking,
-    separation_index,
+    similarity_index,
 )
 from syntitude_backend.ingest.ingest_genome_locus_counts import write_genome_locus_counts
-from syntitude_backend.ingest.render_catalogue_scatter_sprite import render_catalogue_scatter_sprite
+from syntitude_backend.ingest.catalogue_frames import SIMILARITY_COLUMNS
 from syntitude_backend.ingest.staging_table_loader import copy_rows
 from syntitude_backend.models.enumerations import (
     AnnotationKind,
@@ -53,11 +53,10 @@ from syntitude_backend.models.intergenic_gap import IntergenicGap, IntergenicGap
 from syntitude_backend.models.locus import Locus
 from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
 from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_embedding_geometry import (
-    NOWHERE_SENTINEL,
-    LocusEmbeddingGeometry,
-    LocusMapProjection,
-    LocusMapScatterSprite,
+from syntitude_backend.models.locus_similarity import (
+    LocusNearestLocus,
+    LocusSimilarity,
+    PangenomeSimilarityBaseline,
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
@@ -87,9 +86,9 @@ class CatalogueLoadReport:
     genome_locus_counts: int = 0
     intergenic_gaps: int = 0
     intergenic_gap_features: int = 0
-    map_projections: int = 0
-    embedding_geometry_rows: int = 0
-    scatter_sprites: list = field(default_factory=list)
+    similarity_baselines: int = 0
+    similarity_rows: int = 0
+    nearest_locus_rows: int = 0
     landing_locus_label: str | None = None
     example_locus_labels: list[str] = field(default_factory=list)
     display_name_sources: dict = field(default_factory=dict)
@@ -111,16 +110,8 @@ class CatalogueLoadReport:
             f"  genome locus counts     {self.genome_locus_counts:,} genomes",
             f"  intergenic gaps         {self.intergenic_gaps:,} "
             f"({self.intergenic_gap_features:,} named features)",
-            f"  map projections         {self.map_projections} "
-            f"({self.embedding_geometry_rows:,} geometry rows)",
-            *(
-                # ⭐ A sprite reports BOTH counts. "17,531 loci" was the published caption and it was
-                # the catalogue size, not the number of specks on the picture.
-                f"  scatter sprite {sprite['representation']:<9s} {sprite['plotted']:,} plotted, "
-                f"{sprite['unplotted']:,} with no medoid — {sprite['bytes']:,} B at "
-                f"{sprite['pixel_size']}²"
-                for sprite in self.scatter_sprites
-            ),
+            f"  similarity baselines    {self.similarity_baselines} "
+            f"({self.similarity_rows:,} locus rows, {self.nearest_locus_rows:,} nearest-locus rows)",
             f"  landing locus           {self.landing_locus_label}",
             f"  example loci            {', '.join(self.example_locus_labels)}",
             f"  display names           {self.display_name_sources}",
@@ -221,15 +212,17 @@ def _derive_locus_columns(frames: CatalogueFrames, pfam_names: dict, policy: dic
             pfam_concordance_class=[_clean(value) for value in loci["pfam_concordance_class"]],
         )
     ]
-    separations = {
-        "esm": separation_index(
-            [_clean(v) for v in loci["esm_within_medoid_distance"]],
-            [_clean(v) for v in loci["esm_nearest_medoid_distance"]],
-        ),
-        "bacformer": separation_index(
-            [_clean(v) for v in loci["bacformer_within_medoid_distance"]],
-            [_clean(v) for v in loci["bacformer_nearest_medoid_distance"]],
-        ),
+    # ⛔ Three midranks per representation now, not one. The three views are NOT three pictures of
+    # one thing: only 18–34 % of flagged loci are flagged by all three (PROJECT_STATE Layer 6), so a
+    # single percentile would be a rank for one view and a decoration on the other two.
+    similarities = {
+        representation: similarity_index(
+            *(
+                [_clean(v) for v in block["loci"][f"{stem}_{block['form']}"]]
+                for stem in SIMILARITY_COLUMNS.values()
+            )
+        )
+        for representation, block in frames.similarity.items()
     }
     return {
         "display_name": names,
@@ -238,7 +231,7 @@ def _derive_locus_columns(frames: CatalogueFrames, pfam_names: dict, policy: dic
         "best_product": best_products,
         "search_text": haystacks,
         "interest_score": scores,
-        "separations": separations,
+        "similarities": similarities,
     }
 
 
@@ -273,15 +266,8 @@ LOCUS_COLUMNS = (
     "seqid_coverage",
     "uniref50_impurity",
     "uniref50_coverage",
-    "embed_within_over_nearest",
     "medoid_genome_id",
     "medoid_flat_index",
-    "esm_within_medoid_distance",
-    "esm_nearest_medoid_distance",
-    "bacformer_within_medoid_distance",
-    "bacformer_nearest_medoid_distance",
-    "separation_percentile_esm",
-    "separation_percentile_bacformer",
     "cog_annotated_member_count",
     "cog_distinct_id_count",
     "modal_cog_categories",
@@ -318,7 +304,6 @@ def _locus_rows(
     spelling of a key the schema already has.
     """
     loci = frames.loci
-    esm, bacformer = derived["separations"]["esm"], derived["separations"]["bacformer"]
     for index in range(len(loci)):
         row = loci.iloc[index]
         yield (
@@ -348,15 +333,8 @@ def _locus_rows(
             _clean(row["seqid_coverage"]),
             _clean(row["uniref50_impurity"]),
             _clean(row["uniref50_coverage"]),
-            _clean(row["embed_within_over_nearest"]),
             genome_id_by_sample.get(str(_clean(row["medoid_sample_id"]) or "")),
             _int_or_none(row["medoid_flat_index"]),
-            _clean(row["esm_within_medoid_distance"]),
-            _clean(row["esm_nearest_medoid_distance"]),
-            _clean(row["bacformer_within_medoid_distance"]),
-            _clean(row["bacformer_nearest_medoid_distance"]),
-            esm.percentile[index],
-            bacformer.percentile[index],
             _int_or_none(row["cog_annotated_member_count"]),
             _int_or_none(row["cog_distinct_id_count"]),
             _cog_categories(row["modal_cog_category"]),
@@ -414,8 +392,7 @@ def _delete_pangenome_layer(session: Session, pangenome_id: int) -> None:
         (IntergenicGap, IntergenicGap.pangenome_id),
         (LocusOffsetOccupant, LocusOffsetOccupant.pangenome_id),
         (LocusArrangement, LocusArrangement.pangenome_id),
-        (LocusMapProjection, LocusMapProjection.pangenome_id),
-        (LocusMapScatterSprite, LocusMapScatterSprite.pangenome_id),
+        (PangenomeSimilarityBaseline, PangenomeSimilarityBaseline.pangenome_id),
     ):
         if column is None:
             session.query(IntergenicGapFeature).filter(
@@ -505,12 +482,10 @@ def ingest_locus_catalogue(
         session, frames, pangenome_id, locus_id_by_label
     )
     (
-        report.map_projections,
-        report.embedding_geometry_rows,
-        report.scatter_sprites,
-    ) = _load_map_geometry(
-        session, frames, pangenome_id, locus_id_by_label, derived
-    )
+        report.similarity_baselines,
+        report.similarity_rows,
+        report.nearest_locus_rows,
+    ) = _load_cluster_similarity(session, frames, pangenome_id, locus_id_by_label, derived)
 
     # ── the landing locus and the example chips ────────────────────────────────────────────────
     order = ranking(derived["interest_score"])
@@ -536,7 +511,7 @@ def ingest_locus_catalogue(
         counts[source] = counts.get(source, 0) + 1
     report.display_name_sources = counts
     report.separation_measurable = {
-        key: index.measurable_count for key, index in derived["separations"].items()
+        key: index.measurable_count for key, index in derived["similarities"].items()
     }
     for section, reason in frames.omitted.items():
         report.notes.append(f"omitted {section}: {reason}")
@@ -877,153 +852,130 @@ def _load_intergenic_gaps(session, frames, pangenome_id, locus_id_by_label) -> t
     return written, features
 
 
-def _load_map_geometry(session, frames, pangenome_id, locus_id_by_label, derived) -> tuple[int, int, list]:
-    """The two projections and their per-locus six-point geometry.
+def _load_cluster_similarity(session, frames, pangenome_id, locus_id_by_label, derived) -> tuple[int, int, int]:
+    """The per-representation baseline, the per-locus similarities, and the ranked nearest loci.
 
-    ⛔ `nearest_locus_ordinals` stays as **catalogue ordinals with `-1` for absent**, because slots
-    are not ranks: a `-1` drops that locus AND its slot, and the surviving slot indices are what
-    address `pairwise_cosine_scaled`. Resolving them to ids here would have to invent an id for the
-    absent one, and reading by rank instead draws one locus's distances on another.
+    ⛔ **What this replaced on 2026-09-24.** ``_load_map_geometry`` wrote a UMAP over every locus's
+    MEDOID, that medoid's 6×6 local geometry, and the whole-catalogue dust rendered from the same
+    quantised arrays. All three described a construction that reduced a locus to one member, and they
+    went together because the picture was a picture *of* the numbers.
+
+    ⚠ **Rows, not an ordinal array, for the nearest loci.** The retired ``nearest_locus_ordinals``
+    packed five catalogue ordinals with ``-1`` for absent, and every reader had to resolve them; a
+    ``-1`` read as an index names locus 0, which is real and looks entirely plausible. A neighbour
+    outside the catalogue now simply has no row, and each row carries its own similarity.
     """
-    import numpy
-    from nuna.tl.locus_browser.export_payload import quantise_xy
+    similarity = frames.similarity
+    if not similarity:
+        return 0, 0, 0
 
-    geometry = frames.geometry
-    if not geometry:
-        return 0, 0
-    ordinal_by_label = {
-        str(label): int(ordinal)
-        for label, ordinal in zip(frames.loci["node"], frames.loci["catalogue_ordinal"], strict=True)
-    }
-    projections = 0
-    geometry_rows = 0
-    sprites: list[dict] = []
-    for representation in REPRESENTATIONS:
-        entry = geometry.get(representation)
-        if entry is None:
-            continue
-        info = entry["info"]
-        coordinates = entry["coordinates"]
-        quantised_x, quantised_y, scale = quantise_xy(
-            coordinates["x"].to_numpy(), coordinates["y"].to_numpy()
-        )
-        baseline = frames.null_baselines.get(representation, {})
+    baselines = 0
+    similarity_rows = 0
+    nearest_rows = 0
+    for representation, block in similarity.items():
+        index = derived["similarities"][representation]
+        floor = block["floor"]
+
+        # ⛔ The denominator the card prints — *"of 12,104 loci"* — is asserted against the artifact's
+        # own count rather than trusted. They are two derivations of one number: the `.meta` counts
+        # loci with a within-locus pair, and `similarity_index` counts loci with a rankable value.
+        declared = floor["measurable_locus_count"]
+        if declared is not None and declared != index.measurable_count:
+            raise ValueError(
+                f"{representation}: the artifact declares {declared:,} measurable loci and the "
+                f"ranking found {index.measurable_count:,}. The card prints one of these under a "
+                "percentile computed from the other, so they cannot differ."
+            )
         session.add(
-            LocusMapProjection(
+            PangenomeSimilarityBaseline(
                 pangenome_id=pangenome_id,
                 representation=EmbeddingRepresentation(representation),
-                projection_method=info.get("how"),
-                requested_metric=info.get("metric"),
-                scale_centre_x=float(scale["cx"]) if "cx" in scale else None,
-                scale_centre_y=float(scale["cy"]) if "cy" in scale else None,
-                scale_span=float(scale["span"]) if "span" in scale else None,
-                scale_unit=QUANTISATION_HALF_EXTENT,
-                extent_min_x=int(quantised_x.min()),
-                extent_min_y=int(quantised_y.min()),
-                extent_max_x=int(quantised_x.max()),
-                extent_max_y=int(quantised_y.max()),
-                cosine_scale_factor=COSINE_SCALE_FACTOR,
-                source_csv_path=entry["source"],
-                null_bin_lower_edge=baseline.get("lower_edge"),
-                null_bin_width=baseline.get("width"),
-                null_bin_counts=baseline.get("counts"),
-                null_mean_cosine=baseline.get("mean"),
-                separation_measurable_locus_count=derived["separations"][
-                    representation
-                ].measurable_count,
+                similarity_form=block["form"],
+                floor_median=floor["median"],
+                floor_p25=floor["p25"],
+                floor_p75=floor["p75"],
+                floor_p99=floor["p99"],
+                measurable_locus_count=index.measurable_count,
+                neighbour_knn_k=floor["knn_k"],
+                source_csv_path=block["source"],
             )
         )
-        projections += 1
+        baselines += 1
 
-        neighbours = entry["neighbours"]
-        nearest: dict[str, list[int]] = {}
-        if len(neighbours):
-            width = int(neighbours["rank"].max()) + 1
-            for label in coordinates["node"]:
-                nearest[str(label)] = [-1] * width
-            for node, rank, neighbour in zip(
-                neighbours["node"], neighbours["rank"], neighbours["neighbour"], strict=True
-            ):
-                slots = nearest.get(str(node))
-                if slots is None:
-                    continue
-                # ⛔ A neighbour outside this catalogue drops to -1, NOT to 0 — which is a real locus.
-                slots[int(rank)] = ordinal_by_label.get(str(neighbour), -1)
+        loci = block["loci"]
+        form = block["form"]
+        labels = [str(value) for value in loci["node"]]
+        column_of = {name: f"{stem}_{form}" for name, stem in SIMILARITY_COLUMNS.items()}
+        values = {name: [_clean(v) for v in loci[column]] for name, column in column_of.items()}
 
-        cosine_columns = [column for column in entry["cosines"].columns if column != "node"]
-        cosines = {
-            str(node): [
-                int(numpy.clip(round(float(value) * COSINE_SCALE_FACTOR), -COSINE_SCALE_FACTOR, COSINE_SCALE_FACTOR))
-                for value in row
-            ]
-            for node, row in zip(
-                entry["cosines"]["node"], entry["cosines"][cosine_columns].to_numpy(), strict=True
-            )
-        }
-        empty_cosines = [0] * len(cosine_columns)
-
-        columns = (
+        similarity_columns = (
             "locus_id",
             "representation",
-            "map_x",
-            "map_y",
-            "nearest_locus_ordinals",
-            "pairwise_cosine_scaled",
+            *SIMILARITY_COLUMNS,
+            "separation_percentile",
+            "weak_margin_percentile",
+            "own_fraction_percentile",
         )
-        labels = [str(value) for value in coordinates["node"]]
 
-        def rows(labels=labels, quantised_x=quantised_x, quantised_y=quantised_y,
-                 nearest=nearest, cosines=cosines, empty_cosines=empty_cosines,
-                 representation=representation):
+        def similarity_rows_for(labels=labels, values=values, index=index, representation=representation):
             for position, label in enumerate(labels):
                 yield (
                     locus_id_by_label[label],
                     EmbeddingRepresentation(representation),
-                    int(quantised_x[position]),
-                    int(quantised_y[position]),
-                    nearest.get(label, []),
-                    cosines.get(label, empty_cosines),
+                    *(values[name][position] for name in SIMILARITY_COLUMNS),
+                    index.separation_percentile[position],
+                    index.weak_margin_percentile[position],
+                    index.own_fraction_percentile[position],
                 )
 
-        geometry_rows += copy_rows(session, LocusEmbeddingGeometry.__table__, columns, rows())
-
-        # ⭐ The whole-catalogue dust, rendered from the SAME quantised arrays that were just
-        # written — so the sprite and `map_x`/`map_y` cannot be projections of different numbers.
-        # ⛔ `unplotted` is measured here and only here: a locus with no medoid never reaches the map
-        # CSV, so it has no geometry row and no speck, and the catalogue size is not what the
-        # picture shows. Deriving it downstream would mean subtracting two counts from two tables.
-        sprite = render_catalogue_scatter_sprite(
-            quantised_x,
-            quantised_y,
-            unplotted_locus_count=len(locus_id_by_label) - len(labels),
+        similarity_rows += copy_rows(
+            session, LocusSimilarity.__table__, similarity_columns, similarity_rows_for()
         )
-        session.add(
-            LocusMapScatterSprite(
-                pangenome_id=pangenome_id,
-                representation=EmbeddingRepresentation(representation),
-                image_png=sprite.image_png,
-                pixel_size=sprite.pixel_size,
-                viewport_centre_x=sprite.viewport_centre_x,
-                viewport_centre_y=sprite.viewport_centre_y,
-                viewport_span=sprite.viewport_span,
-                dust_radius_pixels=sprite.dust_radius_pixels,
-                alpha_per_locus=sprite.alpha_per_locus,
-                plotted_locus_count=sprite.plotted_locus_count,
-                unplotted_locus_count=sprite.unplotted_locus_count,
-                content_digest=sprite.content_digest,
+
+        # ── the five nearest, ranked ───────────────────────────────────────────────────────────
+        nearest = block["nearest"]
+        nearest_columns = ("locus_id", "representation", "rank", "neighbour_locus_id", "cross_similarity")
+        head_by_label: dict[str, float] = {}
+
+        def nearest_rows_for(nearest=nearest, representation=representation, head=head_by_label):
+            for label, rank, neighbour, cross in zip(
+                nearest["node"], nearest["rank"], nearest["neighbour"], nearest["cross"], strict=True
+            ):
+                label, neighbour = str(label), str(neighbour)
+                # ⚠ A neighbour outside this catalogue is DROPPED, not stored as a sentinel. The
+                # artifact is computed over the model's own loci, but a hand-trimmed catalogue may
+                # hold fewer, and an unresolvable id has no honest placeholder in a foreign key.
+                if label not in locus_id_by_label or neighbour not in locus_id_by_label:
+                    continue
+                if int(rank) == 1:
+                    head[label] = float(cross)
+                yield (
+                    locus_id_by_label[label],
+                    EmbeddingRepresentation(representation),
+                    int(rank),
+                    locus_id_by_label[neighbour],
+                    _clean(cross),
+                )
+
+        nearest_rows += copy_rows(
+            session, LocusNearestLocus.__table__, nearest_columns, nearest_rows_for()
+        )
+
+        # ⛔ `nearest_similarity` IS rank 1 of the list, stored twice so the card's headline renders
+        # without reading the list. Asserted rather than hoped: the two files are written together by
+        # one run, so a disagreement can only mean they came from two — and that is the exact failure
+        # the card being replaced had no way to notice.
+        disagreed = [
+            label
+            for position, label in enumerate(labels)
+            if label in head_by_label
+            and values["nearest_similarity"][position] is not None
+            and abs(head_by_label[label] - values["nearest_similarity"][position]) > 1e-9
+        ]
+        if disagreed:
+            raise ValueError(
+                f"{representation}: {len(disagreed):,} loci (e.g. {disagreed[:3]}) whose "
+                "`near` column disagrees with rank 1 of their own nearest-loci list — the two "
+                "artifacts are not two views of one run"
             )
-        )
-        sprites.append(
-            {
-                "representation": representation,
-                "plotted": sprite.plotted_locus_count,
-                "unplotted": sprite.unplotted_locus_count,
-                "bytes": len(sprite.image_png),
-                "pixel_size": sprite.pixel_size,
-            }
-        )
-
-    # ⚠ A locus with no medoid never reaches the map CSV at all, so it simply has no geometry row —
-    # which is why `NOWHERE_SENTINEL` is a column default and not something written here.
-    assert NOWHERE_SENTINEL == -32768
-    return projections, geometry_rows, sprites
+    return baselines, similarity_rows, nearest_rows

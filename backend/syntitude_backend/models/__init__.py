@@ -24,10 +24,10 @@ from syntitude_backend.models.locus_annotation import (  # noqa: F401
     LocusUnirefFamilyCrosstab,
 )
 from syntitude_backend.models.locus_arrangement import LocusArrangement  # noqa: F401
-from syntitude_backend.models.locus_embedding_geometry import (  # noqa: F401
-    LocusEmbeddingGeometry,
-    LocusMapProjection,
-    LocusMapScatterSprite,
+from syntitude_backend.models.locus_similarity import (  # noqa: F401
+    LocusSimilarity,
+    LocusNearestLocus,
+    PangenomeSimilarityBaseline,
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant  # noqa: F401
 from syntitude_backend.models.nuna_model import NunaModel, NunaModelStep  # noqa: F401
@@ -63,9 +63,9 @@ __all__ = [
     "Locus",
     "LocusAnnotationEntry",
     "LocusArrangement",
-    "LocusEmbeddingGeometry",
-    "LocusMapProjection",
-    "LocusMapScatterSprite",
+    "LocusSimilarity",
+    "LocusNearestLocus",
+    "PangenomeSimilarityBaseline",
     "LocusOffsetOccupant",
     "LocusUnirefFamilyCrosstab",
     "NunaModel",

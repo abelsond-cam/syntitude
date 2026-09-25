@@ -16,10 +16,12 @@ supplied, so one look is enough.
 1. **The output filename doubles the set token.** `locus_browser_{set}_{label}.json`, and `{label}`
    itself begins with the set — `locus_browser_ecoli_ecoli_nuna4_g2_0.98_…json`. A locator that
    assumes one `ecoli` finds nothing.
-2. **The map's siblings are DERIVED, not passed.** `export_payload._sibling` finds the neighbour and
-   cos6 CSVs by string-replacing `_catalogue_map_` in the map's own path, so they are addressed
-   relative to it rather than rebuilt from the label. Reproduced here for the same reason: a map
-   can then never be paired with another run's geometry.
+2. **A run's siblings are DERIVED, not passed.** `export_payload._nearest_sibling` finds the nearest
+   -loci CSV by string-replacing `_cluster_similarity_` in the similarity CSV's own path, so it is
+   addressed relative to it rather than rebuilt from the label. Reproduced here for the same reason:
+   one run's medians can then never be paired with another run's neighbour list, which is a
+   mismatch nothing downstream could detect — both would be in range and plausible. (The retired
+   neighbourhood map addressed its two siblings the same way.)
 3. **The payload JSON is not under `analysis/`.** The exporter writes it beside the maps on CSD3,
    but the local pull lands it in `data/browser/`. It is an ORACLE here, never an input.
 """
@@ -146,27 +148,40 @@ class CatalogueArtifacts:
         """
         return self._audit("cluster_table.parquet")
 
-    # ── the neighbourhood map ─────────────────────────────────────────────────────────────────
-    def catalogue_map(self, representation: str) -> Path:
-        """One row per locus medoid: the quantised map position."""
-        return self.analysis_root / "locus_browser" / f"{self.model_label}_catalogue_map_{representation}.csv"
+    # ── set-to-set similarity ─────────────────────────────────────────────────────────────────
+    #
+    # ⛔ What these replaced on 2026-09-24: `catalogue_map` / `map_sibling` / `null_baseline`, the
+    # neighbourhood map and its random-MEDOID-pair baseline. They went with the medoid geometry they
+    # were a picture of. `catalogue_map.py` in nuna still writes its three files; nothing reads them.
+    def cluster_similarity(self, representation: str) -> Path:
+        """One row per locus: the set-to-set numbers, from `build_cluster_similarity`."""
+        return (
+            self.analysis_root
+            / "locus_browser"
+            / f"{self.model_label}_cluster_similarity_{representation}.csv"
+        )
 
-    def catalogue_map_metadata(self, representation: str) -> Path:
-        """⚠ The `.meta` sidecar is the ONLY record of `rep`, `how` and `metric` — the CSV has none."""
-        return self.catalogue_map(representation).with_suffix(".meta")
+    def cluster_similarity_metadata(self, representation: str) -> Path:
+        """⚠ The `.meta` sidecar is the ONLY record of `rep`, `forms`, `k` and the floor — not the CSV."""
+        return self.cluster_similarity(representation).with_suffix(".meta")
 
-    def map_sibling(self, representation: str, kind: str) -> Path:
-        """`node_neighbours` / `locus_cos6`, addressed RELATIVE to the map — `_sibling`'s own rule."""
-        path = self.catalogue_map(representation)
-        return path.with_name(path.name.replace("_catalogue_map_", f"_{kind}_"))
+    def cluster_similarity_audit(self, representation: str) -> Path:
+        """The run's own JSON, carrying the floor's QUARTILES, which the `.meta` reduces to a median.
 
-    def null_baseline(self, representation: str) -> Path:
-        """200 uniform bins over (−1, 1) — the axis the geometry card reads its numbers against."""
-        return self.analysis_root / "locus_browser" / f"{self.model_label}_null_{representation}.csv"
+        ⚠ Optional by design: a median alone still gives the card a baseline, just not its spread.
+        """
+        return self.cluster_similarity(representation).with_suffix(".json")
 
-    def null_baseline_metadata(self, representation: str) -> Path:
-        """The sidecar carrying the baseline's mean cosine, which the CSV itself does not."""
-        return self.null_baseline(representation).with_suffix(".meta")
+    def cluster_nearest(self, representation: str) -> Path:
+        """The five nearest other loci, addressed RELATIVE to the similarity CSV.
+
+        ⛔ Derived, not named independently — `export_payload._nearest_sibling`'s own rule. The two
+        files are written together by one run and are only meaningful together, so a second flag
+        would be a second chance to pair one run's medians with another run's neighbour list, and
+        nothing downstream could detect it: both would be in range and plausible.
+        """
+        path = self.cluster_similarity(representation)
+        return path.with_name(path.name.replace("_cluster_similarity_", "_cluster_nearest_"))
 
     # ── the projection: genomes the model never clustered ─────────────────────────────────────
     @property
@@ -225,19 +240,22 @@ class CatalogueArtifacts:
         ]
         for rep in REPRESENTATIONS:
             items += [
-                (f"catalogue_map[{rep}]", self.catalogue_map(rep), "locus map x/y"),
-                (f"map_meta[{rep}]", self.catalogue_map_metadata(rep), "projection and metric"),
-                (f"node_neighbours[{rep}]", self.map_sibling(rep, "node_neighbours"), "the 5 nearest medoids"),
-                (f"locus_cos6[{rep}]", self.map_sibling(rep, "locus_cos6"), "the 6x6 local geometry"),
-                (f"null[{rep}]", self.null_baseline(rep), "the random-pair baseline"),
-                (f"null_meta[{rep}]", self.null_baseline_metadata(rep), "the baseline's mean cosine"),
+                (f"cluster_similarity[{rep}]", self.cluster_similarity(rep), "locus_similarity"),
+                (f"similarity_meta[{rep}]", self.cluster_similarity_metadata(rep),
+                 "the form, the gene-pair floor and the measurable denominator"),
+                (f"cluster_nearest[{rep}]", self.cluster_nearest(rep), "locus_nearest_locus"),
             ]
         return items
 
     def optional(self) -> list[tuple[str, Path, str]]:
         """Present or absent is a FACT about the run, recorded rather than treated as a failure."""
         return [
-            ("cluster_table", self.cluster_table, "u50 impurity/coverage, the medoid, the Bacformer pair"),
+            ("cluster_table", self.cluster_table, "u50 impurity/coverage and the medoid member"),
+            *[
+                (f"similarity_audit[{rep}]", self.cluster_similarity_audit(rep),
+                 "the gene-pair floor's QUARTILES; without it the card draws a bare tick")
+                for rep in REPRESENTATIONS
+            ],
             ("published_payload", self.published_payload, "the acceptance oracle — never an input"),
         ]
 

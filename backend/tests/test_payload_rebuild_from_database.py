@@ -26,6 +26,7 @@ from syntitude_backend.models.locus import Locus
 from tests.known_parity_exceptions import (
     AUDIT_RERUN_HEADLINE_KEYS,
     AUDIT_RERUN_PAYLOAD_BLOCKS,
+    MEDOID_RETIREMENT_PAYLOAD_BLOCKS,
     RETIRED_TIER,
     exceptions_for,
     symbol_fold_for,
@@ -69,11 +70,23 @@ def report(rebuilt):
 def test_the_rebuild_examines_EVERY_block_and_states_what_it_compared(species, report):
     """⛔ "Four differences" over four blocks and over forty read the same. Coverage is the claim."""
     result = report[species]
-    assert result.blocks_not_examined == [], result.render()
+    # ⛔ THREE blocks are legitimately not examined, and naming them is the point: `map_reps` and
+    # `null` exist only in the frozen schema-14 payload and `sim` only in the schema-16 rebuild, so
+    # there is nothing to compare either against. ⚠ *Not looked at* and *no difference* are
+    # indistinguishable in an output unless they are made different, which is why this is an
+    # enumerated set and not a shortened one. It empties when both species are re-exported.
+    assert sorted(result.blocks_not_examined) == [
+        "map_reps (only in published)",
+        "null (only in published)",
+        "sim (only in rebuilt)",
+    ], result.render()
     assert set(result.blocks_compared) == {
-        "schema", "meta", "strings", "nodes", "lists", "arr", "map_reps", "ctx", "gaps", "null",
+        "schema", "meta", "strings", "nodes", "lists", "arr", "ctx", "gaps",
     }  # fmt: skip
-    assert result.columns_compared >= 114
+    # ⚠ 114 → 103: the four `nodes.*_d_*` columns went, and `map_reps`/`null` are no longer compared
+    # column by column. The floor is lowered rather than removed — it is what stops a rebuild that
+    # quietly stopped emitting half the catalogue from reading as agreement.
+    assert result.columns_compared >= 103
     assert result.elements_compared > 3_400_000
 
 
@@ -102,11 +115,20 @@ def test_EXACTLY_the_recorded_blocks_differ_and_each_has_a_named_cause(species, 
     differing = {
         line.split(" CHANGED")[0].removeprefix("⛔ ") for line in report[species].differences
     }
-    expected = AUDIT_RERUN_PAYLOAD_BLOCKS | symbol_fold_for(species).payload_blocks
-    assert differing == expected, report[species].render()
-    assert not (AUDIT_RERUN_PAYLOAD_BLOCKS & symbol_fold_for(species).payload_blocks), (
-        "the two causes have started to overlap — one of them is no longer what it says it is"
+    expected = (
+        AUDIT_RERUN_PAYLOAD_BLOCKS
+        | symbol_fold_for(species).payload_blocks
+        | MEDOID_RETIREMENT_PAYLOAD_BLOCKS
     )
+    assert differing == expected, report[species].render()
+    for first, second in (
+        (AUDIT_RERUN_PAYLOAD_BLOCKS, symbol_fold_for(species).payload_blocks),
+        (AUDIT_RERUN_PAYLOAD_BLOCKS, MEDOID_RETIREMENT_PAYLOAD_BLOCKS),
+        (symbol_fold_for(species).payload_blocks, MEDOID_RETIREMENT_PAYLOAD_BLOCKS),
+    ):
+        assert not (first & second), (
+            "two causes have started to overlap — one of them is no longer what it says it is"
+        )
 
 
 @pytest.mark.parametrize("species", SPECIES)
@@ -118,7 +140,13 @@ def test_every_other_block_is_BYTE_IDENTICAL_including_the_big_three(species, re
     the other seven do not**, so it is asserted sub-block by sub-block below rather than dropped.
     """
     published = _published(species)
-    for block in ("arr", "ctx", "gaps", "map_reps", "null", "schema"):
+    # ⛔ `map_reps` and `null` left this list on 2026-09-24 — they are no longer built from anything,
+    # and the `sim` block that replaced them has no counterpart in a schema-14 payload to be
+    # identical TO. They are recorded as expected differences above rather than dropped, so the
+    # re-export that makes them match again is a failing test and not a silence.
+    # ⚠ `schema` stays, and is the load-bearing one here: it passes only because the rebuild pins
+    # itself to the schema its ROWS came from rather than reading nuna's current constant.
+    for block in ("arr", "ctx", "gaps", "schema"):
         assert published[block] == rebuilt[species][block], f"{block} is not byte-identical"
 
 

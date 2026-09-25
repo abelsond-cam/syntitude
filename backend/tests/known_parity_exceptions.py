@@ -204,6 +204,32 @@ AUDIT_RERUN_PAYLOAD_BLOCKS: frozenset[str] = frozenset(
     {"nodes.tier", "strings.tier", "meta.audit", "meta.omitted"}
 )
 
+#: ⛔ **The medoid geometry's retirement, 2026-09-24 — a THIRD recorded cause, and a temporary one.**
+#:
+#: The published site catalogue is FROZEN at schema 14 and the database is now at 16, so three blocks
+#: differ for a reason that is not a defect: the payload carries `map_reps` and `null` that the
+#: database no longer has anything to build, and the database carries `sim` that the payload has no
+#: key for. `nodes` differs too, on the four `*_d_*` columns.
+#:
+#: ⚠ **This set must SHRINK TO EMPTY when both species are re-exported at schema 16**, which is the
+#: last step of the rebuild. It is recorded rather than excluded so that the day it stops being true
+#: is a failing test and not a silence — the same reason the other two causes are enumerated instead
+#: of being subtracted from the comparison.
+#: ⚠ These are the difference LINES verbatim, not block names: a block that is absent on one side is
+#: reported as added or removed rather than as changed, and `schema` is deliberately NOT among them
+#: because `INGESTED_PAYLOAD_SCHEMA` pins the rebuild to the schema its rows came from.
+MEDOID_RETIREMENT_PAYLOAD_BLOCKS: frozenset[str] = frozenset(
+    {
+        "REMOVED top-level block 'map_reps'",
+        "REMOVED top-level block 'null'",
+        "ADDED unexpected top-level block 'sim'",
+        "nodes: REMOVED column 'esm_d_intra'",
+        "nodes: REMOVED column 'esm_d_near'",
+        "nodes: REMOVED column 'bac_d_intra'",
+        "nodes: REMOVED column 'bac_d_near'",
+    }
+)
+
 #: The six audit-headline keys that move, and only these six.
 AUDIT_RERUN_HEADLINE_KEYS: frozenset[str] = frozenset(
     {

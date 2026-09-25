@@ -29,9 +29,9 @@ from syntitude_backend.models.enumerations import EmbeddingRepresentation
 from syntitude_backend.models.genome_collection import GenomeCollectionMembership
 from syntitude_backend.models.locus import Locus
 from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_embedding_geometry import (
-    LocusMapProjection,
-    LocusMapScatterSprite,
+from syntitude_backend.models.locus_similarity import (
+    LocusSimilarity,
+    PangenomeSimilarityBaseline,
 )
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.pangenome import Pangenome
@@ -128,45 +128,52 @@ def verify_pangenome_is_servable(session: Session, pangenome: Pangenome) -> tupl
     ).scalar_one()
     check("the marginal view is populated", occupants > 0, "no offset occupants — no bars under the track")
 
-    # ⭐ BOTH representations, or neither tab means what it says: ESM is homology and Bacformer is
-    # context, and they deliberately disagree about which loci are confusable.
-    representations = {
-        row.representation
-        for row in session.execute(
-            select(LocusMapProjection).where(
-                LocusMapProjection.pangenome_id == pangenome.pangenome_id
-            )
-        ).scalars()
-    }
-    check(
-        "both map representations are present",
-        representations == set(EmbeddingRepresentation),
-        f"only {sorted(r.value for r in representations)} — the other tab would be empty",
-    )
-
-    # ⭐ And a SPRITE for each, or the "whole catalogue" zoom is quietly unavailable on a published
-    # page. ⚠ The check is per representation and it is `plotted + unplotted == locus_count`, not
-    # "a row exists": a sprite rendered from a partial geometry load would be a picture that is
-    # missing loci and says nothing about it — which is the one thing this table exists to prevent.
-    sprites = {
+    # ⭐ BOTH representations, or neither half of the card means what it says: ESM is homology and
+    # Bacformer is context, and they deliberately disagree about which loci are weak. Measured: of
+    # the 1,059 ecoli loci Bacformer flags, ESM rescues 817 (77 %) — so a missing ESM baseline is not
+    # half a card, it is the half that says the other half is wrong.
+    baselines = {
         row.representation: row
         for row in session.execute(
-            select(LocusMapScatterSprite).where(
-                LocusMapScatterSprite.pangenome_id == pangenome.pangenome_id
+            select(PangenomeSimilarityBaseline).where(
+                PangenomeSimilarityBaseline.pangenome_id == pangenome.pangenome_id
             )
         ).scalars()
     }
     check(
-        "both catalogue scatter sprites are present",
-        set(sprites) == set(EmbeddingRepresentation),
-        f"only {sorted(r.value for r in sprites)} — the whole-catalogue zoom would be unavailable",
+        "both similarity representations are present",
+        set(baselines) == set(EmbeddingRepresentation),
+        f"only {sorted(r.value for r in baselines)} — the other half of the card would be empty",
     )
-    for representation, sprite in sorted(sprites.items(), key=lambda item: item[0].value):
-        accounted = sprite.plotted_locus_count + sprite.unplotted_locus_count
+
+    # ⭐ And a FLOOR for each, because without it a cosine has no scale: ESM's random gene pairs sit
+    # at ~0.742 and Bacformer's at ~0.059, so the same 0.41 reads oppositely in the two. A card that
+    # cannot draw the baseline is a card printing numbers a reader has no way to size.
+    for representation, baseline in sorted(baselines.items(), key=lambda item: item[0].value):
         check(
-            f"the {representation.value} sprite accounts for every locus",
-            accounted == pangenome.locus_count,
-            f"{accounted:,} accounted for against {pangenome.locus_count:,} loci",
+            f"the {representation.value} baseline has a floor",
+            baseline.floor_median is not None,
+            "no random gene-pair median — the card would print cosines against nothing",
+        )
+
+    # ⛔ The denominator is checked against the ROWS, not taken on trust. "p12 of 12,104 loci" is two
+    # assertions, and the second one is this number; a baseline that outlived a partial similarity
+    # load would print a percentile over a population that is not there.
+    for representation, baseline in sorted(baselines.items(), key=lambda item: item[0].value):
+        measurable = session.execute(
+            select(func.count())
+            .select_from(LocusSimilarity)
+            .join(Locus, Locus.locus_id == LocusSimilarity.locus_id)
+            .where(
+                Locus.pangenome_id == pangenome.pangenome_id,
+                LocusSimilarity.representation == representation,
+                LocusSimilarity.separation_percentile.is_not(None),
+            )
+        ).scalar_one()
+        check(
+            f"the {representation.value} denominator matches the rows behind it",
+            measurable == baseline.measurable_locus_count,
+            f"{measurable:,} ranked loci against a stated {baseline.measurable_locus_count:,}",
         )
 
     unnamed = session.execute(

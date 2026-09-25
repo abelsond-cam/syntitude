@@ -41,8 +41,18 @@ def ecoli():
 def test_every_required_artifact_of_the_published_catalogue_resolves(ecoli):
     """Coverage before the claim: the count is asserted, not just the absence of a failure."""
     optional = ecoli.verify()
-    assert len(ecoli.required()) == 7 + 6 * len(REPRESENTATIONS) == 19
-    assert optional == {"cluster_table": True, "published_payload": True}
+    # ⚠ Three per representation now, not six: the map's coordinate CSV, its `.meta`, its two
+    # siblings and the two null files went on 2026-09-24 with the medoid geometry they described.
+    assert len(ecoli.required()) == 7 + 3 * len(REPRESENTATIONS) == 13
+    assert optional == {
+        "cluster_table": True,
+        "published_payload": True,
+        # ⚠ The run's own JSON, carrying the gene-pair floor's QUARTILES. Optional on purpose: the
+        # `.meta` still gives the card a median, so its absence costs the baseline's spread and
+        # nothing else — a degradation, not a failure.
+        "similarity_audit[bacformer]": True,
+        "similarity_audit[esm]": True,
+    }
 
 
 def test_all_missing_artifacts_are_named_at_once(ecoli):
@@ -65,25 +75,30 @@ def test_the_output_filename_doubles_the_set_token(ecoli):
     assert ecoli.published_payload.exists()
 
 
-def test_the_map_siblings_are_addressed_RELATIVE_to_the_map(ecoli):
-    """⛔ `_sibling`'s rule, and the reason a map cannot be paired with another run's geometry."""
+def test_the_nearest_loci_are_addressed_RELATIVE_to_the_similarity_csv(ecoli):
+    """⛔ `_nearest_sibling`'s rule, and the reason one run's medians cannot be paired with another
+    run's neighbour list — a mismatch nothing downstream could detect, because both would be in
+    range and plausible."""
     for representation in REPRESENTATIONS:
-        catalogue_map = ecoli.catalogue_map(representation)
-        for kind in ("node_neighbours", "locus_cos6"):
-            sibling = ecoli.map_sibling(representation, kind)
-            assert sibling.parent == catalogue_map.parent
-            assert sibling.name == catalogue_map.name.replace("_catalogue_map_", f"_{kind}_")
-            assert sibling.exists(), sibling
+        similarity = ecoli.cluster_similarity(representation)
+        nearest = ecoli.cluster_nearest(representation)
+        assert nearest.parent == similarity.parent
+        assert nearest.name == similarity.name.replace(
+            "_cluster_similarity_", "_cluster_nearest_"
+        )
+        assert nearest.exists(), nearest
 
 
 def test_the_meta_sidecars_carry_what_the_csvs_do_not(ecoli):
-    """The `.meta` files are the ONLY record of the representation and projection method."""
+    """The `.meta` files are the ONLY record of the representation, the form and the floor."""
     for representation in REPRESENTATIONS:
-        text = ecoli.catalogue_map_metadata(representation).read_text()
+        text = ecoli.cluster_similarity_metadata(representation).read_text()
         assert f"rep={representation}" in text
-        assert "how=" in text and "metric=" in text
+        # ⛔ `forms=` is what makes raw-against-centred a decision the ingest can refuse to guess at:
+        # ESM's floor moves 0.7417 → ~0.005 between the two, and nothing in the CSV says which it is.
+        assert "forms=raw" in text
+        assert "floor_raw=" in text and "n_measurable=" in text
         assert f"model={MODEL_LABEL}" in text
-        assert "mean=" in ecoli.null_baseline_metadata(representation).read_text()
 
 
 def test_a_label_that_does_not_match_its_set_is_refused_up_front(ecoli):
@@ -133,7 +148,12 @@ def test_both_published_catalogues_resolve_from_the_checked_in_triples(entry):
         data_root=DATA_ROOT, set_key=entry.set_key,
         model_label=entry.model_label, run_id=entry.run_id,
     )
-    assert artifacts.verify() == {"cluster_table": True, "published_payload": True}
+    assert artifacts.verify() == {
+        "cluster_table": True,
+        "published_payload": True,
+        "similarity_audit[bacformer]": True,
+        "similarity_audit[esm]": True,
+    }
 
 
 def test_the_two_run_ids_are_not_each_other_with_the_species_swapped():

@@ -33,7 +33,7 @@ from syntitude_backend.models.intergenic_gap import IntergenicGap
 from syntitude_backend.models.locus import Locus
 from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
 from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_embedding_geometry import LocusEmbeddingGeometry
+from syntitude_backend.models.locus_similarity import LocusNearestLocus, LocusSimilarity
 from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
 from syntitude_backend.models.reference_vocabulary import PfamFamily
 from syntitude_backend.services.projected_genome_service import load_placements_at_locus
@@ -88,18 +88,14 @@ class NeighbourDisplayRow:
     display_name: str
     display_name_source: str
     best_product: str | None
-    #: ⚠ DISTANCES, as stored — the client converts. Nullable: a singleton is its own medoid.
-    esm_within_medoid_distance: float | None
-    bacformer_within_medoid_distance: float | None
     member_genome_count: int
     median_gene_length_nt: int | None
     prevalence_band: str
-    #: ⭐ Where this locus sits on the WHOLE-CATALOGUE sprite, per representation — quantised
-    #: `map_x`/`map_y`, `None` where the locus has no medoid and so is not on the picture at all.
-    #: ⚠ Needed here rather than fetched per dot, because the global map's five nearest are named by
-    #: `catalogue_ordinal` and the switch from "these loci" to "whole catalogue" must be
-    #: **zero-fetch**: the popover is offline and so is every zoom.
-    map_position: dict = field(default_factory=dict)
+    #: ⛔ The two `*_within_medoid_distance` columns and `map_position` went on 2026-09-24. The first
+    #: pair fed the map's ring radius and the second the whole-catalogue sprite, both of which went
+    #: with the medoid geometry they were drawn from. A neighbour row now carries only what NAMES a
+    #: locus; the similarity that relates it to the focal one lives on `locus_nearest_locus`, where
+    #: it belongs — it is a property of the PAIR, not of either locus.
 
 
 @dataclass
@@ -141,7 +137,10 @@ class LocusDetail:
     offset_occupants: dict = field(default_factory=dict)
     neighbour_display_rows: NeighbourDisplayIndex = field(default_factory=NeighbourDisplayIndex)
     intergenic_gaps: list = field(default_factory=list)
-    geometry: dict = field(default_factory=dict)
+    #: `{representation: LocusSimilarity}` — the eight numbers the card's three views show.
+    similarity: dict = field(default_factory=dict)
+    #: `{representation: [LocusNearestLocus, …]}` in rank order, 1-based, ragged.
+    nearest_loci: dict = field(default_factory=dict)
     #: ⭐ How many DISTINCT other loci this response resolved. The fan-out, measured per request.
     resolved_neighbour_count: int = 0
     #: ⭐ Every Pfam family this response MENTIONS, resolved once — `{accession: PfamFamily}`. The
@@ -393,16 +392,26 @@ def load_locus_detail(
     for occupant in occupants:
         detail.offset_occupants.setdefault(occupant.signed_offset, []).append(occupant)
 
-    # ── the six-point geometry, both representations ───────────────────────────────────────────
-    # ⚠ Loaded BEFORE the fan-out, deliberately: the map legend names the five nearest loci in each
+    # ── the set-to-set similarity, both representations ────────────────────────────────────────
+    # ⚠ Loaded BEFORE the fan-out, deliberately: the card lists the five nearest loci in each
     # representation, and those are a **different set** from the track's ±5 neighbours — the two
     # representations do not even agree with each other (their separations correlate at rho ~0.47).
     # Resolving them in the same statement costs nothing; a second one would be an N+1 the cost
     # oracle is there to refuse.
-    for geometry in session.execute(
-        select(LocusEmbeddingGeometry).where(LocusEmbeddingGeometry.locus_id == locus.locus_id)
+    for similarity in session.execute(
+        select(LocusSimilarity).where(LocusSimilarity.locus_id == locus.locus_id)
     ).scalars():
-        detail.geometry[geometry.representation.value] = geometry
+        detail.similarity[similarity.representation.value] = similarity
+
+    # ⭐ One statement for BOTH representations' lists, ordered so the card never sorts. The list is
+    # RAGGED — a locus whose shortlist held fewer than five others simply has fewer rows — so the
+    # card reads what is there rather than padding to five.
+    for nearest in session.execute(
+        select(LocusNearestLocus)
+        .where(LocusNearestLocus.locus_id == locus.locus_id)
+        .order_by(LocusNearestLocus.representation, LocusNearestLocus.rank)
+    ).scalars():
+        detail.nearest_loci.setdefault(nearest.representation.value, []).append(nearest)
 
     # ── the fan-out, resolved in ONE statement ─────────────────────────────────────────────────
     # ⛔⛔ **TWO DIFFERENT INTEGER SPACES, KEPT APART.** `locus_offset_occupant.neighbour_locus_id`
@@ -422,15 +431,14 @@ def load_locus_detail(
         for code in arrangement.neighbour_slot_codes
         if code >= 0
     }
-    # ⭐ The map's five nearest, per representation — catalogue ordinals, the same space as a slot
-    # code's `// 2` and NOT the locus-id space above.
-    # ⛔ `-1` here is *"a neighbour outside the catalogue"*, which drops its SLOT and not its rank
-    # (one of the five meanings of -1). Filtered, never resolved, and never renumbered.
-    neighbour_ordinals.update(
-        ordinal
-        for geometry in detail.geometry.values()
-        for ordinal in (geometry.nearest_locus_ordinals or ())
-        if ordinal >= 0
+    # ⭐ The card's five nearest, per representation — real `locus_id`s now, so they join the
+    # locus-id space above rather than the ordinal one.
+    # ⚠ This is why the retired `-1` sentinel is gone: a neighbour outside the catalogue has no row
+    # at all, instead of an ordinal that had to be filtered before it named locus 0.
+    neighbour_locus_ids.update(
+        nearest.neighbour_locus_id
+        for rows in detail.nearest_loci.values()
+        for nearest in rows
     )
     detail.neighbour_display_rows = _neighbour_display_rows(
         session,
@@ -438,7 +446,6 @@ def load_locus_detail(
         locus_ids=neighbour_locus_ids,
         catalogue_ordinals=neighbour_ordinals,
         focal_locus=locus,
-        focal_geometry=detail.geometry,
     )
     # ⚠ Every DISTINCT locus the block resolved, across BOTH key spaces — not just the marginal
     # occupants. It counted only `by_locus_id` while the block already carried arrangement occupants
@@ -519,18 +526,14 @@ def _neighbour_display_rows(
     locus_ids: set[int],
     catalogue_ordinals: set[int],
     focal_locus: Locus,
-    focal_geometry: dict,
 ) -> NeighbourDisplayIndex:
     """Every locus this response refers to, by either address — **one statement, always**."""
     index = NeighbourDisplayIndex()
     if not locus_ids and not catalogue_ordinals:
         return index
-    # ⭐ **Two OUTER joins, not two queries.** Each neighbour's position on the catalogue sprite
-    # is one row of `locus_embedding_geometry` per representation; joining them here keeps the
-    # neighbour block at the one statement its docstring promises, and an INNER join would silently
-    # drop every neighbour with no medoid — which is a blank block where a real locus is.
-    esm_geometry = aliased(LocusEmbeddingGeometry)
-    bacformer_geometry = aliased(LocusEmbeddingGeometry)
+    # ⭐ **One statement, and now a plain one.** It used to carry two OUTER joins onto
+    # `locus_embedding_geometry` for each neighbour's position on the catalogue sprite; the sprite
+    # went on 2026-09-24 and the joins with it. A neighbour row is what NAMES a locus.
     rows = session.execute(
         select(
             Locus.locus_id,
@@ -539,29 +542,9 @@ def _neighbour_display_rows(
             Locus.display_name,
             Locus.display_name_source,
             Locus.best_product,
-            Locus.esm_within_medoid_distance,
-            Locus.bacformer_within_medoid_distance,
             Locus.member_genome_count,
             Locus.median_gene_length_nt,
             Locus.prevalence_band,
-            esm_geometry.map_x,
-            esm_geometry.map_y,
-            bacformer_geometry.map_x,
-            bacformer_geometry.map_y,
-        )
-        .outerjoin(
-            esm_geometry,
-            and_(
-                esm_geometry.locus_id == Locus.locus_id,
-                esm_geometry.representation == EmbeddingRepresentation.ESM,
-            ),
-        )
-        .outerjoin(
-            bacformer_geometry,
-            and_(
-                bacformer_geometry.locus_id == Locus.locus_id,
-                bacformer_geometry.representation == EmbeddingRepresentation.BACFORMER,
-            ),
         )
         .where(
             Locus.pangenome_id == pangenome_id,
@@ -580,10 +563,7 @@ def _neighbour_display_rows(
             or_(Locus.locus_id.in_(locus_ids), Locus.catalogue_ordinal.in_(catalogue_ordinals)),
         )
     ).all()
-    for (
-        locus_id, ordinal, label, name, source, product, esm, bacformer, genomes, length, band,
-        esm_x, esm_y, bacformer_x, bacformer_y,
-    ) in rows:
+    for locus_id, ordinal, label, name, source, product, genomes, length, band in rows:
         row = NeighbourDisplayRow(
             locus_id=locus_id,
             catalogue_ordinal=ordinal,
@@ -591,12 +571,9 @@ def _neighbour_display_rows(
             display_name=name,
             display_name_source=source,
             best_product=product,
-            esm_within_medoid_distance=esm,
-            bacformer_within_medoid_distance=bacformer,
             member_genome_count=genomes,
             median_gene_length_nt=length,
             prevalence_band=band.value,
-            map_position=_map_position_pair(esm_x, esm_y, bacformer_x, bacformer_y),
         )
         if locus_id in locus_ids:
             index.by_locus_id[locus_id] = row
@@ -611,39 +588,13 @@ def _neighbour_display_rows(
         display_name=focal_locus.display_name,
         display_name_source=focal_locus.display_name_source,
         best_product=focal_locus.best_product,
-        esm_within_medoid_distance=focal_locus.esm_within_medoid_distance,
-        bacformer_within_medoid_distance=focal_locus.bacformer_within_medoid_distance,
         member_genome_count=focal_locus.member_genome_count,
         median_gene_length_nt=focal_locus.median_gene_length_nt,
         prevalence_band=focal_locus.prevalence_band.value,
-        # ⚠ From the geometry already loaded above, not from a second query — and the focal locus
-        # really can be its own neighbour (tandem repeats), so it needs a position like any other.
-        map_position={
-            representation: (
-                None if geometry is None else [geometry.map_x, geometry.map_y]
-            )
-            for representation, geometry in (
-                ("esm", focal_geometry.get("esm")),
-                ("bacformer", focal_geometry.get("bacformer")),
-            )
-        },
     )
     index.by_locus_id.setdefault(focal_locus.locus_id, focal)
     index.by_catalogue_ordinal.setdefault(focal_locus.catalogue_ordinal, focal)
     return index
-
-
-def _map_position_pair(esm_x, esm_y, bacformer_x, bacformer_y) -> dict:
-    """The two representations' sprite positions, `None` where the locus has no medoid there.
-
-    ⛔ `None` is *not on the picture*, which is a different thing from a position of `0, 0` — the
-    origin is a PLACE, in the middle of the map. That is the same reason the quantisation uses
-    `-32768` as its sentinel rather than zero.
-    """
-    return {
-        "esm": None if esm_x is None else [esm_x, esm_y],
-        "bacformer": None if bacformer_x is None else [bacformer_x, bacformer_y],
-    }
 
 
 def load_function_block(session: Session, *, locus_id: int) -> dict:
@@ -679,22 +630,3 @@ def load_arrangement_page(
             .limit(limit)
         ).scalars()
     )
-
-
-def resolve_cosine_matrix(geometry: LocusEmbeddingGeometry, scale_factor: int) -> list[list[float | None]]:
-    """The 15 stored upper-triangle values → a full 6×6 matrix, `-1` slot-drops already applied.
-
-    ⛔ **Slots are not ranks.** A `-1` in `nearest_locus_ordinals` drops that locus AND its slot; the
-    surviving slot indices are what address the triangle. Reading by rank instead draws one locus's
-    distances on another — and the picture still looks like a picture. Resolving it server-side
-    retires that two-sided contract entirely.
-    """
-    pairs = [(a, b) for a in range(6) for b in range(a + 1, 6)]
-    matrix: list[list[float | None]] = [[None] * 6 for _ in range(6)]
-    for index in range(6):
-        matrix[index][index] = 1.0
-    present = {0, *(slot + 1 for slot, value in enumerate(geometry.nearest_locus_ordinals) if value >= 0)}
-    for (a, b), scaled in zip(pairs, geometry.pairwise_cosine_scaled, strict=True):
-        if a in present and b in present:
-            matrix[a][b] = matrix[b][a] = scaled / scale_factor
-    return matrix

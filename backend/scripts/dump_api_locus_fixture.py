@@ -61,7 +61,6 @@ def choose_cases(session: Session, pangenome_id: int) -> dict[str, str]:
                 in_catalogue,
                 Locus.total_arrangement_count.between(2, 5),
                 Locus.member_gene_count == Locus.arrangement_member_gene_count,
-                Locus.esm_within_medoid_distance == 0,
             )
             .order_by(Locus.member_gene_count.desc(), Locus.catalogue_ordinal)
             .limit(1),
