@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * "Syntolog Loci" — the home view: what this locus is, and the evidence for it being one.
+ * "Syntelog Loci" — the home view: what this locus is, and the evidence for it being one.
  *
  * Two columns, as the published card drew them (`app.js::renderCard`): the ARGUMENT on the left —
  * the headline and the sequence-diversity card — and the REFERENCE column beside it.

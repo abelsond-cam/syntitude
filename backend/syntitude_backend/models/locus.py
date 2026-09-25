@@ -1,4 +1,4 @@
-"""The locus row — a syntolog locus in one pangenome, with everything the card shows.
+"""The locus row — a syntelog locus in one pangenome, with everything the card shows.
 
 Wide on purpose: these are scalars the page filters, sorts and prints, and a locus is fetched whole.
 """

@@ -2391,7 +2391,7 @@ td.fam-sym {
    The THIRD button strip on the page, and the third distinct class, for the reason spelled out below the
    map strips: a selector that can reach more than one strip will eventually be read as naming the wrong one.
    This one is wider and title-cased rather than a tracked micro-label, because its tabs are destinations
-   ("Syntolog Loci", "Sequence") rather than settings -- one of them carries the page's primary content, which is
+   ("Syntelog Loci", "Sequence") rather than settings -- one of them carries the page's primary content, which is
    why the class says `view` and not `doc`. */
 .view-tabs {
     display: flex;

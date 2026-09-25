@@ -24,7 +24,7 @@ import { useLocusNavigationStore } from "./locusNavigationStore";
  * the sequence.
  */
 export const VIEW_TABS = [
-  { id: "locus", label: "Syntolog Loci" },
+  { id: "locus", label: "Syntelog Loci" },
   { id: "sequence", label: "Sequence" },
   { id: "function", label: "EggNOG" },
   { id: "navigating", label: "Navigating BacAtlas" },

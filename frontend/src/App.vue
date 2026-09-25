@@ -205,7 +205,7 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
         <ViewTabs :view="view" @show="tabs.showView($event)" />
       </div>
       <!-- In the strip's order (`VIEW_TABS`): the three views of this locus, then the documentation. -->
-      <section id="view-node" class="view-panel" role="tabpanel" aria-label="Syntolog Loci" :hidden="view !== 'locus'">
+      <section id="view-node" class="view-panel" role="tabpanel" aria-label="Syntelog Loci" :hidden="view !== 'locus'">
         <div class="wrap">
           <LocusEvidenceView v-if="drawable !== null" :detail="drawable" :catalogue="current" />
         </div>
