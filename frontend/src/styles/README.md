@@ -2,10 +2,19 @@
 
 `app.css` is nuna's `src/nuna/tl/locus_browser/app.css` — the stylesheet the live static site serves —
 copied **byte for byte**, with one section appended at the bottom ("ADDED FOR THE REBUILT PAGE") for the
-things the published page could never do — wait for a response, fail to get one, or draw the map in SVG
-— and for the design changes David has made since the port, each dated (the mark in the instrument bar
-and the shorter search box, 2026-09-22). **Change the page by adding to that section, never by editing
-above it:** a diff against the original then shows exactly what the rebuild changed.
+things the published page could never do — wait for a response, or fail to get one — and for the design
+changes David has made since the port, each dated (the mark in the instrument bar and the shorter search
+box, 2026-09-22). **Change the page by adding to that section, never by editing above it:** a diff against
+the original then shows exactly what the rebuild changed.
+
+⚠ **The exception is a section the published sheet itself rewrote**, and the rule is then to RE-PORT it
+rather than to patch around it. On 2026-09-24 the neighbourhood map and the medoid geometry card went
+upstream and the similarity card replaced them, so `.map-tabs` / `.zooms` / `.map-key` / `.map-figure` and
+the null strip's density bars were deleted here and `.sim-views` / `.sim-key` / `.fbox` taken in their
+place — **including two measured fixes a patch would have missed**: `.pair` widened to `116px 1fr 54px`
+because "nearest other cluster" did not fit at 88px, and `.tile` became a flex column because "within
+cluster · Bacformer" wraps where "synteny A5" did not. What remains divergent in the ported region is
+only what this app has that the published page does not: the `--projected` tokens and `.sym-vote`.
 
 ## ⛔ Why it is global, not `<style scoped>`
 

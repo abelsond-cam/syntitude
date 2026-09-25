@@ -10,7 +10,7 @@ import { FORWARD, REVERSED } from "@/lib/walkDirection";
 import { useAnchorGenomeStore } from "./anchorGenomeStore";
 import { locusCacheKey, useLocusDetailCacheStore } from "./locusDetailCacheStore";
 import { DIM_AFTER_MS, useLocusNavigationStore } from "./locusNavigationStore";
-import { useNeighbourhoodMapStore } from "./neighbourhoodMapStore";
+import { useSimilarityViewStore } from "./similarityViewStore";
 import { useTrackDisplayStore } from "./trackDisplayStore";
 
 const fetchLocus = vi.hoisted(() => vi.fn());
@@ -486,7 +486,7 @@ describe("the track display", () => {
   });
 });
 
-describe("⭐ the neighbourhood map's state is the READER's, not the locus's", () => {
+describe("⭐ the similarity card's view is the READER's state, not the locus's", () => {
   async function walkTo(label: string) {
     const navigation = useLocusNavigationStore();
     fetchLocus.mockResolvedValueOnce(
@@ -503,11 +503,11 @@ describe("⭐ the neighbourhood map's state is the READER's, not the locus's", (
     // watcher here has to fail a test first.
     const navigation = useLocusNavigationStore();
     navigation.setSpecies("ecoli");
-    const map = useNeighbourhoodMapStore();
+    const similarity = useSimilarityViewStore();
     const track = useTrackDisplayStore();
 
     await walkTo("1");
-    map.selectRepresentation("esm");
+    similarity.selectView("weak");
     track.togglePopoverAt(asDisplaySlot(3));
     // ⛔ The contrast only means something if the popover was actually open — otherwise the
     // assertion below passes over a state that never changed. Same rule as asserting coverage
@@ -515,15 +515,14 @@ describe("⭐ the neighbourhood map's state is the READER's, not the locus's", (
     expect(track.openPopoverSlot).not.toBeNull();
 
     await walkTo("2");
-    expect(map.representation).toBe("esm");
+    expect(similarity.view).toBe("weak");
     expect(track.openPopoverSlot).toBeNull();
   });
 
-  it("opens on the context representation", () => {
-    // Bacformer rather than ESM because the two pick DIFFERENT loci (ρ ≈ 0.47 between their
-    // separations), so the default is a real choice about which question the map opens on.
-    const map = useNeighbourhoodMapStore();
-    expect(map.representation).toBe("bacformer");
+  it("opens on the median pair", () => {
+    // The reading over whole SETS, with the weakest member and the own fraction as secondary
+    // questions about the same locus — so opening on either would answer one nobody asked.
+    expect(useSimilarityViewStore().view).toBe("median");
   });
 });
 

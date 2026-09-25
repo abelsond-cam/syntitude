@@ -17,7 +17,6 @@ import { computed, ref } from "vue";
 import { fetchAuditResiduals } from "@/api/client";
 import type { Failure } from "@/api/result";
 import type { AuditResidualsResponse, ResidualLocusRow } from "@/api/types";
-import { similarityFromDistance } from "@/lib/locusStatistics";
 import { prevalenceBandLabel } from "@/lib/prevalence";
 
 const props = defineProps<{
@@ -66,9 +65,12 @@ function evidence(row: ResidualLocusRow): string {
   if (row.uniref50_family_count !== null) bits.push(`${row.uniref50_family_count} UniRef50`);
   if (row.pfam_architecture_count !== null) bits.push(`${row.pfam_architecture_count} architectures`);
   if (row.syntenic_a5 !== null) bits.push(`A5 ${row.syntenic_a5.toFixed(2)}`);
-  // ⚠ The row has always shown SIMILARITIES and the API stores distances: converted once, here.
-  const within = similarityFromDistance(row.esm_within_medoid_distance);
-  const nearest = similarityFromDistance(row.esm_nearest_medoid_distance);
+  // ⛔ SIMILARITIES on the wire now, and there is nothing left to convert. These were medoid
+  // DISTANCES and this line turned each into `1 − d`; they are the same set-to-set numbers the
+  // locus card shows, so a surviving subtraction would print the complement of a real similarity —
+  // 0.98 as 0.02 — on the one list whose whole job is to be judged gene by gene.
+  const within = row.esm_within_similarity;
+  const nearest = row.esm_nearest_similarity;
   if (within !== null && nearest !== null) bits.push(`ESM ${within.toFixed(2)}/${nearest.toFixed(2)}`);
   return bits.join(" · ");
 }

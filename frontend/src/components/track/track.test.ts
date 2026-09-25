@@ -33,8 +33,6 @@ const NEIGHBOUR: NeighbourDisplayRow = {
   label: "77",
   catalogue_ordinal: 77,
   best_product: null,
-  within_medoid_distance: { esm: null, bacformer: null },
-  map_position: { esm: null, bacformer: null },
   display_name: "rfaL",
   display_name_source: "bakta_symbol",
   genome_count: 90,

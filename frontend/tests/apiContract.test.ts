@@ -10,8 +10,8 @@
  * and the real components are mounted against them. Every suite runs once per catalogue.
  *
  * The loci are chosen for what they exercise, by a query that says so (see the dump script):
- * - `ordinary` — every arrangement fits, both members-remainders are zero, and ESM's within-medoid
- *   distance is a MEASURED zero.
+ * - `ordinary` — every arrangement fits, both members-remainders are zero, and ESM's within-cluster
+ *   similarity is a MEASURED 1.0 (it was a measured ZERO distance until the medoid geometry went).
  * - `over_cap` — more arrangements than the API lists: on ecoli 84 arrangements, 8 listed, 86 members
  *   past the cap and 7 with no window. Before the remainder split this locus told a reader that 93
  *   member genes had no coordinates.
@@ -46,7 +46,6 @@ import type {
   GeneOntologyNamespace,
   GeneSequenceResponse,
   LocusDetailResponse,
-  Representation,
 } from "@/api/types";
 import { SLOT_COUNT } from "@/lib/slotSpaces";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
@@ -54,8 +53,7 @@ import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 import ArrangementPopover from "@/components/popover/ArrangementPopover.vue";
 import FunctionTab from "@/components/function/FunctionTab.vue";
 import SequenceTab from "@/components/sequence/SequenceTab.vue";
-import NeighbourhoodMapCard from "@/components/map/NeighbourhoodMapCard.vue";
-import EmbeddingGeometryCard from "@/components/locusCard/EmbeddingGeometryCard.vue";
+import EmbeddingSimilarityCard from "@/components/locusCard/EmbeddingSimilarityCard.vue";
 import LocusHeadline from "@/components/locusCard/LocusHeadline.vue";
 import SequenceDiversityCard from "@/components/locusCard/SequenceDiversityCard.vue";
 import { PREVALENCE_BANDS } from "@/lib/prevalence";
@@ -438,33 +436,13 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
   });
 
   describe("⭐ the locus card, on real bytes", () => {
-    /** The catalogue-level block the card needs; the fixture is per locus, so this stands in. */
-    const PROJECTIONS = [
-      {
-        representation: "bacformer" as const,
-        method: "cmds",
-        requested_metric: "cosine",
-        extent: [0, 0, 1, 1] as [number, number, number, number],
-        cosine_scale_factor: 10_000,
-        null_mean_cosine: 0.065,
-        null_bin_lower_edge: -0.1,
-        null_bin_width: 0.1,
-        null_bin_counts: [1, 4, 30, 12, 3, 1, 0, 0, 0, 0, 0, 0],
-        separation_measurable_locus_count: 12_104,
-      },
-      {
-        representation: "esm" as const,
-        method: "cmds",
-        requested_metric: "cosine",
-        extent: [0, 0, 1, 1] as [number, number, number, number],
-        cosine_scale_factor: 10_000,
-        null_mean_cosine: 0.645,
-        null_bin_lower_edge: -0.1,
-        null_bin_width: 0.1,
-        null_bin_counts: [1, 4, 30, 12, 3, 1, 0, 0, 0, 0, 0, 0],
-        separation_measurable_locus_count: 12_104,
-      },
-    ];
+    /**
+     * ⭐ The floors and the measurable-locus counts come from the SPECIES response recorded in the
+     * same pass, never from a stand-in. They used to be a hand-written `PROJECTIONS` constant, and a
+     * constant cannot show the two endpoints disagreeing — which is the one thing a recorded pair is
+     * for. ⚠ `similarity_baselines` is per representation and the two floors are an order of
+     * magnitude apart, so a card handed the wrong one draws every tick in the wrong place.
+     */
 
     it("⛔ every prevalence band on the wire is in the union the client switches on", () => {
       // `rare` was absent from `PrevalenceBand` while 30 % of loci carried it. TypeScript cannot see
@@ -488,7 +466,6 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
           props: {
             locus: detail.locus,
             collectionGenomeCount: 100,
-            mapProjections: PROJECTIONS,
             separationMeasurableLocusCount: 12_104,
           },
         });
@@ -544,122 +521,179 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
       expect(rows).toHaveLength(detail.uniref50_families.length);
     });
 
-    it("mounts the geometry card and never prints a distance where a similarity belongs", () => {
+    it("mounts the similarity card and never prints a distance where a similarity belongs", () => {
       for (const kind of CASES) {
         const detail = detailFor(kind);
-        const card = mount(EmbeddingGeometryCard, {
+        const card = mount(EmbeddingSimilarityCard, {
           props: {
-            geometry: detail.locus.geometry,
-            mapProjections: PROJECTIONS,
+            similarity: detail.locus.similarity,
+            baselines: recorded.species.similarity_baselines,
+            neighbours: detail.neighbour_display_rows,
             geneCount: detail.locus.gene_count,
-            separationMeasurableLocusCount: 12_104,
+            view: "median" as const,
           },
         });
         if (!card.find(".card").exists()) continue;
-        // ⛔ Every rail is a SIMILARITY, and the column stores a DISTANCE. Asserted as the exact
-        // identity rather than as a plausible range: on this fixture a real `nearest other` sits at
-        // 0.404, so any threshold that would catch an unconverted distance also rejects real data.
+        // ⛔ Every rail is the SIMILARITY the column stores, printed as itself. Asserted as the
+        // exact identity rather than as a plausible range: these numbers used to be DISTANCES that
+        // the client converted with `1 − d`, and on real bytes a `nearest other cluster` sits at
+        // 0.371, so any threshold that would catch a surviving subtraction also rejects real data.
         const expected = (["bacformer", "esm"] as const).flatMap((representation) => {
-          const geometry = detail.locus.geometry[representation];
-          return [geometry.within_medoid_distance, geometry.nearest_medoid_distance]
-            .filter((distance): distance is number => distance !== null)
-            .map((distance) => (1 - distance).toFixed(3));
+          const similarity = detail.locus.similarity[representation];
+          if (similarity === null) return [];
+          return [similarity.within_similarity, similarity.nearest_similarity]
+            .filter((value): value is number => value !== null)
+            .map((value) => value.toFixed(3));
         });
         expect(card.findAll(".pair:not(.sep) .val").map((node) => node.text())).toEqual(expected);
       }
     });
 
-    it("⚠ renders a MEASURED ZERO distance as a similarity of 1.000, not as a missing rail", () => {
-      // ESM's median member→medoid distance is ~1e-5, which the payload's precision stores as 0.0.
-      // A card testing truthiness rather than `!== null` would drop that rail entirely.
-      const detail = detailFor("ordinary");
-      expect(detail.locus.geometry.esm.within_medoid_distance).toBe(0);
-      const card = mount(EmbeddingGeometryCard, {
+    it("⚠ renders a MEASURED 1.0 as a similarity of 1.000, not as a missing rail", () => {
+      // ESM's within-cluster median over every gene pair really is 1.0 on real loci — the members
+      // are that close — and a card testing truthiness rather than `!== null` would be fine, but
+      // one testing `< 1` or rounding to a percentage would drop or flatten the rail entirely.
+      const withOne = CASES.map(detailFor).find(
+        (detail) => detail.locus.similarity.esm?.within_similarity === 1,
+      );
+      expect(withOne).toBeDefined();
+      const card = mount(EmbeddingSimilarityCard, {
         props: {
-          geometry: detail.locus.geometry,
-          mapProjections: PROJECTIONS,
-          geneCount: detail.locus.gene_count,
-          separationMeasurableLocusCount: 12_104,
+          similarity: withOne!.locus.similarity,
+          baselines: recorded.species.similarity_baselines,
+          neighbours: withOne!.neighbour_display_rows,
+          geneCount: withOne!.locus.gene_count,
+          view: "median" as const,
         },
       });
       expect(card.findAll(".pair:not(.sep) .val").map((node) => node.text())).toContain("1.000");
     });
+
+    it("⭐ every view renders on real bytes, and none of them prints undefined or NaN", () => {
+      // The three views are not three pictures of one thing — only 18–34 % of flagged loci are
+      // flagged by all three — so a view that is never mounted against real bytes is a view whose
+      // fields were never checked to exist.
+      for (const view of ["median", "weak", "own"] as const) {
+        for (const kind of CASES) {
+          const detail = detailFor(kind);
+          const card = mount(EmbeddingSimilarityCard, {
+            props: {
+              similarity: detail.locus.similarity,
+              baselines: recorded.species.similarity_baselines,
+              neighbours: detail.neighbour_display_rows,
+              geneCount: detail.locus.gene_count,
+              view,
+            },
+          });
+          expect(card.text()).not.toContain("undefined");
+          expect(card.text()).not.toContain("NaN");
+        }
+      }
+    });
+
+    it("⛔⛔ prints NO percentile row where the own fraction is exactly 1.0", () => {
+      // 88.5 % of loci sit at 1.0, so a midrank inside that tie block reads "p53" — *better than
+      // half the catalogue* — when it means *tied with nearly all of it*. The fixture must exercise
+      // both sides or this assertion is checking nothing.
+      let saturated = 0;
+      let below = 0;
+      for (const kind of CASES) {
+        const detail = detailFor(kind);
+        const card = mount(EmbeddingSimilarityCard, {
+          props: {
+            similarity: detail.locus.similarity,
+            baselines: recorded.species.similarity_baselines,
+            neighbours: detail.neighbour_display_rows,
+            geneCount: detail.locus.gene_count,
+            view: "own" as const,
+          },
+        });
+        const ranks = card.findAll(".pair.sep").length;
+        const shares = (["bacformer", "esm"] as const)
+          .map((representation) => detail.locus.similarity[representation]?.own_neighbour_fraction ?? null)
+          .filter((share): share is number => share !== null);
+        saturated += shares.filter((share) => share >= 1).length;
+        below += shares.filter((share) => share < 1).length;
+        expect(ranks).toBe(shares.filter((share) => share < 1).length);
+        // ⛔ …and a share below 1 never rounds up to "100%" on the row above.
+        for (const value of card.findAll(".pair:not(.sep) .val").map((node) => node.text())) {
+          if (value === "100%") continue;
+          expect(value).toMatch(/^(<100%|\d{1,2}\.\d%)$/);
+        }
+      }
+      expect(saturated).toBeGreaterThan(0);
+      expect(below).toBeGreaterThan(0);
+    });
   });
 
-  describe("⭐ the neighbourhood map, on real bytes", () => {
-    it("⛔ resolves every map neighbour — the set the fan-out nearly missed entirely", () => {
-      // `nearest_locus_ordinals` is a THIRD address space alongside arrangement slot ordinals and
-      // marginal occupant locus ids, and it was not collected at all: the legend would have had a
-      // swatch and a cosine with no name beside it.
+  describe("⭐ the five nearest loci, on real bytes", () => {
+    it("⛔ resolves every nearest locus — the set the fan-out nearly missed entirely", () => {
+      // `catalogue_ordinal` is a THIRD address space alongside arrangement slot ordinals and
+      // marginal occupant locus ids, and the retired `nearest_locus_ordinals` was not collected at
+      // all: the list would have had a similarity with no name beside it.
       let checked = 0;
       for (const kind of CASES) {
         const detail = detailFor(kind);
         const byOrdinal = new Set(detail.neighbour_display_rows.map((row) => row.catalogue_ordinal));
         for (const representation of ["bacformer", "esm"] as const) {
-          const nearest = detail.locus.geometry[representation].nearest_locus_ordinals ?? [];
-          for (const ordinal of nearest) {
-            // ⛔ `-1` is "outside the catalogue" and is never resolved — it drops its SLOT, not its rank.
-            if (ordinal < 0) continue;
+          for (const nearest of detail.locus.similarity[representation]?.nearest_loci ?? []) {
             checked += 1;
-            expect(byOrdinal.has(ordinal)).toBe(true);
+            expect(byOrdinal.has(nearest.catalogue_ordinal)).toBe(true);
           }
         }
       }
       expect(checked).toBeGreaterThan(0);
     });
 
+    it("⚠ the list is RAGGED on real data — a rank is never a position in an array", () => {
+      // If every locus carried five, a client indexing by rank would pass every test here and then
+      // name the wrong locus on the first short shortlist it met.
+      const lengths = CASES.flatMap((kind) =>
+        (["bacformer", "esm"] as const).map(
+          (representation) => detailFor(kind).locus.similarity[representation]?.nearest_loci.length ?? 0,
+        ),
+      );
+      expect(lengths.some((length) => length > 0 && length < 5)).toBe(true);
+      for (const kind of CASES) {
+        for (const representation of ["bacformer", "esm"] as const) {
+          const nearest = detailFor(kind).locus.similarity[representation]?.nearest_loci ?? [];
+          // ⚠ 1-based and strictly ranked, which is what a client may rely on and nothing else.
+          expect(nearest.map((one) => one.rank)).toEqual(nearest.map((_, index) => index + 1));
+        }
+      }
+    });
+
     it("⚠ the two representations really do name different loci on real data", () => {
-      // The reason the tab changes the legend and not just the picture. If they agreed here, every
-      // test above about switching representations would be proving nothing.
+      // The reason both are stacked rather than tabbed. If they agreed here, every claim about the
+      // two disagreeing would be proving nothing.
       let differing = 0;
       for (const kind of CASES) {
-        const geometry = detailFor(kind).locus.geometry;
-        const context = new Set(geometry.bacformer.nearest_locus_ordinals ?? []);
-        const sequence = new Set(geometry.esm.nearest_locus_ordinals ?? []);
+        const similarity = detailFor(kind).locus.similarity;
+        const context = new Set(
+          (similarity.bacformer?.nearest_loci ?? []).map((one) => one.catalogue_ordinal),
+        );
+        const sequence = new Set(
+          (similarity.esm?.nearest_loci ?? []).map((one) => one.catalogue_ordinal),
+        );
         if ([...context].some((ordinal) => !sequence.has(ordinal))) differing += 1;
       }
       expect(differing).toBeGreaterThan(0);
     });
 
-    function mountMapCard(kind: (typeof CASES)[number], representation: Representation) {
-      return mount(NeighbourhoodMapCard, {
-        props: {
-          detail: detailFor(kind),
-          representation,
-          availableRepresentations: ["bacformer", "esm"] as const,
-        },
-      });
-    }
-
-    it("fits a real cosine matrix and never draws a NaN coordinate", () => {
-      let drawn = 0;
+    it("⭐ rank 1's similarity IS `nearest_similarity`, which is what lets the list sit under it", () => {
+      // The ingest asserts this too; asserting it on the wire is what proves the two travelled
+      // together. A disagreement can only mean two different runs.
+      let checked = 0;
       for (const kind of CASES) {
         for (const representation of ["bacformer", "esm"] as const) {
-          const map = mountMapCard(kind, representation);
-          const dots = map.findAll(".map-dot");
-          if (dots.length === 0) continue;
-          drawn += 1;
-          for (const dot of dots) {
-            // ⛔ A NaN coordinate is what an unclamped `Math.sqrt` of a negative distance produces,
-            // and SVG silently drops the element rather than complaining.
-            expect(Number.isFinite(Number(dot.attributes("cx")))).toBe(true);
-            expect(Number.isFinite(Number(dot.attributes("cy")))).toBe(true);
-            expect(Number.isFinite(Number(dot.attributes("r")))).toBe(true);
-          }
-          for (const ring of map.findAll(".map-ring")) {
-            expect(Number(ring.attributes("r"))).toBeGreaterThanOrEqual(0);
-          }
+          const similarity = detailFor(kind).locus.similarity[representation];
+          const first = similarity?.nearest_loci[0];
+          if (similarity == null || first === undefined) continue;
+          checked += 1;
+          expect(first.cross_similarity).toBeCloseTo(similarity.nearest_similarity as number, 6);
         }
       }
-      expect(drawn).toBeGreaterThan(0);
-    });
-
-    it("⚠ keeps LESS than all the variance on real data — six loci are not planar", () => {
-      // If every real fit kept 100 %, the `kept` number would be decoration rather than a caveat.
-      const notes = CASES.map((kind) =>
-        mountMapCard(kind, "bacformer").findAll(".muted").at(-1)?.text() ?? "",
-      );
-      expect(notes.some((note) => /keeping (?!100%)\d/.test(note))).toBe(true);
+      expect(checked).toBeGreaterThan(0);
     });
   });
 

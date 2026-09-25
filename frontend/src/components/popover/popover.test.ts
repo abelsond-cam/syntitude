@@ -14,8 +14,8 @@ const UPRIGHT = displayMirrorApplied(false, FORWARD);
 const MIRRORED = displayMirrorApplied(true, FORWARD);
 
 const NEIGHBOURS = new Map<string, NeighbourDisplayRow>([
-  ["77", { label: "77", catalogue_ordinal: 77, best_product: "O-antigen ligase", within_medoid_distance: { esm: null, bacformer: null }, map_position: { esm: null, bacformer: null }, display_name: "rfaL", display_name_source: "bakta_symbol", genome_count: 90, median_gene_length_nt: 1230, prevalence_band: "core" }],
-  ["78", { label: "78", catalogue_ordinal: 78, best_product: "ligase", within_medoid_distance: { esm: null, bacformer: null }, map_position: { esm: null, bacformer: null }, display_name: "waaL", display_name_source: "bakta_symbol", genome_count: 20, median_gene_length_nt: 900, prevalence_band: "shell" }],
+  ["77", { label: "77", catalogue_ordinal: 77, best_product: "O-antigen ligase", display_name: "rfaL", display_name_source: "bakta_symbol", genome_count: 90, median_gene_length_nt: 1230, prevalence_band: "core" }],
+  ["78", { label: "78", catalogue_ordinal: 78, best_product: "ligase", display_name: "waaL", display_name_source: "bakta_symbol", genome_count: 20, median_gene_length_nt: 900, prevalence_band: "shell" }],
 ]);
 
 function marginal(overrides: Partial<OffsetMarginal> = {}): OffsetMarginal {

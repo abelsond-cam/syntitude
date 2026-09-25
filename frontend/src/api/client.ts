@@ -47,8 +47,9 @@ export function fetchSpeciesCatalogue(
 
 /**
  * ⭐ The hot path. One round trip, and the popover is then **offline**: all ten offset slots, the
- * drawn arrangements, the gaps and the map geometry are in this one response, so opening a popover,
- * switching arrangement, flipping walk direction and switching map representation fetch nothing.
+ * drawn arrangements, the gaps and both representations' similarity are in this one response, so
+ * opening a popover, switching arrangement, flipping walk direction and switching the similarity
+ * card's view all fetch nothing.
  *
  * `anchorSampleId` names a genome; given one, the arrangement that genome carries is included even
  * if it sits past the display cap — otherwise the reader is told in words that their genome sits in

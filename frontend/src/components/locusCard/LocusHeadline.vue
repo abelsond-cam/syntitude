@@ -9,64 +9,48 @@
  * better lower down and are deliberately absent here.
  *
  * ⛔ **Separation is the only tile that is a RANK**, because it is the only one whose spread is
- * worth ranking. Cohesion is measured against the random-pair baseline instead: almost every locus
- * in these catalogues is cohesive, so ranking cohesion against its peers says the opposite of the
- * truth. See `lib/locusStatistics`.
+ * worth ranking. The two within-cluster tiles are shown in their own units: almost every locus in
+ * these catalogues is cohesive, so ranking cohesion against its peers says the opposite of the
+ * truth. See `lib/similarityViews`.
  */
 import { computed } from "vue";
 
-import type { Locus, MapProjection } from "@/api/types";
+import type { Locus, Representation } from "@/api/types";
 import { sharePercent } from "@/lib/formatting";
-import {
-  cohesion,
-  copiesPerGenome,
-  percentileLabel,
-  separationVerdict,
-  signedFixed,
-  similarityFromDistance,
-} from "@/lib/locusStatistics";
+import { copiesPerGenome, percentileLabel, signedFixed } from "@/lib/locusStatistics";
+import { SIMILARITY_VIEWS, viewVerdict, type SimilarityView } from "@/lib/similarityViews";
 import { prevalenceBandLabel, prevalenceBandShade } from "@/lib/prevalence";
 
 const props = defineProps<{
   locus: Locus;
   /** How many genomes the whole collection has — the denominator for "of genomes". */
   collectionGenomeCount: number;
-  /**
-   * The per-representation random-pair baselines, keyed by representation. ⚠ Without them cohesion
-   * has no meaning: ESM's random pairs sit at ~0.645 and Bacformer's at ~0.065.
-   */
-  mapProjections: readonly MapProjection[];
   /** How many loci the separation midrank was taken over — the other half of "p12 of 12,104 loci". */
   separationMeasurableLocusCount: number | null;
 }>();
 
-const nullMeanFor = computed(() => {
-  const means = new Map<string, number | null>();
-  for (const projection of props.mapProjections) {
-    means.set(projection.representation, projection.null_mean_cosine);
-  }
-  return means;
-});
+/** The median-pair view, which is the one the separation tile ranks. */
+const MEDIAN_VIEW = SIMILARITY_VIEWS[0] as SimilarityView;
 
-function withinSimilarity(representation: "esm" | "bacformer"): number | null {
-  return similarityFromDistance(props.locus.geometry[representation].within_medoid_distance);
-}
-
-function cohesionFor(representation: "esm" | "bacformer"): number | null {
-  return cohesion(withinSimilarity(representation), nullMeanFor.value.get(representation) ?? null);
+/**
+ * ⛔ These two tiles used to be `cohesion()`: `(intra − null_mean) / (1 − null_mean)`, a medoid
+ * similarity rescaled to "distance from random towards perfect". The label said cohesion and the
+ * number was a rescaling of a distance to ONE member, so the label and the number have now moved
+ * together — this is the within-cluster median over every gene pair, shown directly and in the units
+ * the card below shows. No rescaling, and nothing to misread as a percentile. The reasoning
+ * `cohesion` carried survives where it belongs: on the SEPARATION tile, where the variation lives.
+ */
+function withinSimilarity(representation: Representation): number | null {
+  return props.locus.similarity[representation]?.within_similarity ?? null;
 }
 
 /**
  * ⚠ The separation tile reads **Bacformer**, the context axis — the same representation the track
- * is built on. The published page tiles that one and not ESM, and the geometry card below shows
+ * is built on. The published page tiles that one and not ESM, and the similarity card below stacks
  * both.
  */
 const verdict = computed(() =>
-  separationVerdict(
-    withinSimilarity("bacformer"),
-    similarityFromDistance(props.locus.geometry.bacformer.nearest_medoid_distance),
-    props.locus.geometry.bacformer.separation_percentile,
-  ),
+  viewVerdict(props.locus.similarity.bacformer ?? null, MEDIAN_VIEW),
 );
 
 const separationTitle = computed(() => {
@@ -77,8 +61,8 @@ const separationTitle = computed(() => {
       ? "the measurable loci"
       : `${props.separationMeasurableLocusCount.toLocaleString()} loci`;
   return (
-    `${value.label} — Bacformer separation ${signedFixed(value.separation)} ` +
-    `(own members − nearest other), ranked against ${over}`
+    `${value.label} — Bacformer separation ${signedFixed(value.value)} ` +
+    `(within cluster − nearest other cluster), ranked against ${over}`
   );
 });
 
@@ -105,14 +89,14 @@ const tiles = computed(() => [
     caption: "synteny A5",
   },
   {
-    key: "bacformer-cohesion",
-    value: orDash(cohesionFor("bacformer"), (value) => sharePercent(value)),
-    caption: "synteny cohesion",
+    key: "bacformer-within",
+    value: orDash(withinSimilarity("bacformer"), (value) => value.toFixed(3)),
+    caption: "within cluster · Bacformer",
   },
   {
-    key: "esm-cohesion",
-    value: orDash(cohesionFor("esm"), (value) => sharePercent(value)),
-    caption: "ESM cohesion",
+    key: "esm-within",
+    value: orDash(withinSimilarity("esm"), (value) => value.toFixed(3)),
+    caption: "within cluster · ESM",
   },
   {
     key: "separation",

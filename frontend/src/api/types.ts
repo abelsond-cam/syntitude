@@ -147,21 +147,87 @@ export interface IntergenicGap {
   readonly every_genome_agrees: boolean;
 }
 
-export interface LocusGeometry {
-  readonly within_medoid_distance: number | null;
-  readonly nearest_medoid_distance: number | null;
+/**
+ * One of the five nearest OTHER loci in one representation.
+ *
+ * ⚠ **The list is RAGGED** — a locus whose shortlist held fewer than five simply has fewer rows, so
+ * a rank is never a position in an array. Rows rather than the retired `nearest_locus_ordinals`
+ * array because each carries its own similarity, and an array would have needed a sentinel: a
+ * sentinel read as an index names a real locus that looks entirely plausible.
+ */
+export interface NearestLocus {
+  /** ⚠ 1-based, as the artifact writes it. Rank 1 is BY CONSTRUCTION `nearest_similarity`. */
+  readonly rank: number;
   /**
-   * ⛔ A midrank over MEASURABLE loci only, never over the catalogue. `null` reads "not
-   * measurable" — a singleton has no within-distance — and must never render as `0.000`.
+   * ⛔⛔ A **catalogue ordinal**, resolved through `neighbour_display_rows` — the same key space an
+   * arrangement slot code carries, and *not* the surrogate `neighbour_locus_id` the offset
+   * occupants use. Both are small integers over the same range, so resolving through the other
+   * index names one locus where another belongs, on a page that still looks entirely right
+   * (`2b99bb4`). The server DROPS a neighbour the fan-out did not resolve rather than sending a
+   * null address, so every ordinal here has a row.
+   */
+  readonly catalogue_ordinal: number;
+  readonly cross_similarity: number;
+}
+
+/**
+ * One locus's **set-to-set** similarity in one representation — three pairs and a share.
+ *
+ * ⛔ **This REPLACED `LocusGeometry`; it is a different measurement, not a renaming.** The medoid
+ * geometry reduced a locus to ONE member and then measured that single point: `within` was its
+ * members' distance to that gene, `nearest` that gene's distance to another locus's medoid. Every
+ * number here is a median over whole gene SETS, or is anchored on the one member least attached to
+ * its locus. A client reading one as the other would be plausible and wrong.
+ *
+ * ⚠ **`separation` and `margin` are NOT here although the card prints both.** Each is the
+ * difference of two fields that are, and the client subtracts — a separately-rounded difference
+ * drifting from the two rounded numbers printed beside it is the exact class of quiet disagreement
+ * this card was rebuilt to end.
+ */
+export interface LocusSimilarity {
+  /**
+   * ⛔ `null` on a SINGLETON, which has no pair inside its locus — 5,427 of *E. coli*'s 17,531
+   * loci. A `0.0` here would claim its members are unrelated to each other.
+   */
+  readonly within_similarity: number | null;
+  /**
+   * The highest such median against another locus. ⚠ **Present for a singleton**, where the three
+   * fields below are not: that question is well posed for one gene. So this is the one field a card
+   * must NOT test to decide whether a locus is measurable.
+   */
+  readonly nearest_similarity: number | null;
+  /**
+   * The member least attached to its own locus: its nearest neighbour INSIDE the locus, then that
+   * same gene's nearest gene anywhere else. ⭐ The point is invariant where a median moves with the
+   * set — and the clustering joins points, not medians.
+   *
+   * ⚠ `weak_own_similarity` implies the own fraction by ARITHMETIC: if the weakest member's nearest
+   * gene is a stranger then the fraction cannot be 1. The two agreeing is never evidence.
+   */
+  readonly weak_own_similarity: number | null;
+  readonly weak_other_similarity: number | null;
+  /**
+   * The share of members whose nearest gene in the whole species is another member of this locus.
+   *
+   * ⛔ **A SHARE, not a cosine.** It is never drawn against the random gene-pair floor, and never
+   * formatted at 0 dp: `0.9999` rounds to "100%", and below 1 is the entire point of the number.
+   */
+  readonly own_neighbour_fraction: number | null;
+  /**
+   * ⭐ One precomputed MIDRANK per VIEW, over MEASURABLE loci only — never over the catalogue. The
+   * three are not three ranks of one thing: only 18–34 % of flagged loci are flagged by all three.
+   * ⚠ `null` reads "not measurable" and must never render as `0.000`.
    */
   readonly separation_percentile: number | null;
-  readonly map_position: readonly [number, number] | null;
-  readonly nearest_locus_ordinals: readonly number[] | null;
+  readonly weak_margin_percentile: number | null;
   /**
-   * ⛔ Resolved server-side into a 6×6, with `-1` slot-drops already applied. Slots are not ranks:
-   * reading by rank draws one locus's distances on another, and it still looks like a picture.
+   * ⛔ At an own fraction of exactly 1.0 this is a midrank inside a tie block covering **88.5 %** of
+   * the catalogue, so it reads "p53" — *better than half the catalogue* — when it means *tied with
+   * nearly all of it*. Served because below 1.0 the whole tie block is above it and it then means
+   * what it looks like; **the card is what must decline to print it at 1.0.**
    */
-  readonly cosine_matrix: readonly (readonly (number | null)[])[] | null;
+  readonly own_fraction_percentile: number | null;
+  readonly nearest_loci: readonly NearestLocus[];
 }
 
 /**
@@ -193,37 +259,26 @@ export interface PfamFamilyReference {
 export interface NeighbourDisplayRow {
   readonly label: string;
   /**
-   * ⛔⛔ **The row's OTHER address, and the MAP needs exactly this one.** An arrangement slot code
-   * carries `catalogue_ordinal * 2 + strand`, and `geometry[rep].nearest_locus_ordinals` is in the
+   * ⛔⛔ **The row's OTHER address, and `similarity[rep].nearest_loci` needs exactly this one.** An
+   * arrangement slot code carries `catalogue_ordinal * 2 + strand` and a nearest-locus row is in the
    * same space — while the marginal occupants are addressed by `label`. Both are small integers
-   * over the same range, so resolving the map's nearest loci through anything else draws one locus
-   * where another belongs, on a page that still looks entirely right. That exact merge already cost
-   * this project once (`2b99bb4`).
+   * over the same range, so resolving the nearest loci through anything else names one locus where
+   * another belongs, on a page that still looks entirely right. That exact merge already cost this
+   * project once (`2b99bb4`).
    */
   readonly catalogue_ordinal: number;
   readonly display_name: string;
   /**
-   * ⭐ For the MAP legend, not the track. *"The locus NUMBER is not what tells you whether a
+   * ⭐ For the NEAREST-LOCI list, not the track. *"The locus NUMBER is not what tells you whether a
    * neighbour belongs here — the product is."* The track has no room for it and does not ask.
    */
   readonly best_product: string | null;
   /**
-   * Where this locus sits on the **whole-catalogue UMAP**, per representation — the quantised
-   * `map_x`/`map_y` the catalogue sprite was drawn from.
-   *
-   * ⚠ **Served, no longer drawn.** The page stopped showing the catalogue picture on 2026-09-22
-   * (David: *"It isn't helpful"*) and nothing here reads this; it is typed because the server still
-   * sends it. ⛔ `null` is *no medoid*, never a position of `0, 0` — which is a PLACE.
+   * ⛔ `map_position` and `within_medoid_distance` went on 2026-09-24 with the map they served — the
+   * first was a sprite position, the second a ring radius. A neighbour row now carries only what
+   * NAMES a locus; the similarity relating it to the focal one lives on `similarity[rep].nearest_loci`,
+   * because it is a property of the PAIR rather than of this row.
    */
-  readonly map_position: Readonly<Record<Representation, MapPosition | null>>;
-  /**
-   * ⭐ The map's RING for this locus, per representation — its own members' median distance from its
-   * centre, at true scale. *"A ring reaching a neighbour is a spread that reaches it."*
-   *
-   * ⚠ A **distance**, as stored, so the client converts with `similarityFromDistance` exactly as
-   * the card does. `null` where it was never measured — a singleton is its own medoid.
-   */
-  readonly within_medoid_distance: Readonly<Record<Representation, number | null>>;
   readonly display_name_source: string;
   readonly genome_count: number;
   readonly median_gene_length_nt: number | null;
@@ -267,7 +322,12 @@ export interface Locus {
     readonly resolved_threshold: number | null;
     readonly resolved_threshold_is_capped_at_50_members: boolean;
   };
-  readonly geometry: Readonly<Record<Representation, LocusGeometry>>;
+  /**
+   * ⛔ **`null` for a representation with no row at all**, which is not the same absence as a row
+   * whose `within_similarity` is null — the second is a singleton, measured and found to have no
+   * pair. Both must read as sentences rather than as numbers.
+   */
+  readonly similarity: Readonly<Record<Representation, LocusSimilarity | null>>;
   readonly interest_score: number | null;
 }
 
@@ -438,53 +498,39 @@ export interface ModelStep {
   readonly stage_detail: string | null;
 }
 
-/** A position on the catalogue map, in quantised units — the same integers the sprite was drawn from. */
-export type MapPosition = readonly [number, number];
-
 /**
- * The whole-catalogue scatter, as a picture rather than an array — the one part of the map that is
- * O(catalogue). Its BYTES come from `/species/{key}/map/{rep}/scatter.png`; this is everything needed
- * to draw on top of them.
+ * What makes a cosine on the similarity card mean anything: the **random GENE-pair floor** for one
+ * representation, and its spread.
  *
- * ⚠ **Served, no longer drawn.** The page stopped showing the catalogue picture on 2026-09-22 (David:
- * *"It isn't helpful. Just display closest 6 neighbours."*). The server still renders and describes
- * it, so the type still says what arrives.
+ * ⛔ **This REPLACED `map_projections`, it did not rename it.** That carried a UMAP over every
+ * locus's MEDOID, its extent and a whole-catalogue sprite, and a null sampled over random pairs of
+ * **medoids** — all of it describing a construction that reduced a locus to one member. On the
+ * published *E. coli* catalogue the medoid null and this gene-pair floor sit at **0.0651** and
+ * **0.0587**: close enough to look interchangeable, and not interchangeable.
+ *
+ * ⚠ Without a floor a cosine has no scale at all — ESM's is ~0.742 and Bacformer's ~0.059, so the
+ * same 0.41 reads oppositely in the two.
  */
-export interface CatalogueScatterSprite {
-  readonly pixel_size: number;
-  /**
-   * ⛔⛔ **The transform the renderer actually used.** Anything that draws on the picture must use it
-   * and never compute its own: a re-derived viewport puts a locus's dot BESIDE its own speck rather
-   * than on it, and the picture still looks like a picture.
-   */
-  readonly viewport_centre: readonly [number, number];
-  readonly viewport_span: number;
-  /** What one locus looks like on the picture, so the caption can say so. */
-  readonly dust_radius_pixels: number;
-  readonly alpha_per_locus: number;
-  /** ⭐ What is ON the picture — NOT the catalogue size, which is what the published caption quoted. */
-  readonly plotted_locus_count: number;
-  /** Loci with no medoid: they never reached the map and have no speck. */
-  readonly unplotted_locus_count: number;
-  /** ⚠ The ETag and the cache-buster — sha256 of the bytes, not the pangenome id. */
-  readonly content_digest: string;
-}
-
-export interface MapProjection {
+export interface SimilarityBaseline {
   readonly representation: Representation;
-  readonly method: string;
-  readonly requested_metric: string | null;
-  readonly extent: readonly [number, number, number, number];
-  readonly cosine_scale_factor: number | null;
-  /** ⚠ Without this a cosine has no meaning — ESM's random pairs sit at ~0.645, Bacformer's ~0.065. */
-  readonly null_mean_cosine: number | null;
-  readonly null_bin_lower_edge: number | null;
-  readonly null_bin_width: number | null;
-  readonly null_bin_counts: readonly number[] | null;
-  /** ⭐ The other half of "p12 of 12,104 loci". */
-  readonly separation_measurable_locus_count: number | null;
-  /** `null` where this representation has no rendered sprite. Served, no longer drawn — see above. */
-  readonly scatter_sprite: CatalogueScatterSprite | null;
+  /**
+   * `raw` or `centred`. ⛔ Raw is what is published; a centred number captioned as a raw one is
+   * indistinguishable from the real thing — ESM's floor moves 0.7417 → ~0.005.
+   */
+  readonly form: string;
+  readonly floor_median: number | null;
+  /**
+   * ⭐ The floor's spread, so the strip can draw a box rather than a bare tick: a median alone
+   * cannot say whether a locus's 0.41 sits far outside random or inside its shoulder. `null` where
+   * the run's audit JSON was not beside its CSV — then the strip falls back to the median alone.
+   */
+  readonly floor_p25: number | null;
+  readonly floor_p75: number | null;
+  readonly floor_p99: number | null;
+  /** ⭐ The other half of "p12 of 12,104 loci" — the denominator every midrank was taken over. */
+  readonly measurable_locus_count: number | null;
+  /** The kNN width the shortlist and the point measures were computed at. */
+  readonly neighbour_knn_k: number | null;
 }
 
 export interface SpeciesCatalogueResponse {
@@ -520,7 +566,7 @@ export interface SpeciesCatalogueResponse {
   readonly prevalence_gene_census: Readonly<Record<PrevalenceBand, number>>;
   /** Read verbatim from the audit summary at ingest. Keys absent from an older summary are absent here. */
   readonly audit_headline: Readonly<Record<string, number | string | null>>;
-  readonly map_projections: readonly MapProjection[];
+  readonly similarity_baselines: readonly SimilarityBaseline[];
   readonly landing_locus: string | null;
   readonly example_loci: readonly string[];
   /** The example chips as drawn: name, and the UniRef50 families the chip quotes. */
@@ -669,9 +715,14 @@ export interface ResidualLocusRow {
   /** `null` where Pfam could not judge the locus — not "no architectures". */
   readonly pfam_architecture_count: number | null;
   readonly syntenic_a5: number | null;
-  /** ⚠ DISTANCES, as stored; the footer shows similarities and converts once. */
-  readonly esm_within_medoid_distance: number | null;
-  readonly esm_nearest_medoid_distance: number | null;
+  /**
+   * ⛔ **SIMILARITIES, and nothing is left to convert.** These were medoid DISTANCES and the footer
+   * turned each into `1 − d`; they are now the same set-to-set numbers the locus card shows — a
+   * median over every within-locus gene pair, and the highest such median against another locus. A
+   * surviving `1 − d` would silently print the complement of a real similarity.
+   */
+  readonly esm_within_similarity: number | null;
+  readonly esm_nearest_similarity: number | null;
 }
 
 /**

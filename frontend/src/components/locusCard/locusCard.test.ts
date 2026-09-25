@@ -7,50 +7,44 @@ import { describe, expect, it } from "vitest";
 import type {
   AnnotationEntry,
   Locus,
-  LocusGeometry,
-  MapProjection,
+  LocusSimilarity,
+  NeighbourDisplayRow,
   PfamFamilyReference,
   Representation,
+  SimilarityBaseline,
   UnirefFamily,
 } from "@/api/types";
+import type { SimilarityViewId } from "@/lib/similarityViews";
 
-import EmbeddingGeometryCard from "./EmbeddingGeometryCard.vue";
+import EmbeddingSimilarityCard from "./EmbeddingSimilarityCard.vue";
 import LocusHeadline from "./LocusHeadline.vue";
 import SequenceDiversityCard from "./SequenceDiversityCard.vue";
 
-/** The two baselines, an order of magnitude apart — which is the whole reason they are per rep. */
-const ESM_NULL = 0.645;
-const BACFORMER_NULL = 0.065;
+/**
+ * The two random GENE-pair floors, an order of magnitude apart — which is the whole reason they are
+ * per representation, and the reason the card draws them at all: the same 0.41 reads oppositely.
+ *
+ * ⛔ These are `similarity_baselines[rep].floor_*` and NOT the retired medoid null. On the published
+ * ecoli/Bacformer catalogue those sit at 0.0587 and 0.0651 — close enough to look interchangeable
+ * and not be. Read from the shipped catalogue, median then p25/p75/p99.
+ */
+const BACFORMER_FLOOR = [0.0587, 0.0273, 0.0938, 0.2252] as const;
+const ESM_FLOOR = [0.7417, 0.6014, 0.823, 0.9309] as const;
 
-function geometry(overrides: Partial<LocusGeometry> = {}): LocusGeometry {
+function similarity(overrides: Partial<LocusSimilarity> = {}): LocusSimilarity {
   return {
-    within_medoid_distance: 0.06,
-    nearest_medoid_distance: 0.39,
+    within_similarity: 0.94,
+    nearest_similarity: 0.61,
+    weak_own_similarity: 0.78,
+    weak_other_similarity: 0.74,
+    own_neighbour_fraction: 1,
     separation_percentile: 0.62,
-    map_position: null,
-    nearest_locus_ordinals: null,
-    cosine_matrix: null,
+    weak_margin_percentile: 0.55,
+    own_fraction_percentile: 0.53,
+    nearest_loci: [],
     ...overrides,
   };
 }
-
-function projection(representation: Representation, mean: number): MapProjection {
-  return {
-    representation,
-    method: "cmds",
-    requested_metric: "cosine",
-    extent: [0, 0, 1, 1],
-    cosine_scale_factor: 10_000,
-    null_mean_cosine: mean,
-    scatter_sprite: null,
-    null_bin_lower_edge: -0.1,
-    null_bin_width: 0.1,
-    null_bin_counts: [1, 4, 30, 12, 3, 1, 0, 0, 0, 0, 0, 0],
-    separation_measurable_locus_count: 12_104,
-  };
-}
-
-const PROJECTIONS = [projection("bacformer", BACFORMER_NULL), projection("esm", ESM_NULL)];
 
 function locus(overrides: Partial<Locus> = {}): Locus {
   return {
@@ -82,7 +76,7 @@ function locus(overrides: Partial<Locus> = {}): Locus {
       resolved_threshold: 0.98,
       resolved_threshold_is_capped_at_50_members: false,
     },
-    geometry: { esm: geometry(), bacformer: geometry() },
+    similarity: { esm: similarity(), bacformer: similarity() },
     interest_score: 0.5,
     ...overrides,
   } as Locus;
@@ -94,7 +88,6 @@ function mountHeadline(overrides: Partial<Locus> = {}, collectionGenomeCount = 1
     props: {
       locus: locus(overrides),
       collectionGenomeCount,
-      mapProjections: PROJECTIONS,
       separationMeasurableLocusCount: 12_104,
     },
   });
@@ -134,8 +127,8 @@ describe("⭐ the headline — what it is, then how good it is", () => {
       "97%", // 97 of 100 genomes
       "1.03", // 100 genes / 97 genomes
       "0.91", // synteny A5
-      "94%", // Bacformer cohesion: (0.94 − 0.065) / (1 − 0.065)
-      "83%", // ESM cohesion:       (0.94 − 0.645) / (1 − 0.645)
+      "0.940", // within cluster · Bacformer — the median over every gene pair, shown as itself
+      "0.940", // within cluster · ESM
       "p62", // the separation midrank
     ]);
   });
@@ -143,31 +136,29 @@ describe("⭐ the headline — what it is, then how good it is", () => {
   it("⛔ prints `—` where a number was never measured, never 0", () => {
     const head = mountHeadline({
       evidence: { ...locus().evidence, syntenic_a5: null },
-      geometry: {
-        esm: geometry({ within_medoid_distance: null, separation_percentile: null }),
-        bacformer: geometry({
-          within_medoid_distance: null,
-          nearest_medoid_distance: null,
-          separation_percentile: null,
-        }),
+      similarity: {
+        // ⛔ Two different absences, both of which must read `—`: ESM has no row at all, while
+        // Bacformer has one whose within-cluster median is null — a singleton, measured and found
+        // to have no pair. Neither is a zero.
+        esm: null,
+        bacformer: similarity({ within_similarity: null, separation_percentile: null }),
       },
     });
     expect(tileValues(head)).toEqual(["97%", "1.03", "—", "—", "—", "—"]);
   });
 
-  it("⭐ reads the SAME similarity very differently in the two representations", () => {
-    // A within-similarity of 0.70 is two thirds of the way from random to perfect against
-    // Bacformer's 0.065 baseline, and barely off the floor against ESM's 0.645. A single cohesion
-    // scale would have to be wrong in one of them, which is why the baseline is per representation.
+  it("⛔ shows the within-cluster median ITSELF, never a rescaling against the floor", () => {
+    // These two tiles were `cohesion()`: `(intra − null_mean) / (1 − null_mean)`, which turned one
+    // stored 0.70 into "68%" on Bacformer and "15%" on ESM — a rescaling of a distance to ONE gene,
+    // captioned as if it were the locus. The label and the number have moved together, and the
+    // scale a reader needs is on the card's floor strip, where it is drawn rather than folded in.
     const head = mountHeadline({
-      geometry: {
-        esm: geometry({ within_medoid_distance: 0.3 }),
-        bacformer: geometry({ within_medoid_distance: 0.3 }),
+      similarity: {
+        esm: similarity({ within_similarity: 0.7 }),
+        bacformer: similarity({ within_similarity: 0.7 }),
       },
     });
-    const values = tileValues(head);
-    expect(values[3]).toBe("68%"); // (0.70 − 0.065) / (1 − 0.065)
-    expect(values[4]).toBe("15%"); // (0.70 − 0.645) / (1 − 0.645)
+    expect(tileValues(head).slice(3, 5)).toEqual(["0.700", "0.700"]);
   });
 
   it("⛔ carries the separation VERDICT as a class and names its denominator", () => {
@@ -176,14 +167,16 @@ describe("⭐ the headline — what it is, then how good it is", () => {
     expect(tile.classes()).toContain("sep-win");
     expect(tile.attributes("title")).toContain("Clean cluster separation");
     expect(tile.attributes("title")).toContain("+0.330");
+    // ⚠ The title names the two rows the difference came from, in the words the card uses.
+    expect(tile.attributes("title")).toContain("(within cluster − nearest other cluster)");
     expect(tile.attributes("title")).toContain("ranked against 12,104 loci");
   });
 
   it("flags a NEGATIVE separation, where the nearest rival is closer than its own members", () => {
     const head = mountHeadline({
-      geometry: {
-        esm: geometry(),
-        bacformer: geometry({ nearest_medoid_distance: 0.02, separation_percentile: 0.01 }),
+      similarity: {
+        esm: similarity(),
+        bacformer: similarity({ nearest_similarity: 0.98, separation_percentile: 0.01 }),
       },
     });
     expect(head.findAll(".tile")[5]!.classes()).toContain("sep-bad");
@@ -462,123 +455,363 @@ describe("⛔ Pfam coverage is stated AS COVERAGE", () => {
   });
 });
 
-// ── embedding geometry ─────────────────────────────────────────────────────────────────────────
-function mountGeometry(
+// ── embedding similarity ───────────────────────────────────────────────────────────────────────
+/** The two floors, an order of magnitude apart — which is the whole reason they are per rep. */
+function baseline(representation: Representation): SimilarityBaseline {
+  const floor = representation === "esm" ? ESM_FLOOR : BACFORMER_FLOOR;
+  return {
+    representation,
+    form: "raw",
+    floor_median: floor[0],
+    floor_p25: floor[1],
+    floor_p75: floor[2],
+    floor_p99: floor[3],
+    measurable_locus_count: 12_104,
+    neighbour_knn_k: 200,
+  };
+}
+
+const BASELINES = [baseline("bacformer"), baseline("esm")];
+
+/** Two real fan-out rows, so a nearest-locus ordinal has something to resolve through. */
+const NEIGHBOURS: NeighbourDisplayRow[] = [
+  {
+    label: "1065",
+    catalogue_ordinal: 1065,
+    display_name: "rfaL",
+    best_product: "O-antigen ligase",
+    display_name_source: "bakta_symbol",
+    genome_count: 90,
+    median_gene_length_nt: 1230,
+    prevalence_band: "core",
+  },
+  {
+    label: "2404",
+    catalogue_ordinal: 2404,
+    display_name: "waaL",
+    best_product: null,
+    display_name_source: "bakta_symbol",
+    genome_count: 20,
+    median_gene_length_nt: 900,
+    prevalence_band: "shell",
+  },
+];
+
+function mountSimilarity(
   overrides: {
-    geometry?: Partial<Record<Representation, LocusGeometry>>;
+    similarity?: Partial<Record<Representation, LocusSimilarity | null>>;
     geneCount?: number;
-    mapProjections?: readonly MapProjection[];
+    baselines?: readonly SimilarityBaseline[];
+    view?: SimilarityViewId;
+    neighbours?: readonly NeighbourDisplayRow[];
   } = {},
 ) {
-  return mount(EmbeddingGeometryCard, {
+  return mount(EmbeddingSimilarityCard, {
     props: {
-      geometry: {
-        bacformer: overrides.geometry?.bacformer ?? geometry(),
-        esm: overrides.geometry?.esm ?? geometry(),
+      similarity: {
+        bacformer:
+          overrides.similarity && "bacformer" in overrides.similarity
+            ? (overrides.similarity.bacformer ?? null)
+            : similarity(),
+        esm:
+          overrides.similarity && "esm" in overrides.similarity
+            ? (overrides.similarity.esm ?? null)
+            : similarity(),
       },
-      mapProjections: overrides.mapProjections ?? PROJECTIONS,
+      baselines: overrides.baselines ?? BASELINES,
+      neighbours: overrides.neighbours ?? NEIGHBOURS,
       geneCount: overrides.geneCount ?? 100,
-      separationMeasurableLocusCount: 12_104,
+      view: overrides.view ?? "median",
     },
   });
 }
 
-describe("⛔ embedding geometry is consistency, never corroboration", () => {
+function rowValues(card: ReturnType<typeof mountSimilarity>): string[] {
+  return card.findAll(".pair:not(.sep) .val").map((node) => node.text());
+}
+
+describe("⛔ embedding similarity is consistency, never corroboration", () => {
   it("says so, in the card's own footer", () => {
-    expect(mountGeometry().find(".muted").text()).toContain(
+    expect(mountSimilarity().find(".sim-note").text()).toContain(
       "reported as consistency and diagnosis — never as corroboration",
     );
   });
 
   it("⚠ leads with Bacformer, the context axis the track is built on", () => {
-    expect(mountGeometry().findAll(".sub-head").map((n) => n.text())).toEqual(["Bacformer", "ESM"]);
+    expect(mountSimilarity().findAll(".sub-head").map((n) => n.text())).toEqual(["Bacformer", "ESM"]);
   });
 
-  it("converts the stored DISTANCE back to a similarity for both rails", () => {
-    const values = mountGeometry().findAll(".pair:not(.sep) .val").map((n) => n.text());
-    expect(values).toEqual(["0.940", "0.610", "0.940", "0.610"]);
+  it("⚠ stacks BOTH representations inside the view — they are not tabs", () => {
+    // The two disagree about which loci are weak (of 1,059 ecoli loci Bacformer flags, ESM rescues
+    // 817), and a tab would hide exactly that disagreement behind a click.
+    expect(rowValues(mountSimilarity())).toEqual(["0.940", "0.610", "0.940", "0.610"]);
+  });
+
+  it("⛔ prints a SIMILARITY, with nothing left to convert from a distance", () => {
+    // The fixture's 0.940 is the stored number. A surviving `1 − d` would print 0.060.
+    expect(rowValues(mountSimilarity())).not.toContain("0.060");
   });
 
   it("names the denominator of the percentile, both halves of the sentence", () => {
-    expect(mountGeometry().findAll(".sep-pct")[0]!.text()).toBe("p62 of 12,104 loci");
+    expect(mountSimilarity().findAll(".sep-pct")[0]!.text()).toBe("p62 of 12,104 loci");
   });
 
-  it("⛔ says NOT MEASURABLE in words, never 0.000, and gives the reason where it has one", () => {
-    const single = mountGeometry({
-      geometry: {
-        bacformer: geometry({ nearest_medoid_distance: null, separation_percentile: null }),
-        esm: geometry({ nearest_medoid_distance: null, separation_percentile: null }),
-      },
-      geneCount: 1,
-    });
-    expect(single.findAll(".sep-pct")[0]!.text()).toBe("not measurable — single gene");
-    expect(single.findAll(".pair.sep .val")[0]!.text()).toBe("—");
-  });
-
-  it("drops the reason where the locus is not a singleton", () => {
-    const many = mountGeometry({
-      geometry: {
-        bacformer: geometry({ separation_percentile: null }),
-        esm: geometry({ separation_percentile: null }),
-      },
-      geneCount: 40,
-    });
-    expect(many.findAll(".sep-pct")[0]!.text()).toBe("not measurable");
-  });
-
-  it("renders no card at all where neither representation has geometry", () => {
-    const empty = mountGeometry({
-      geometry: {
-        bacformer: geometry({ within_medoid_distance: null, nearest_medoid_distance: null }),
-        esm: geometry({ within_medoid_distance: null, nearest_medoid_distance: null }),
-      },
-    });
-    expect(empty.find(".card").exists()).toBe(false);
+  it("⛔ subtracts the difference HERE, so it cannot drift from the two numbers beside it", () => {
+    // `separation` is not served: 0.940 − 0.610 printed from the same two numbers the rows show.
+    const card = mountSimilarity();
+    expect(card.findAll(".pair.sep .lab").map((n) => n.text())).toEqual(["separation", "separation"]);
+    expect(card.findAll(".pair.sep .val")[0]!.text()).toBe("+0.330");
   });
 });
 
-describe("⭐ the null strip is what makes a raw similarity readable", () => {
-  it("draws the density and both ticks, positioned on one linear 0..1 axis", () => {
-    const strip = mountGeometry().findAll(".nullstrip")[0]!;
-    expect(strip.findAll(".nd i").length).toBeGreaterThan(0);
-    // ⚠ jsdom normalises `94.0%` to `94%`, so a whole-number case cannot show whether the decimal
-    // survives. The sub-percent case below is what actually pins it.
-    expect(strip.find(".nt.intra").attributes("style")).toContain("left: 94%");
-    expect(strip.find(".nt.inter").attributes("style")).toContain("left: 61%");
+describe("⭐ three views, and they REPLACE each other rather than stacking", () => {
+  it("offers exactly three, with the median pair on by default", () => {
+    const strip = mountSimilarity().findAll(".sim-view");
+    expect(strip.map((n) => n.text())).toEqual(["median pair", "weakest member", "nearest neighbour"]);
+    expect(strip.filter((n) => n.classes("on")).map((n) => n.text())).toEqual(["median pair"]);
+  });
+
+  it("asks for a view rather than switching itself — the choice is the reader's and survives a walk", () => {
+    const card = mountSimilarity();
+    card.findAll(".sim-view")[1]!.trigger("click");
+    expect(card.emitted("selectView")).toEqual([["weak"]]);
+  });
+
+  it("⛔ the weakest-member view REPLACES the median rows, never adds to them", () => {
+    const card = mountSimilarity({ view: "weak" });
+    expect(card.findAll(".pair:not(.sep) .lab").map((n) => n.text())).toEqual([
+      "weakest → own",
+      "weakest → other",
+      "weakest → own",
+      "weakest → other",
+    ]);
+    expect(rowValues(card)).toEqual(["0.780", "0.740", "0.780", "0.740"]);
+    // …and it is ranked on ITS OWN midrank, not on separation's.
+    expect(card.findAll(".pair.sep .lab")[0]!.text()).toBe("margin");
+    expect(card.findAll(".sep-pct")[0]!.text()).toBe("p55 of 12,104 loci");
+    expect(card.findAll(".pair.sep .val")[0]!.text()).toBe("+0.040");
+  });
+
+  it("⛔ the nearest-neighbour view shows ONE row, because it is one share", () => {
+    const card = mountSimilarity({ view: "own" });
+    expect(card.findAll(".pair:not(.sep) .lab").map((n) => n.text())).toEqual([
+      "nearest gene is own",
+      "nearest gene is own",
+    ]);
+  });
+});
+
+describe("⛔⛔ the own fraction is a SHARE, and below 1.0 is the entire point of it", () => {
+  it("⛔ never renders at 0 dp: 0.9999 must not print as 100%", () => {
+    // 0.9999 of a large locus is a real member whose nearest gene in the whole species belongs to
+    // another locus. `pct(v, 0)` renders that as "100%", which is the opposite claim.
+    const card = mountSimilarity({
+      view: "own",
+      similarity: {
+        bacformer: similarity({ own_neighbour_fraction: 0.9999, own_fraction_percentile: 0.03 }),
+        esm: null,
+      },
+    });
+    expect(rowValues(card)).toEqual(["<100%"]);
+  });
+
+  it("keeps one decimal where a whole percent would round two different loci together", () => {
+    const card = mountSimilarity({
+      geneCount: 143,
+      view: "own",
+      similarity: {
+        bacformer: similarity({ own_neighbour_fraction: 0.951049, own_fraction_percentile: 0.09 }),
+        esm: null,
+      },
+    });
+    expect(rowValues(card)).toEqual(["95.1%"]);
+    // ⛔ The rank row does not repeat the share — it prints what the share IMPLIES and does not say.
+    expect(card.find(".pair.sep .val").text()).toBe("7 out");
+    expect(card.find(".pair.sep .lab").text()).toBe("rank");
+  });
+
+  it("⛔⛔ a share of EXACTLY 1.0 gets NO percentile row at all", () => {
+    // 88.5 % of loci sit at 1.0, so the midrank inside that tie block prints "p53" — reading as
+    // *better than half the catalogue* when it means *tied with nearly all of it*.
+    const card = mountSimilarity({ view: "own" });
+    expect(rowValues(card)).toEqual(["100%", "100%"]);
+    expect(card.findAll(".pair.sep")).toHaveLength(0);
+  });
+
+  it("…and shows it again the moment the share drops below 1.0", () => {
+    const card = mountSimilarity({
+      view: "own",
+      similarity: {
+        bacformer: similarity({ own_neighbour_fraction: 0.97, own_fraction_percentile: 0.08 }),
+        esm: null,
+      },
+    });
+    expect(card.findAll(".sep-pct")[0]!.text()).toBe("p8 of 12,104 loci");
+  });
+});
+
+describe("⛔ not measurable is a SENTENCE, never a zero", () => {
+  /**
+   * ⚠ A singleton keeps its `nearest_similarity` — that question is well posed for one gene — and
+   * loses every other number. 5,427 of *E. coli*'s 17,531 loci are single genes.
+   */
+  function singleton(): LocusSimilarity {
+    return similarity({
+      within_similarity: null,
+      weak_own_similarity: null,
+      weak_other_similarity: null,
+      own_neighbour_fraction: null,
+      separation_percentile: null,
+      weak_margin_percentile: null,
+      own_fraction_percentile: null,
+    });
+  }
+
+  it("⛔ a single gene is told WHY, rather than getting a strip with nothing between it and the caption", () => {
+    const card = mountSimilarity({
+      geneCount: 1,
+      similarity: { bacformer: singleton(), esm: singleton() },
+    });
+    expect(card.find(".sim-body .muted").text()).toContain(
+      "A single gene has no pair inside its locus",
+    );
+    // ⛔ And no rails, no floor strip and no rank row — an absence is not a measurement of zero.
+    expect(card.findAll(".pair")).toHaveLength(0);
+    expect(card.find(".nullstrip").exists()).toBe(false);
+  });
+
+  it("drops the reason where the locus is not a singleton", () => {
+    const card = mountSimilarity({
+      geneCount: 40,
+      similarity: { bacformer: singleton(), esm: singleton() },
+    });
+    expect(card.find(".sim-body .muted").text()).toBe("Not measurable for this locus.");
+  });
+
+  it("⛔ says NOT MEASURABLE in words where the midrank is missing, and `—` for the difference", () => {
+    const card = mountSimilarity({
+      similarity: {
+        bacformer: similarity({ separation_percentile: null }),
+        esm: similarity({ separation_percentile: null }),
+      },
+    });
+    expect(card.findAll(".sep-pct")[0]!.text()).toBe("not measurable");
+    expect(card.findAll(".pair.sep .val")[0]!.text()).toBe("—");
+  });
+
+  it("renders no card at all where neither representation has a row", () => {
+    expect(
+      mountSimilarity({ similarity: { bacformer: null, esm: null } }).find(".card").exists(),
+    ).toBe(false);
+  });
+
+  it("⚠ still renders the card where only the OTHER representation is measurable", () => {
+    // The two disagree about which loci are weak; losing the card would lose ESM's answer with it.
+    const card = mountSimilarity({ similarity: { bacformer: null } });
+    expect(card.findAll(".sub-head").map((n) => n.text())).toEqual(["ESM"]);
+  });
+});
+
+describe("⭐ the floor strip is what makes a raw cosine readable", () => {
+  it("draws the p25–p75 box, its whisker to p99 and the median line", () => {
+    const strip = mountSimilarity().findAll(".nullstrip")[0]!;
+    // ⚠ jsdom normalises `2.7%` but not the width, so both edges are asserted.
+    expect(strip.find(".fbox i.q").attributes("style")).toContain("left: 2.7%");
+    expect(strip.find(".fbox i.w").attributes("style")).toContain("left: 9.4%");
+    expect(strip.find(".fbox i.m").attributes("style")).toContain("left: 5.9%");
+  });
+
+  it("⛔ draws a BOX, not a density — the floor is summarised by quartiles, not binned", () => {
+    // A smooth hump would be a picture making a claim the artifact does not support.
+    expect(mountSimilarity().find(".nullstrip .nd").exists()).toBe(false);
+  });
+
+  it("names the floor, which differs by an order of magnitude between the two", () => {
+    // ⛔ The random GENE-pair floor, and NOT the retired medoid null: on the published ecoli
+    // catalogue those sit at 0.0587 and 0.0651 — close enough to look interchangeable and not be.
+    expect(mountSimilarity().findAll(".nsfoot span:first-child").map((n) => n.text())).toEqual([
+      "random gene pairs 0.059 (p25–p75 0.03–0.09)",
+      "random gene pairs 0.742 (p25–p75 0.60–0.82)",
+    ]);
   });
 
   it("⚠ places a tick to sub-percent precision — two loci 0.5 % apart must not coincide", () => {
-    const strip = mountGeometry({
-      geometry: {
-        bacformer: geometry({ within_medoid_distance: 0.065, nearest_medoid_distance: 0.388 }),
-        esm: geometry(),
+    const strip = mountSimilarity({
+      similarity: {
+        bacformer: similarity({ within_similarity: 0.935, nearest_similarity: 0.612 }),
       },
     }).findAll(".nullstrip")[0]!;
     expect(strip.find(".nt.intra").attributes("style")).toContain("left: 93.5%");
     expect(strip.find(".nt.inter").attributes("style")).toContain("left: 61.2%");
   });
 
-  it("⛔ draws only the 0..1 half — a medoid pair below zero is vanishingly rare", () => {
-    // 12 bins from -0.1 at 0.1 wide: the first is below zero and is not drawn.
-    expect(mountGeometry().findAll(".nullstrip")[0]!.findAll(".nd i")).toHaveLength(11);
+  it("⛔ draws NO axis on the own view — a share of members is not a cosine", () => {
+    // Drawing it against the random gene-pair box would invite reading one as the other.
+    expect(mountSimilarity({ view: "own" }).find(".nullstrip").exists()).toBe(false);
+    expect(mountSimilarity({ view: "weak" }).findAll(".nullstrip")).toHaveLength(2);
   });
 
-  it("scales the tallest bar to full height", () => {
-    const bars = mountGeometry().findAll(".nullstrip")[0]!.findAll(".nd i");
-    expect(bars.map((bar) => bar.attributes("style"))).toContain("height: 100%;");
+  it("⛔ draws no strip where the floor was never measured", () => {
+    const card = mountSimilarity({ baselines: [] });
+    expect(card.find(".nullstrip").exists()).toBe(false);
+    // …and the rails and the difference row are still there: an absent floor is not an absent
+    // measurement. Its denominator is what goes, and the sentence says so.
+    expect(card.findAll(".pair:not(.sep)")).toHaveLength(4);
+    expect(card.findAll(".sep-pct")[0]!.text()).toBe("p62 of the measurable loci");
+  });
+});
+
+describe("⭐ the five nearest other loci — the evidence for `nearest other cluster`", () => {
+  const NEAREST = [
+    { rank: 1, catalogue_ordinal: 1065, cross_similarity: 0.371015 },
+    { rank: 2, catalogue_ordinal: 2404, cross_similarity: 0.364022 },
+  ];
+
+  function withNearest(view: SimilarityViewId = "median") {
+    return mountSimilarity({
+      view,
+      similarity: {
+        bacformer: similarity({ nearest_loci: NEAREST }),
+        esm: null,
+      },
+    });
+  }
+
+  it("⛔⛔ resolves each catalogue ordinal through neighbour_display_rows", () => {
+    // A slot code carries `catalogue_ordinal * 2 + strand` and an occupant carries a surrogate
+    // locus id: both are small integers over the same range, so the wrong index names one locus
+    // where another belongs, on a list that still looks entirely right (`2b99bb4`).
+    expect(withNearest().findAll(".sim-row .nm").map((n) => n.text())).toEqual(["rfaL", "waaL"]);
   });
 
-  it("names the random-pair mean, which differs by an order of magnitude between reps", () => {
-    const feet = mountGeometry().findAll(".nsfoot span:first-child");
-    expect(feet.map((n) => n.text())).toEqual(["random pairs 0.065", "random pairs 0.645"]);
+  it("shows the product beside the name, because the locus NUMBER says nothing", () => {
+    const rows = withNearest().findAll(".sim-row");
+    expect(rows[0]!.find(".desc").text()).toBe("O-antigen ligase");
+    expect(rows[1]!.find(".desc").exists()).toBe(false);
+    expect(rows.map((row) => row.find(".cos").text())).toEqual(["0.371", "0.364"]);
   });
 
-  it("⛔ draws no strip where the baseline was never measured", () => {
-    const noBaseline = mountGeometry({ mapProjections: [] });
-    expect(noBaseline.find(".nullstrip").exists()).toBe(false);
-    // …and the rails and the separation row are still there: an absent baseline is not an absent
-    // measurement.
-    expect(noBaseline.findAll(".pair:not(.sep)").length).toBe(4);
+  it("walks to a neighbour by its LABEL, not by the ordinal it was addressed with", () => {
+    const card = withNearest();
+    card.findAll(".sim-row")[1]!.trigger("click");
+    expect(card.emitted("walk")).toEqual([["2404"]]);
+  });
+
+  it("⛔ only on the median view, whose row it is the evidence for", () => {
+    expect(withNearest("weak").find(".sim-key").exists()).toBe(false);
+    expect(withNearest("own").find(".sim-key").exists()).toBe(false);
+  });
+
+  it("⚠ drops an unresolvable ordinal rather than drawing a blank, walkable row", () => {
+    const card = mountSimilarity({
+      neighbours: [NEIGHBOURS[0]!],
+      similarity: { bacformer: similarity({ nearest_loci: NEAREST }), esm: null },
+    });
+    expect(card.findAll(".sim-row")).toHaveLength(1);
+  });
+
+  it("⚠ shows nothing at all where the shortlist is empty — it is RAGGED, never padded", () => {
+    expect(mountSimilarity().find(".sim-key").exists()).toBe(false);
   });
 });
 

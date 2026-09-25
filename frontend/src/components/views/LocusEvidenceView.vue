@@ -3,19 +3,24 @@
  * "Syntolog Loci" — the home view: what this locus is, and the evidence for it being one.
  *
  * Two columns, as the published card drew them (`app.js::renderCard`): the ARGUMENT on the left —
- * the headline and the sequence-diversity card — and the REFERENCE column beside it — the embedding
- * geometry, then the neighbourhood map immediately below the numbers it is a picture of.
+ * the headline and the sequence-diversity card — and the REFERENCE column beside it.
+ *
+ * ⛔ That column held two cards until 2026-09-24: the embedding geometry, and a neighbourhood map
+ * immediately below the numbers it was a picture of. Both went together, because they were ONE
+ * construction — the map was an MDS of six loci's MEDOIDS and each ring was that locus's members'
+ * median distance to its own medoid, so a set-to-set similarity has nothing for it to draw. The five
+ * nearest loci survive: they are now ranked by a median over gene pairs and are listed on the
+ * similarity card itself, beside the row they are the evidence for.
  */
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 
-import type { LocusDetailResponse, Representation, SpeciesCatalogueResponse } from "@/api/types";
-import EmbeddingGeometryCard from "@/components/locusCard/EmbeddingGeometryCard.vue";
+import type { LocusDetailResponse, SpeciesCatalogueResponse } from "@/api/types";
+import EmbeddingSimilarityCard from "@/components/locusCard/EmbeddingSimilarityCard.vue";
 import LocusHeadline from "@/components/locusCard/LocusHeadline.vue";
 import SequenceDiversityCard from "@/components/locusCard/SequenceDiversityCard.vue";
-import NeighbourhoodMapCard from "@/components/map/NeighbourhoodMapCard.vue";
 import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
-import { useNeighbourhoodMapStore } from "@/stores/neighbourhoodMapStore";
+import { useSimilarityViewStore } from "@/stores/similarityViewStore";
 
 const props = defineProps<{
   detail: LocusDetailResponse;
@@ -23,21 +28,18 @@ const props = defineProps<{
 }>();
 
 const navigation = useLocusNavigationStore();
-const map = useNeighbourhoodMapStore();
-const { representation } = storeToRefs(map);
+const similarityView = useSimilarityViewStore();
+const { view } = storeToRefs(similarityView);
 
-const projections = computed(() => props.catalogue.map_projections);
-const available = computed<readonly Representation[]>(() =>
-  projections.value.map((projection) => projection.representation),
-);
+const baselines = computed(() => props.catalogue.similarity_baselines);
 /**
  * ⚠ The separation TILE reads Bacformer — the context axis the track is built on — so its "of N
- * loci" is Bacformer's measurable count, not ESM's.
+ * loci" is Bacformer's measurable count, not ESM's. The card itself names each representation's own.
  */
 const separationCount = computed(
   () =>
-    projections.value.find((projection) => projection.representation === "bacformer")
-      ?.separation_measurable_locus_count ?? null,
+    baselines.value.find((baseline) => baseline.representation === "bacformer")
+      ?.measurable_locus_count ?? null,
 );
 </script>
 
@@ -48,7 +50,6 @@ const separationCount = computed(
         <LocusHeadline
           :locus="detail.locus"
           :collection-genome-count="catalogue.pangenome.genome_count"
-          :map-projections="projections"
           :separation-measurable-locus-count="separationCount"
         />
         <SequenceDiversityCard
@@ -61,18 +62,14 @@ const separationCount = computed(
       </div>
     </div>
     <aside id="side" class="side">
-      <EmbeddingGeometryCard
-        :geometry="detail.locus.geometry"
-        :map-projections="projections"
+      <EmbeddingSimilarityCard
+        :similarity="detail.locus.similarity"
+        :baselines="baselines"
+        :neighbours="detail.neighbour_display_rows"
         :gene-count="detail.locus.gene_count"
-        :separation-measurable-locus-count="separationCount"
-      />
-      <NeighbourhoodMapCard
-        :detail="detail"
-        :representation="representation"
-        :available-representations="available"
+        :view="view"
         @walk="navigation.navigateTo($event)"
-        @select-representation="map.selectRepresentation($event)"
+        @select-view="similarityView.selectView($event)"
       />
     </aside>
   </div>

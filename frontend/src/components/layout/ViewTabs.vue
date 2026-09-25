@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * The strip that switches the four views of one locus. Its OWN class, `view-tab`, for the reason
- * app.css records beside the map and zoom strips: a selector that can reach more than one strip will
- * eventually be read as naming the wrong one.
+ * app.css records beside the similarity card's `sim-view` strip: a selector that can reach more than
+ * one strip will eventually be read as naming the wrong one.
  */
 import { VIEW_TABS, type ViewId } from "@/stores/viewTabStore";
 

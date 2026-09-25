@@ -122,7 +122,9 @@
    "response": {
     "anchor": {
      "arrangement_ranks": [],
-     "is_anchored": false
+     "is_anchored": false,
+     "kind": null,
+     "projected_copies": []
     },
     "annotations": {
      "gene_symbol": [
@@ -1282,140 +1284,6 @@
      "gene_count": 106,
      "gene_length_interquartile_range_nt": 0,
      "genome_count": 100,
-     "geometry": {
-      "bacformer": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.3911,
-         0.3854,
-         0.3729,
-         0.3598,
-         0.3429
-        ],
-        [
-         0.3911,
-         1.0,
-         0.2982,
-         0.3306,
-         0.2527,
-         0.1878
-        ],
-        [
-         0.3854,
-         0.2982,
-         1.0,
-         0.2822,
-         0.2691,
-         0.1307
-        ],
-        [
-         0.3729,
-         0.3306,
-         0.2822,
-         1.0,
-         0.2734,
-         0.1213
-        ],
-        [
-         0.3598,
-         0.2527,
-         0.2691,
-         0.2734,
-         1.0,
-         0.2109
-        ],
-        [
-         0.3429,
-         0.1878,
-         0.1307,
-         0.1213,
-         0.2109,
-         1.0
-        ]
-       ],
-       "map_position": [
-        11646,
-        26033
-       ],
-       "nearest_locus_ordinals": [
-        1065,
-        2404,
-        2515,
-        16536,
-        10005
-       ],
-       "nearest_medoid_distance": 0.6089,
-       "separation_percentile": 0.7329587705527555,
-       "within_medoid_distance": 0.1163
-      },
-      "esm": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.968,
-         0.968,
-         0.9646,
-         0.9635,
-         0.9618
-        ],
-        [
-         0.968,
-         1.0,
-         0.9732,
-         0.969,
-         0.9571,
-         0.9745
-        ],
-        [
-         0.968,
-         0.9732,
-         1.0,
-         0.9793,
-         0.9627,
-         0.9752
-        ],
-        [
-         0.9646,
-         0.969,
-         0.9793,
-         1.0,
-         0.9538,
-         0.9697
-        ],
-        [
-         0.9635,
-         0.9571,
-         0.9627,
-         0.9538,
-         1.0,
-         0.9535
-        ],
-        [
-         0.9618,
-         0.9745,
-         0.9752,
-         0.9697,
-         0.9535,
-         1.0
-        ]
-       ],
-       "map_position": [
-        3584,
-        -9133
-       ],
-       "nearest_locus_ordinals": [
-        1023,
-        477,
-        1582,
-        1711,
-        893
-       ],
-       "nearest_medoid_distance": 0.032,
-       "separation_percentile": 0.5710154507146988,
-       "within_medoid_distance": 6.58e-05
-      }
-     },
      "interest_score": 5718140.0106,
      "label": "17373",
      "median_gene_length_nt": 1665,
@@ -1426,6 +1294,82 @@
       "concordance_class": "single"
      },
      "prevalence_band": "core",
+     "similarity": {
+      "bacformer": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 1065,
+         "cross_similarity": 0.371015,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 2404,
+         "cross_similarity": 0.364022,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 16536,
+         "cross_similarity": 0.350701,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 10005,
+         "cross_similarity": 0.349412,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 2515,
+         "cross_similarity": 0.333821,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.371015,
+       "own_fraction_percentile": 0.5577129637280013,
+       "own_neighbour_fraction": 1.0,
+       "separation_percentile": 0.6561183177724531,
+       "weak_margin_percentile": 0.7489878542510121,
+       "weak_other_similarity": 0.375461,
+       "weak_own_similarity": 0.793091,
+       "within_similarity": 0.814065
+      },
+      "esm": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 1023,
+         "cross_similarity": 0.968551,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 477,
+         "cross_similarity": 0.968197,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 1141,
+         "cross_similarity": 0.958186,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 10005,
+         "cross_similarity": 0.958136,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 924,
+         "cross_similarity": 0.957229,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.968551,
+       "own_fraction_percentile": 0.525159051474841,
+       "own_neighbour_fraction": 1.0,
+       "separation_percentile": 0.5712633231430224,
+       "weak_margin_percentile": 0.5639923985788647,
+       "weak_other_similarity": 0.971518,
+       "weak_own_similarity": 0.99986,
+       "within_similarity": 0.999912
+      }
+     },
      "uniref50": {
       "coverage": 1.0,
       "family_count": 3,
@@ -1442,22 +1386,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 2,
       "label": "10005",
-      "map_position": {
-       "bacformer": [
-        13806,
-        15699
-       ],
-       "esm": [
-        6233,
-        -6439
-       ]
-      },
       "median_gene_length_nt": 774,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1899,
-       "esm": 0.004966
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "aspartate--tRNA ligase",
@@ -1466,22 +1396,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1023",
-      "map_position": {
-       "bacformer": [
-        12915,
-        26984
-       ],
-       "esm": [
-        3458,
-        -9333
-       ]
-      },
       "median_gene_length_nt": 1773,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.04197,
-       "esm": 0.0001465
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "asparagine--tRNA ligase",
@@ -1490,22 +1406,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1065",
-      "map_position": {
-       "bacformer": [
-        11400,
-        25683
-       ],
-       "esm": [
-        3493,
-        -9305
-       ]
-      },
       "median_gene_length_nt": 1401,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02997,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "IS5 family transposase",
@@ -1514,22 +1416,18 @@
       "display_name_source": "label",
       "genome_count": 2,
       "label": "10884",
-      "map_position": {
-       "bacformer": [
-        -866,
-        13354
-       ],
-       "esm": [
-        3486,
-        654
-       ]
-      },
       "median_gene_length_nt": 499,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.101,
-       "esm": 0.005767
-      }
+      "prevalence_band": "cloud"
+     },
+     {
+      "best_product": "sulfate adenylyltransferase subunit CysD",
+      "catalogue_ordinal": 1141,
+      "display_name": "cysD",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1141",
+      "median_gene_length_nt": 909,
+      "prevalence_band": "core"
      },
      {
       "best_product": "ribonucleotide monophosphatase NagD",
@@ -1538,22 +1436,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1355",
-      "map_position": {
-       "bacformer": [
-        21176,
-        12533
-       ],
-       "esm": [
-        8785,
-        -6347
-       ]
-      },
       "median_gene_length_nt": 753,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02685,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "DNA-binding transcriptional regulator NagC",
@@ -1562,22 +1446,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1356",
-      "map_position": {
-       "bacformer": [
-        21431,
-        11995
-       ],
-       "esm": [
-        11494,
-        -6492
-       ]
-      },
       "median_gene_length_nt": 1221,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.04005,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "N-acetylglucosamine-6-phosphate deacetylase",
@@ -1586,22 +1456,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1357",
-      "map_position": {
-       "bacformer": [
-        21292,
-        12166
-       ],
-       "esm": [
-        7125,
-        -7084
-       ]
-      },
       "median_gene_length_nt": 1149,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.04574,
-       "esm": 0.0001465
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "glucosamine-6-phosphate deaminase",
@@ -1610,22 +1466,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1358",
-      "map_position": {
-       "bacformer": [
-        20823,
-        12279
-       ],
-       "esm": [
-        3450,
-        -8810
-       ]
-      },
       "median_gene_length_nt": 801,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.08258,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "PTS N-acetyl glucosamine transporter subunit IIABC",
@@ -1634,22 +1476,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1359",
-      "map_position": {
-       "bacformer": [
-        21616,
-        11399
-       ],
-       "esm": [
-        -6469,
-        -2294
-       ]
-      },
       "median_gene_length_nt": 1947,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.1672,
-       "esm": 6.735e-05
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "ferric iron uptake transcriptional regulator",
@@ -1658,22 +1486,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1360",
-      "map_position": {
-       "bacformer": [
-        13953,
-        21283
-       ],
-       "esm": [
-        4957,
-        -9433
-       ]
-      },
       "median_gene_length_nt": 447,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.04814,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "flavodoxin FldA",
@@ -1682,46 +1496,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1361",
-      "map_position": {
-       "bacformer": [
-        15787,
-        23616
-       ],
-       "esm": [
-        8171,
-        -5777
-       ]
-      },
       "median_gene_length_nt": 531,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02835,
-       "esm": 0.0
-      }
-     },
-     {
-      "best_product": "valine--tRNA ligase",
-      "catalogue_ordinal": 1582,
-      "display_name": "valS",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 100,
-      "label": "1582",
-      "map_position": {
-       "bacformer": [
-        11850,
-        26767
-       ],
-       "esm": [
-        3288,
-        -9810
-       ]
-      },
-      "median_gene_length_nt": 2856,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02774,
-       "esm": 5.949e-05
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "2,3-bisphosphoglycerate-dependent phosphoglycerate mutase",
@@ -1730,46 +1506,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "16536",
-      "map_position": {
-       "bacformer": [
-        8909,
-        27049
-       ],
-       "esm": [
-        2681,
-        -9853
-       ]
-      },
       "median_gene_length_nt": 765,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
-     },
-     {
-      "best_product": "mannonate dehydratase",
-      "catalogue_ordinal": 1711,
-      "display_name": "uxuA",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 100,
-      "label": "1711",
-      "map_position": {
-       "bacformer": [
-        16896,
-        15197
-       ],
-       "esm": [
-        4103,
-        -8359
-       ]
-      },
-      "median_gene_length_nt": 1185,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.04342,
-       "esm": 4.107e-05
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "glutamine--tRNA ligase",
@@ -1778,22 +1516,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "17373",
-      "map_position": {
-       "bacformer": [
-        11646,
-        26033
-       ],
-       "esm": [
-        3584,
-        -9133
-       ]
-      },
       "median_gene_length_nt": 1665,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.1163,
-       "esm": 6.58e-05
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "IS200/IS605 family IS200C transposase",
@@ -1802,22 +1526,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 54,
       "label": "17480",
-      "map_position": {
-       "bacformer": [
-        2874,
-        18742
-       ],
-       "esm": [
-        3321,
-        614
-       ]
-      },
       "median_gene_length_nt": 459,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1239,
-       "esm": 0.006109
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Transposase",
@@ -1826,22 +1536,8 @@
       "display_name_source": "label",
       "genome_count": 52,
       "label": "17517",
-      "map_position": {
-       "bacformer": [
-        14975,
-        -14548
-       ],
-       "esm": [
-        -3158,
-        20448
-       ]
-      },
       "median_gene_length_nt": 48,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.5598,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "thymidylate synthase",
@@ -1850,22 +1546,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "2404",
-      "map_position": {
-       "bacformer": [
-        11693,
-        25439
-       ],
-       "esm": [
-        3258,
-        -9414
-       ]
-      },
       "median_gene_length_nt": 795,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01004,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "oligoribonuclease",
@@ -1874,22 +1556,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "2515",
-      "map_position": {
-       "bacformer": [
-        11758,
-        25996
-       ],
-       "esm": [
-        3258,
-        -10077
-       ]
-      },
       "median_gene_length_nt": 546,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02542,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "fur leader peptide",
@@ -1898,22 +1566,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "291",
-      "map_position": {
-       "bacformer": [
-        14045,
-        20863
-       ],
-       "esm": [
-        -185,
-        22462
-       ]
-      },
       "median_gene_length_nt": 87,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02863,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "extended-spectrum class A beta-lactamase CTX-M-15",
@@ -1922,22 +1576,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 50,
       "label": "4039",
-      "map_position": {
-       "bacformer": [
-        7654,
-        17675
-       ],
-       "esm": [
-        10534,
-        -13472
-       ]
-      },
       "median_gene_length_nt": 876,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1342,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Dihydrodipicolinate synthase",
@@ -1946,22 +1586,8 @@
       "display_name_source": "label",
       "genome_count": 36,
       "label": "4609",
-      "map_position": {
-       "bacformer": [
-        21642,
-        12719
-       ],
-       "esm": [
-        7874,
-        -6838
-       ]
-      },
       "median_gene_length_nt": 888,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.007553,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Iron-containing alcohol dehydrogenase",
@@ -1970,22 +1596,8 @@
       "display_name_source": "label",
       "genome_count": 36,
       "label": "4610",
-      "map_position": {
-       "bacformer": [
-        22014,
-        12771
-       ],
-       "esm": [
-        9474,
-        -7670
-       ]
-      },
       "median_gene_length_nt": 1158,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.006928,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "YgbK domain protein",
@@ -1994,22 +1606,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 36,
       "label": "4611",
-      "map_position": {
-       "bacformer": [
-        21766,
-        13087
-       ],
-       "esm": [
-        9150,
-        -7942
-       ]
-      },
       "median_gene_length_nt": 1236,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.005167,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "D-threonate 4-phosphate dehydrogenase",
@@ -2018,22 +1616,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 36,
       "label": "4612",
-      "map_position": {
-       "bacformer": [
-        21770,
-        13200
-       ],
-       "esm": [
-        6324,
-        -8506
-       ]
-      },
       "median_gene_length_nt": 987,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.008538,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DeoR family transcriptional regulator",
@@ -2042,22 +1626,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 36,
       "label": "4613",
-      "map_position": {
-       "bacformer": [
-        20855,
-        13109
-       ],
-       "esm": [
-        10502,
-        -7743
-       ]
-      },
       "median_gene_length_nt": 762,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.006322,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "leucine--tRNA ligase",
@@ -2066,22 +1636,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "477",
-      "map_position": {
-       "bacformer": [
-        12133,
-        26912
-       ],
-       "esm": [
-        3565,
-        -8869
-       ]
-      },
       "median_gene_length_nt": 2583,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02807,
-       "esm": 1.341e-05
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "hypothetical protein",
@@ -2090,22 +1646,8 @@
       "display_name_source": "label",
       "genome_count": 33,
       "label": "4970",
-      "map_position": {
-       "bacformer": [
-        21141,
-        11888
-       ],
-       "esm": [
-        -1062,
-        22069
-       ]
-      },
       "median_gene_length_nt": 123,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.01518,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "StbB",
@@ -2114,22 +1656,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 22,
       "label": "5412",
-      "map_position": {
-       "bacformer": [
-        -6865,
-        -5100
-       ],
-       "esm": [
-        8826,
-        2327
-       ]
-      },
       "median_gene_length_nt": 423,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3484,
-       "esm": 9.799e-05
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "chitoporin",
@@ -2138,22 +1666,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "542",
-      "map_position": {
-       "bacformer": [
-        17881,
-        6898
-       ],
-       "esm": [
-        12420,
-        -22171
-       ]
-      },
       "median_gene_length_nt": 1407,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.06627,
-       "esm": 3.189e-05
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "Uncharacterized lipoprotein ChiQ",
@@ -2162,22 +1676,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "543",
-      "map_position": {
-       "bacformer": [
-        14917,
-        21492
-       ],
-       "esm": [
-        14504,
-        -12387
-       ]
-      },
       "median_gene_length_nt": 327,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.05044,
-       "esm": 0.0006335
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "Dam family site-specific DNA-(Adenine-N6)-methyltransferase",
@@ -2186,22 +1686,8 @@
       "display_name_source": "product",
       "genome_count": 16,
       "label": "5850",
-      "map_position": {
-       "bacformer": [
-        -4493,
-        3735
-       ],
-       "esm": [
-        9730,
-        -1631
-       ]
-      },
       "median_gene_length_nt": 2589,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1729,
-       "esm": 0.006746
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Plasmid segregation protein",
@@ -2210,22 +1696,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6588",
-      "map_position": {
-       "bacformer": [
-        -7208,
-        -4865
-       ],
-       "esm": [
-        10495,
-        -1344
-       ]
-      },
       "median_gene_length_nt": 957,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.02879,
-       "esm": 0.0001169
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Baseplate",
@@ -2234,22 +1706,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6657",
-      "map_position": {
-       "bacformer": [
-        -8474,
-        -12482
-       ],
-       "esm": [
-        9532,
-        5651
-       ]
-      },
       "median_gene_length_nt": 768,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.01958,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Tail length tape measure protein",
@@ -2258,22 +1716,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6658",
-      "map_position": {
-       "bacformer": [
-        -8488,
-        -12556
-       ],
-       "esm": [
-        9368,
-        5731
-       ]
-      },
       "median_gene_length_nt": 981,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.03135,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Baseplate protein",
@@ -2282,22 +1726,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6659",
-      "map_position": {
-       "bacformer": [
-        -8591,
-        -12892
-       ],
-       "esm": [
-        6886,
-        4115
-       ]
-      },
       "median_gene_length_nt": 654,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.04442,
-       "esm": 0.0005746
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "recombination-associated protein RdgC",
@@ -2306,22 +1736,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 11,
       "label": "6660",
-      "map_position": {
-       "bacformer": [
-        418,
-        578
-       ],
-       "esm": [
-        7379,
-        -4021
-       ]
-      },
       "median_gene_length_nt": 906,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.0856,
-       "esm": 0.001654
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "CopG family transcriptional regulator",
@@ -2330,22 +1746,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 11,
       "label": "6661",
-      "map_position": {
-       "bacformer": [
-        -7886,
-        -5330
-       ],
-       "esm": [
-        8012,
-        2180
-       ]
-      },
       "median_gene_length_nt": 288,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.05068,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "AAA family ATPase",
@@ -2354,22 +1756,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6662",
-      "map_position": {
-       "bacformer": [
-        -7764,
-        -5760
-       ],
-       "esm": [
-        6172,
-        -6614
-       ]
-      },
       "median_gene_length_nt": 642,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.03836,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Alanine racemase",
@@ -2378,22 +1766,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6663",
-      "map_position": {
-       "bacformer": [
-        -19234,
-        -11171
-       ],
-       "esm": [
-        5602,
-        388
-       ]
-      },
       "median_gene_length_nt": 285,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.02384,
-       "esm": 0.0003105
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DNA cytosine methyltransferase",
@@ -2402,22 +1776,8 @@
       "display_name_source": "label",
       "genome_count": 8,
       "label": "7308",
-      "map_position": {
-       "bacformer": [
-        -4867,
-        3007
-       ],
-       "esm": [
-        9387,
-        -1216
-       ]
-      },
       "median_gene_length_nt": 681,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.04121,
-       "esm": 0.001404
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Site-specific DNA-methyltransferase (adenine-specific)",
@@ -2426,46 +1786,18 @@
       "display_name_source": "label",
       "genome_count": 8,
       "label": "7309",
-      "map_position": {
-       "bacformer": [
-        -4619,
-        3025
-       ],
-       "esm": [
-        10940,
-        -1421
-       ]
-      },
       "median_gene_length_nt": 906,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.0724,
-       "esm": 0.0004606
-      }
+      "prevalence_band": "cloud"
      },
      {
-      "best_product": "isoleucine--tRNA ligase",
-      "catalogue_ordinal": 893,
-      "display_name": "ileS",
+      "best_product": "3-isopropylmalate dehydratase small subunit",
+      "catalogue_ordinal": 924,
+      "display_name": "leuD",
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
-      "label": "893",
-      "map_position": {
-       "bacformer": [
-        14704,
-        27950
-       ],
-       "esm": [
-        3706,
-        -8972
-       ]
-      },
-      "median_gene_length_nt": 2817,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02578,
-       "esm": 5.96e-05
-      }
+      "label": "924",
+      "median_gene_length_nt": 606,
+      "prevalence_band": "core"
      }
     ],
     "offsets": [
@@ -2810,7 +2142,7 @@
       "short_name": "tRNA-synt_1c_C2"
      }
     },
-    "resolved_neighbour_count": 43,
+    "resolved_neighbour_count": 42,
     "uniref50_families": [
      {
       "distinct_symbol_count": 1,
@@ -2818,6 +2150,7 @@
       "modal_architecture": "PF00749,PF03950,PF20974",
       "modal_product": "glutamine--tRNA ligase",
       "modal_symbol": "glnS",
+      "named_gene_count": 61,
       "pfam_annotated_gene_count": 61,
       "rank": 0,
       "uniref50_accession": "UniRef50_B7N9S6"
@@ -2828,6 +2161,7 @@
       "modal_architecture": "PF00749,PF03950,PF20974",
       "modal_product": "glutamine--tRNA ligase",
       "modal_symbol": "glnS",
+      "named_gene_count": 42,
       "pfam_annotated_gene_count": 42,
       "rank": 1,
       "uniref50_accession": "UniRef50_Q8X9H8"
@@ -2838,6 +2172,7 @@
       "modal_architecture": "PF00749,PF03950,PF20974",
       "modal_product": "glutamine--tRNA ligase",
       "modal_symbol": "glnS",
+      "named_gene_count": 3,
       "pfam_annotated_gene_count": 3,
       "rank": 2,
       "uniref50_accession": "UniRef50_Q8Z8F8"
@@ -2891,7 +2226,9 @@
    "response": {
     "anchor": {
      "arrangement_ranks": [],
-     "is_anchored": false
+     "is_anchored": false,
+     "kind": null,
+     "projected_copies": []
     },
     "annotations": {
      "gene_symbol": [
@@ -4485,140 +3822,6 @@
      "gene_count": 76,
      "gene_length_interquartile_range_nt": 0,
      "genome_count": 74,
-     "geometry": {
-      "bacformer": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.8784,
-         0.8431,
-         0.761,
-         0.7261,
-         0.6753
-        ],
-        [
-         0.8784,
-         1.0,
-         0.8304,
-         0.7582,
-         0.6861,
-         0.7012
-        ],
-        [
-         0.8431,
-         0.8304,
-         1.0,
-         0.7099,
-         0.6226,
-         0.7581
-        ],
-        [
-         0.761,
-         0.7582,
-         0.7099,
-         1.0,
-         0.8629,
-         0.5605
-        ],
-        [
-         0.7261,
-         0.6861,
-         0.6226,
-         0.8629,
-         1.0,
-         0.5394
-        ],
-        [
-         0.6753,
-         0.7012,
-         0.7581,
-         0.5605,
-         0.5394,
-         1.0
-        ]
-       ],
-       "map_position": [
-        301,
-        16699
-       ],
-       "nearest_locus_ordinals": [
-        8513,
-        4050,
-        16217,
-        6777,
-        16011
-       ],
-       "nearest_medoid_distance": 0.1216,
-       "separation_percentile": 0.050483351235230935,
-       "within_medoid_distance": 0.08492
-      },
-      "esm": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.971,
-         0.9579,
-         0.9282,
-         0.9209,
-         0.888
-        ],
-        [
-         0.971,
-         1.0,
-         0.9565,
-         0.9232,
-         0.9193,
-         0.8787
-        ],
-        [
-         0.9579,
-         0.9565,
-         1.0,
-         0.9313,
-         0.9111,
-         0.8518
-        ],
-        [
-         0.9282,
-         0.9232,
-         0.9313,
-         1.0,
-         0.8256,
-         0.8649
-        ],
-        [
-         0.9209,
-         0.9193,
-         0.9111,
-         0.8256,
-         1.0,
-         0.7817
-        ],
-        [
-         0.888,
-         0.8787,
-         0.8518,
-         0.8649,
-         0.7817,
-         1.0
-        ]
-       ],
-       "map_position": [
-        4247,
-        -735
-       ],
-       "nearest_locus_ordinals": [
-        8513,
-        4050,
-        16011,
-        16217,
-        4119
-       ],
-       "nearest_medoid_distance": 0.02899,
-       "separation_percentile": 0.5271007188300422,
-       "within_medoid_distance": 0.0
-      }
-     },
      "interest_score": 3551673.165494737,
      "label": "17243",
      "median_gene_length_nt": 705,
@@ -4629,6 +3832,82 @@
       "concordance_class": "same_domains"
      },
      "prevalence_band": "shell",
+     "similarity": {
+      "bacformer": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 8513,
+         "cross_similarity": 0.822031,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 4050,
+         "cross_similarity": 0.798106,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 16217,
+         "cross_similarity": 0.719995,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 16011,
+         "cross_similarity": 0.658725,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 6777,
+         "cross_similarity": 0.656986,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.822031,
+       "own_fraction_percentile": 0.5577129637280013,
+       "own_neighbour_fraction": 1.0,
+       "separation_percentile": 0.09543088490456912,
+       "weak_margin_percentile": 0.19656283566058003,
+       "weak_other_similarity": 0.798485,
+       "weak_own_similarity": 0.875566,
+       "within_similarity": 0.873317
+      },
+      "esm": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 8513,
+         "cross_similarity": 0.971008,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 4050,
+         "cross_similarity": 0.957919,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 16011,
+         "cross_similarity": 0.928232,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 16217,
+         "cross_similarity": 0.920929,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 4119,
+         "cross_similarity": 0.888043,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.971008,
+       "own_fraction_percentile": 0.04469966124101463,
+       "own_neighbour_fraction": 0.986842,
+       "separation_percentile": 0.5359415021069156,
+       "weak_margin_percentile": 0.009171279847971578,
+       "weak_other_similarity": 0.990643,
+       "weak_own_similarity": 0.982495,
+       "within_similarity": 1.0
+      }
+     },
      "uniref50": {
       "coverage": 1.0,
       "family_count": 3,
@@ -4645,22 +3924,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 2,
       "label": "10268",
-      "map_position": {
-       "bacformer": [
-        -2421,
-        -20027
-       ],
-       "esm": [
-        7860,
-        8563
-       ]
-      },
       "median_gene_length_nt": 858,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.0708,
-       "esm": 0.0001148
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Phosphoethanolamine transferase",
@@ -4669,22 +3934,8 @@
       "display_name_source": "label",
       "genome_count": 2,
       "label": "11133",
-      "map_position": {
-       "bacformer": [
-        12319,
-        4718
-       ],
-       "esm": [
-        14766,
-        -11142
-       ]
-      },
       "median_gene_length_nt": 1374,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.07007,
-       "esm": 0.0005565
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Addiction module antitoxin",
@@ -4693,22 +3944,8 @@
       "display_name_source": "pfam_architecture",
       "genome_count": 2,
       "label": "11582",
-      "map_position": {
-       "bacformer": [
-        9204,
-        -10257
-       ],
-       "esm": [
-        5389,
-        16917
-       ]
-      },
       "median_gene_length_nt": 498,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.07391,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Transposase",
@@ -4717,22 +3954,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "12214",
-      "map_position": {
-       "bacformer": [
-        -467,
-        8134
-       ],
-       "esm": [
-        9599,
-        -2667
-       ]
-      },
       "median_gene_length_nt": 948,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "Tn3 family transposase",
@@ -4741,22 +3964,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "12349",
-      "map_position": {
-       "bacformer": [
-        -890,
-        5837
-       ],
-       "esm": [
-        8426,
-        -3832
-       ]
-      },
       "median_gene_length_nt": 1140,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "RepA leader peptide Tap",
@@ -4765,22 +3974,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 1,
       "label": "15591",
-      "map_position": {
-       "bacformer": [
-        13726,
-        -14621
-       ],
-       "esm": [
-        -774,
-        21509
-       ]
-      },
       "median_gene_length_nt": 78,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "Protein CopB",
@@ -4789,22 +3984,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 1,
       "label": "15592",
-      "map_position": {
-       "bacformer": [
-        -11658,
-        -891
-       ],
-       "esm": [
-        4806,
-        -1738
-       ]
-      },
       "median_gene_length_nt": 252,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "IS6 family transposase",
@@ -4813,22 +3994,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "16011",
-      "map_position": {
-       "bacformer": [
-        384,
-        14985
-       ],
-       "esm": [
-        4261,
-        -652
-       ]
-      },
       "median_gene_length_nt": 411,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "DDE domain-containing protein",
@@ -4837,22 +4004,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "16217",
-      "map_position": {
-       "bacformer": [
-        890,
-        19212
-       ],
-       "esm": [
-        4132,
-        -876
-       ]
-      },
       "median_gene_length_nt": 360,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "IS1 family transposase",
@@ -4861,22 +4014,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 64,
       "label": "17151",
-      "map_position": {
-       "bacformer": [
-        707,
-        21030
-       ],
-       "esm": [
-        21272,
-        -6397
-       ]
-      },
       "median_gene_length_nt": 378,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08914,
-       "esm": 0.001482
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "InsB",
@@ -4885,22 +4024,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 16,
       "label": "17152",
-      "map_position": {
-       "bacformer": [
-        14934,
-        -14466
-       ],
-       "esm": [
-        73,
-        22906
-       ]
-      },
       "median_gene_length_nt": 216,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.5124,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS6 family IS15DIV transposase",
@@ -4909,22 +4034,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 74,
       "label": "17243",
-      "map_position": {
-       "bacformer": [
-        301,
-        16699
-       ],
-       "esm": [
-        4247,
-        -735
-       ]
-      },
       "median_gene_length_nt": 705,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08492,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS3 family IS2 transposase ORF A",
@@ -4933,22 +4044,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 83,
       "label": "17280",
-      "map_position": {
-       "bacformer": [
-        271,
-        16638
-       ],
-       "esm": [
-        3047,
-        -3730
-       ]
-      },
       "median_gene_length_nt": 366,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1146,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS110 family IS4321 transposase",
@@ -4957,22 +4054,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 32,
       "label": "17422",
-      "map_position": {
-       "bacformer": [
-        566,
-        15835
-       ],
-       "esm": [
-        3115,
-        754
-       ]
-      },
       "median_gene_length_nt": 1005,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.06808,
-       "esm": 0.0003189
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS1 family IS1A transposase ORF A",
@@ -4981,22 +4064,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 63,
       "label": "17482",
-      "map_position": {
-       "bacformer": [
-        2885,
-        19385
-       ],
-       "esm": [
-        19778,
-        -3519
-       ]
-      },
       "median_gene_length_nt": 276,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.0664,
-       "esm": 0.001826
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Uncharacterized protein",
@@ -5005,22 +4074,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 74,
       "label": "3539",
-      "map_position": {
-       "bacformer": [
-        7575,
-        -292
-       ],
-       "esm": [
-        -5669,
-        1345
-       ]
-      },
       "median_gene_length_nt": 654,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.0466,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Endoribonuclease PemK",
@@ -5029,22 +4084,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 74,
       "label": "3541",
-      "map_position": {
-       "bacformer": [
-        -2637,
-        14214
-       ],
-       "esm": [
-        5640,
-        -4717
-       ]
-      },
       "median_gene_length_nt": 333,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08942,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "type II toxin-antitoxin system antitoxin PemI",
@@ -5053,22 +4094,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 74,
       "label": "3542",
-      "map_position": {
-       "bacformer": [
-        -3151,
-        13775
-       ],
-       "esm": [
-        4092,
-        -4298
-       ]
-      },
       "median_gene_length_nt": 258,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.04085,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "putative site-specific recombinase",
@@ -5077,22 +4104,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 61,
       "label": "3809",
-      "map_position": {
-       "bacformer": [
-        -192,
-        6123
-       ],
-       "esm": [
-        -2903,
-        -12712
-       ]
-      },
       "median_gene_length_nt": 741,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08995,
-       "esm": 0.0001744
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "hypothetical protein",
@@ -5101,22 +4114,8 @@
       "display_name_source": "label",
       "genome_count": 57,
       "label": "3867",
-      "map_position": {
-       "bacformer": [
-        10921,
-        -16721
-       ],
-       "esm": [
-        1334,
-        20297
-       ]
-      },
       "median_gene_length_nt": 120,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08345,
-       "esm": 0.00443
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "fluoroquinolone-acetylating aminoglycoside 6'-N-acetyltransferase AAC(6')-Ib-cr",
@@ -5125,22 +4124,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 49,
       "label": "4047",
-      "map_position": {
-       "bacformer": [
-        5843,
-        9677
-       ],
-       "esm": [
-        10918,
-        -1726
-       ]
-      },
       "median_gene_length_nt": 600,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3367,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS6-like element IS6100 family transposase",
@@ -5149,22 +4134,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 49,
       "label": "4050",
-      "map_position": {
-       "bacformer": [
-        131,
-        15838
-       ],
-       "esm": [
-        4208,
-        -721
-       ]
-      },
       "median_gene_length_nt": 765,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.01136,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS3 family IS150 transposase ORF B",
@@ -5173,22 +4144,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 47,
       "label": "4119",
-      "map_position": {
-       "bacformer": [
-        -1905,
-        14839
-       ],
-       "esm": [
-        19868,
-        -491
-       ]
-      },
       "median_gene_length_nt": 852,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1342,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "ShiA-like protein",
@@ -5197,22 +4154,8 @@
       "display_name_source": "product",
       "genome_count": 41,
       "label": "4325",
-      "map_position": {
-       "bacformer": [
-        10489,
-        3025
-       ],
-       "esm": [
-        11644,
-        5355
-       ]
-      },
       "median_gene_length_nt": 1044,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.2869,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "conjugal transfer mating-pair stabilization protein TraG",
@@ -5221,22 +4164,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 38,
       "label": "4452",
-      "map_position": {
-       "bacformer": [
-        4924,
-        -9199
-       ],
-       "esm": [
-        2518,
-        7979
-       ]
-      },
       "median_gene_length_nt": 2820,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.03531,
-       "esm": 9.352e-05
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Site-specific DNA recombinase SpoIVCA/DNA invertase PinE",
@@ -5245,22 +4174,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 37,
       "label": "4512",
-      "map_position": {
-       "bacformer": [
-        720,
-        17062
-       ],
-       "esm": [
-        3354,
-        -2685
-       ]
-      },
       "median_gene_length_nt": 606,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.06954,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Tn3-like element Tn5403 family transposase",
@@ -5269,22 +4184,8 @@
       "display_name_source": "label",
       "genome_count": 37,
       "label": "4554",
-      "map_position": {
-       "bacformer": [
-        -1127,
-        4021
-       ],
-       "esm": [
-        10091,
-        -2083
-       ]
-      },
       "median_gene_length_nt": 2898,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.05435,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Drug/metabolite transporter",
@@ -5293,22 +4194,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 36,
       "label": "4662",
-      "map_position": {
-       "bacformer": [
-        7731,
-        18086
-       ],
-       "esm": [
-        -8163,
-        -2533
-       ]
-      },
       "median_gene_length_nt": 885,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1241,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Transposon Tn1331 resolvase",
@@ -5317,22 +4204,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 34,
       "label": "4762",
-      "map_position": {
-       "bacformer": [
-        1294,
-        16786
-       ],
-       "esm": [
-        3430,
-        -2766
-       ]
-      },
       "median_gene_length_nt": 558,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3439,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Inner membrane protein",
@@ -5341,22 +4214,8 @@
       "display_name_source": "label",
       "genome_count": 33,
       "label": "4955",
-      "map_position": {
-       "bacformer": [
-        4640,
-        -9234
-       ],
-       "esm": [
-        12159,
-        16185
-       ]
-      },
       "median_gene_length_nt": 1170,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.0608,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "ProQ/FinO domain-containing protein",
@@ -5365,22 +4224,8 @@
       "display_name_source": "pfam_architecture",
       "genome_count": 32,
       "label": "4983",
-      "map_position": {
-       "bacformer": [
-        -2492,
-        -11558
-       ],
-       "esm": [
-        8258,
-        8954
-       ]
-      },
       "median_gene_length_nt": 603,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1698,
-       "esm": 0.001368
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Heme/hemopexin utilization protein C",
@@ -5389,22 +4234,8 @@
       "display_name_source": "label",
       "genome_count": 32,
       "label": "4986",
-      "map_position": {
-       "bacformer": [
-        15212,
-        -13957
-       ],
-       "esm": [
-        12137,
-        -22208
-       ]
-      },
       "median_gene_length_nt": 1971,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.07431,
-       "esm": 1.824e-05
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Conjugal transfer protein TraS",
@@ -5413,22 +4244,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 32,
       "label": "4987",
-      "map_position": {
-       "bacformer": [
-        5869,
-        -10137
-       ],
-       "esm": [
-        11611,
-        16855
-       ]
-      },
       "median_gene_length_nt": 492,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.06858,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "conjugal transfer complement resistance protein TraT",
@@ -5437,22 +4254,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 31,
       "label": "5042",
-      "map_position": {
-       "bacformer": [
-        4089,
-        -3118
-       ],
-       "esm": [
-        10087,
-        -13960
-       ]
-      },
       "median_gene_length_nt": 777,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1663,
-       "esm": 0.0002537
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "conjugal transfer pilus assembly protein TraH",
@@ -5461,22 +4264,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 30,
       "label": "5086",
-      "map_position": {
-       "bacformer": [
-        5397,
-        -9233
-       ],
-       "esm": [
-        2058,
-        6583
-       ]
-      },
       "median_gene_length_nt": 1374,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.04662,
-       "esm": 0.0002664
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Conjugative transfer protein",
@@ -5485,22 +4274,8 @@
       "display_name_source": "label",
       "genome_count": 28,
       "label": "5137",
-      "map_position": {
-       "bacformer": [
-        10094,
-        -12935
-       ],
-       "esm": [
-        5177,
-        18227
-       ]
-      },
       "median_gene_length_nt": 739,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08926,
-       "esm": 0.006307
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Tn3 family transposase",
@@ -5509,22 +4284,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 28,
       "label": "5162",
-      "map_position": {
-       "bacformer": [
-        8955,
-        -18978
-       ],
-       "esm": [
-        5790,
-        14313
-       ]
-      },
       "median_gene_length_nt": 534,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.5735,
-       "esm": 0.0001495
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Tn3 transposase DDE domain-containing protein",
@@ -5533,22 +4294,8 @@
       "display_name_source": "label",
       "genome_count": 27,
       "label": "5177",
-      "map_position": {
-       "bacformer": [
-        9938,
-        -19012
-       ],
-       "esm": [
-        5106,
-        15211
-       ]
-      },
       "median_gene_length_nt": 822,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08242,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Site-specific DNA recombinase SpoIVCA/DNA invertase PinE",
@@ -5557,22 +4304,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 25,
       "label": "5244",
-      "map_position": {
-       "bacformer": [
-        116,
-        16359
-       ],
-       "esm": [
-        4164,
-        -2474
-       ]
-      },
       "median_gene_length_nt": 663,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.2496,
-       "esm": 0.0009627
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Transposase",
@@ -5581,22 +4314,8 @@
       "display_name_source": "label",
       "genome_count": 24,
       "label": "5317",
-      "map_position": {
-       "bacformer": [
-        14691,
-        -13694
-       ],
-       "esm": [
-        1884,
-        19923
-       ]
-      },
       "median_gene_length_nt": 114,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.02875,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "ANT(3'')-Ia family aminoglycoside nucleotidyltransferase AadA1",
@@ -5605,22 +4324,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 22,
       "label": "5423",
-      "map_position": {
-       "bacformer": [
-        6267,
-        15152
-       ],
-       "esm": [
-        6350,
-        -6393
-       ]
-      },
       "median_gene_length_nt": 780,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.2581,
-       "esm": 0.0001736
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Cytochrome c-type biogenesis protein DsbD, protein-disulfide reductase",
@@ -5629,22 +4334,8 @@
       "display_name_source": "label",
       "genome_count": 22,
       "label": "5458",
-      "map_position": {
-       "bacformer": [
-        1195,
-        7271
-       ],
-       "esm": [
-        12354,
-        -12066
-       ]
-      },
       "median_gene_length_nt": 1032,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.05901,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Site-specific DNA recombinase SpoIVCA/DNA invertase PinE",
@@ -5653,22 +4344,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 20,
       "label": "5571",
-      "map_position": {
-       "bacformer": [
-        286,
-        16494
-       ],
-       "esm": [
-        3418,
-        -2034
-       ]
-      },
       "median_gene_length_nt": 570,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3035,
-       "esm": 0.0003073
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "mercury resistance transcriptional regulator MerR",
@@ -5677,22 +4354,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 19,
       "label": "5662",
-      "map_position": {
-       "bacformer": [
-        1439,
-        16573
-       ],
-       "esm": [
-        3432,
-        -4072
-       ]
-      },
       "median_gene_length_nt": 435,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1363,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "hypothetical protein",
@@ -5701,22 +4364,8 @@
       "display_name_source": "label",
       "genome_count": 17,
       "label": "5760",
-      "map_position": {
-       "bacformer": [
-        12384,
-        -15855
-       ],
-       "esm": [
-        30,
-        20887
-       ]
-      },
       "median_gene_length_nt": 228,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.182,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Protein NO VEIN C-terminal domain-containing protein",
@@ -5725,22 +4374,8 @@
       "display_name_source": "label",
       "genome_count": 17,
       "label": "5761",
-      "map_position": {
-       "bacformer": [
-        -495,
-        6093
-       ],
-       "esm": [
-        9453,
-        -1580
-       ]
-      },
       "median_gene_length_nt": 1137,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1235,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Tn3-like element Tn4401 family resolvase TnpR",
@@ -5749,22 +4384,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 16,
       "label": "5952",
-      "map_position": {
-       "bacformer": [
-        -382,
-        6684
-       ],
-       "esm": [
-        10566,
-        -2624
-       ]
-      },
       "median_gene_length_nt": 1716,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.07145,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "IS1182 family transposase",
@@ -5773,22 +4394,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 14,
       "label": "6188",
-      "map_position": {
-       "bacformer": [
-        -750,
-        11797
-       ],
-       "esm": [
-        3785,
-        374
-       ]
-      },
       "median_gene_length_nt": 1137,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.03151,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DUF3363 domain-containing protein",
@@ -5797,22 +4404,8 @@
       "display_name_source": "label",
       "genome_count": 13,
       "label": "6276",
-      "map_position": {
-       "bacformer": [
-        8049,
-        -21812
-       ],
-       "esm": [
-        4795,
-        14919
-       ]
-      },
       "median_gene_length_nt": 822,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.2248,
-       "esm": 0.0001233
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DNA polymerase V",
@@ -5821,22 +4414,8 @@
       "display_name_source": "label",
       "genome_count": 13,
       "label": "6384",
-      "map_position": {
-       "bacformer": [
-        -1348,
-        -15701
-       ],
-       "esm": [
-        9427,
-        9303
-       ]
-      },
       "median_gene_length_nt": 240,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.4223,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DNA repair protein",
@@ -5845,22 +4424,8 @@
       "display_name_source": "label",
       "genome_count": 12,
       "label": "6493",
-      "map_position": {
-       "bacformer": [
-        -4438,
-        6682
-       ],
-       "esm": [
-        9289,
-        -2010
-       ]
-      },
       "median_gene_length_nt": 357,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.3015,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "putative nucleotidyltransferase MJ0435",
@@ -5869,22 +4434,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 11,
       "label": "6684",
-      "map_position": {
-       "bacformer": [
-        1924,
-        17206
-       ],
-       "esm": [
-        16740,
-        -1867
-       ]
-      },
       "median_gene_length_nt": 291,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.08612,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "HEPN domain protein, putative toxin of MNT-HEPN system",
@@ -5893,22 +4444,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 11,
       "label": "6685",
-      "map_position": {
-       "bacformer": [
-        1223,
-        10209
-       ],
-       "esm": [
-        10092,
-        -6587
-       ]
-      },
       "median_gene_length_nt": 402,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.05372,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "IS6 family IS15DIV transposase",
@@ -5917,22 +4454,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 10,
       "label": "6777",
-      "map_position": {
-       "bacformer": [
-        1025,
-        19439
-       ],
-       "esm": [
-        4179,
-        -867
-       ]
-      },
       "median_gene_length_nt": 195,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1207,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Cupin",
@@ -5941,22 +4464,8 @@
       "display_name_source": "label",
       "genome_count": 10,
       "label": "6878",
-      "map_position": {
-       "bacformer": [
-        2307,
-        8007
-       ],
-       "esm": [
-        9251,
-        -4761
-       ]
-      },
       "median_gene_length_nt": 357,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.09948,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Peptidase M14",
@@ -5965,22 +4474,8 @@
       "display_name_source": "label",
       "genome_count": 9,
       "label": "7024",
-      "map_position": {
-       "bacformer": [
-        -2083,
-        -5049
-       ],
-       "esm": [
-        12627,
-        6554
-       ]
-      },
       "median_gene_length_nt": 480,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.07003,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "ArsR family transcriptional regulator",
@@ -5989,22 +4484,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 9,
       "label": "7074",
-      "map_position": {
-       "bacformer": [
-        6192,
-        13276
-       ],
-       "esm": [
-        11618,
-        -7038
-       ]
-      },
       "median_gene_length_nt": 198,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1296,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "IS91-like element ISVsa3 family transposase",
@@ -6013,22 +4494,8 @@
       "display_name_source": "label",
       "genome_count": 9,
       "label": "7140",
-      "map_position": {
-       "bacformer": [
-        -832,
-        11550
-       ],
-       "esm": [
-        6885,
-        -2637
-       ]
-      },
       "median_gene_length_nt": 1494,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.01295,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "oxacillin-hydrolyzing class D beta-lactamase OXA-9",
@@ -6037,22 +4504,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 8,
       "label": "7333",
-      "map_position": {
-       "bacformer": [
-        6581,
-        11661
-       ],
-       "esm": [
-        11857,
-        -12410
-       ]
-      },
       "median_gene_length_nt": 825,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1688,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "hypothetical protein",
@@ -6061,22 +4514,8 @@
       "display_name_source": "label",
       "genome_count": 7,
       "label": "7434",
-      "map_position": {
-       "bacformer": [
-        -477,
-        -6930
-       ],
-       "esm": [
-        12228,
-        7739
-       ]
-      },
       "median_gene_length_nt": 450,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1242,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "hypothetical protein",
@@ -6085,22 +4524,8 @@
       "display_name_source": "label",
       "genome_count": 7,
       "label": "7436",
-      "map_position": {
-       "bacformer": [
-        14381,
-        -8322
-       ],
-       "esm": [
-        12432,
-        5636
-       ]
-      },
       "median_gene_length_nt": 1503,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.4515,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "hypothetical protein",
@@ -6109,22 +4534,8 @@
       "display_name_source": "label",
       "genome_count": 7,
       "label": "7601",
-      "map_position": {
-       "bacformer": [
-        17360,
-        -15699
-       ],
-       "esm": [
-        -2266,
-        22840
-       ]
-      },
       "median_gene_length_nt": 492,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1439,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Site-specific DNA recombinase SpoIVCA/DNA invertase PinE",
@@ -6133,22 +4544,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 7,
       "label": "7602",
-      "map_position": {
-       "bacformer": [
-        -8647,
-        -3339
-       ],
-       "esm": [
-        6553,
-        -564
-       ]
-      },
       "median_gene_length_nt": 738,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.03598,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Transposase",
@@ -6157,22 +4554,8 @@
       "display_name_source": "label",
       "genome_count": 7,
       "label": "7603",
-      "map_position": {
-       "bacformer": [
-        6731,
-        -19872
-       ],
-       "esm": [
-        5007,
-        15280
-       ]
-      },
       "median_gene_length_nt": 225,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.02211,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Cloacin immunity protein",
@@ -6181,22 +4564,8 @@
       "display_name_source": "label",
       "genome_count": 7,
       "label": "7613",
-      "map_position": {
-       "bacformer": [
-        -5902,
-        -5697
-       ],
-       "esm": [
-        11558,
-        1748
-       ]
-      },
       "median_gene_length_nt": 258,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.06219,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "TnpA",
@@ -6205,22 +4574,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 6,
       "label": "7674",
-      "map_position": {
-       "bacformer": [
-        10030,
-        -18801
-       ],
-       "esm": [
-        5030,
-        15535
-       ]
-      },
       "median_gene_length_nt": 909,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1877,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Transposase-like Mu C-terminal domain-containing protein",
@@ -6229,22 +4584,8 @@
       "display_name_source": "label",
       "genome_count": 6,
       "label": "7816",
-      "map_position": {
-       "bacformer": [
-        5993,
-        52
-       ],
-       "esm": [
-        8794,
-        5083
-       ]
-      },
       "median_gene_length_nt": 441,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1609,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "AAA family ATPase",
@@ -6253,22 +4594,8 @@
       "display_name_source": "pfam_architecture",
       "genome_count": 6,
       "label": "7817",
-      "map_position": {
-       "bacformer": [
-        535,
-        4789
-       ],
-       "esm": [
-        10377,
-        3512
-       ]
-      },
       "median_gene_length_nt": 420,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.0372,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Tn3 family transposase",
@@ -6277,22 +4604,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 5,
       "label": "7964",
-      "map_position": {
-       "bacformer": [
-        -1324,
-        5414
-       ],
-       "esm": [
-        8002,
-        -4047
-       ]
-      },
       "median_gene_length_nt": 1707,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1432,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "IS6 family transposase",
@@ -6301,22 +4614,8 @@
       "display_name_source": "label",
       "genome_count": 4,
       "label": "8513",
-      "map_position": {
-       "bacformer": [
-        125,
-        16209
-       ],
-       "esm": [
-        4253,
-        -696
-       ]
-      },
       "median_gene_length_nt": 462,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.08422,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Cytoplasmic protein",
@@ -6325,22 +4624,8 @@
       "display_name_source": "label",
       "genome_count": 3,
       "label": "9090",
-      "map_position": {
-       "bacformer": [
-        9064,
-        -20289
-       ],
-       "esm": [
-        5287,
-        15604
-       ]
-      },
       "median_gene_length_nt": 282,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.3562,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DUF2913 domain-containing protein",
@@ -6349,22 +4634,8 @@
       "display_name_source": "label",
       "genome_count": 3,
       "label": "9091",
-      "map_position": {
-       "bacformer": [
-        8536,
-        -20926
-       ],
-       "esm": [
-        4496,
-        14020
-       ]
-      },
       "median_gene_length_nt": 612,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.4018,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Outer membrane beta-barrel protein",
@@ -6373,22 +4644,8 @@
       "display_name_source": "label",
       "genome_count": 2,
       "label": "9940",
-      "map_position": {
-       "bacformer": [
-        17515,
-        2348
-       ],
-       "esm": [
-        12403,
-        -23353
-       ]
-      },
       "median_gene_length_nt": 747,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1449,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      }
     ],
     "offsets": [
@@ -6807,6 +5064,7 @@
       "modal_architecture": "PF03050,PF13610,PF00665",
       "modal_product": "IS6 family IS15DIV transposase",
       "modal_symbol": "tnp",
+      "named_gene_count": 61,
       "pfam_annotated_gene_count": 61,
       "rank": 0,
       "uniref50_accession": "UniRef50_C8BP00"
@@ -6817,6 +5075,7 @@
       "modal_architecture": "PF03050,PF13610,PF00665",
       "modal_product": "IS6 family IS15 transposase",
       "modal_symbol": "tnp",
+      "named_gene_count": 13,
       "pfam_annotated_gene_count": 13,
       "rank": 1,
       "uniref50_accession": "UniRef50_Q6SJ60"
@@ -6827,6 +5086,7 @@
       "modal_architecture": "PF03050,PF13610,PF00665",
       "modal_product": "IS6 family IS15DII transposase",
       "modal_symbol": "tnp",
+      "named_gene_count": 2,
       "pfam_annotated_gene_count": 2,
       "rank": 2,
       "uniref50_accession": "UniRef50_C7EZD9"
@@ -6909,7 +5169,9 @@
    "response": {
     "anchor": {
      "arrangement_ranks": [],
-     "is_anchored": false
+     "is_anchored": false,
+     "kind": null,
+     "projected_copies": []
     },
     "annotations": {
      "gene_symbol": [
@@ -7649,140 +5911,6 @@
      "gene_count": 103,
      "gene_length_interquartile_range_nt": 0,
      "genome_count": 100,
-     "geometry": {
-      "bacformer": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.4037,
-         0.3968,
-         0.3677,
-         0.3617,
-         0.36
-        ],
-        [
-         0.4037,
-         1.0,
-         0.3004,
-         0.1903,
-         0.6006,
-         0.3018
-        ],
-        [
-         0.3968,
-         0.3004,
-         1.0,
-         0.2079,
-         0.4235,
-         0.2208
-        ],
-        [
-         0.3677,
-         0.1903,
-         0.2079,
-         1.0,
-         0.1682,
-         0.3156
-        ],
-        [
-         0.3617,
-         0.6006,
-         0.4235,
-         0.1682,
-         1.0,
-         0.322
-        ],
-        [
-         0.36,
-         0.3018,
-         0.2208,
-         0.3156,
-         0.322,
-         1.0
-        ]
-       ],
-       "map_position": [
-        15719,
-        27539
-       ],
-       "nearest_locus_ordinals": [
-        690,
-        669,
-        2253,
-        689,
-        491
-       ],
-       "nearest_medoid_distance": 0.5963,
-       "separation_percentile": 0.9282822440717178,
-       "within_medoid_distance": 0.02271
-      },
-      "esm": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.9424,
-         0.9385,
-         0.9382,
-         0.9316,
-         0.9316
-        ],
-        [
-         0.9424,
-         1.0,
-         0.9607,
-         0.9959,
-         0.9722,
-         0.954
-        ],
-        [
-         0.9385,
-         0.9607,
-         1.0,
-         0.9604,
-         0.9556,
-         0.9458
-        ],
-        [
-         0.9382,
-         0.9959,
-         0.9604,
-         1.0,
-         0.9677,
-         0.956
-        ],
-        [
-         0.9316,
-         0.9722,
-         0.9556,
-         0.9677,
-         1.0,
-         0.9453
-        ],
-        [
-         0.9316,
-         0.954,
-         0.9458,
-         0.956,
-         0.9453,
-         1.0
-        ]
-       ],
-       "map_position": [
-        3102,
-        -9899
-       ],
-       "nearest_locus_ordinals": [
-        3013,
-        2515,
-        2718,
-        1478,
-        2568
-       ],
-       "nearest_medoid_distance": 0.05759,
-       "separation_percentile": 0.8702387837726183,
-       "within_medoid_distance": 0.0
-      }
-     },
      "interest_score": 3822930.0103,
      "label": "17526",
      "median_gene_length_nt": 510,
@@ -7793,6 +5921,62 @@
       "concordance_class": "single"
      },
      "prevalence_band": "core",
+     "similarity": {
+      "bacformer": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 669,
+         "cross_similarity": 0.397543,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 690,
+         "cross_similarity": 0.393168,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 2253,
+         "cross_similarity": 0.353134,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 1062,
+         "cross_similarity": 0.255091,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 1843,
+         "cross_similarity": 0.254563,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.397543,
+       "own_fraction_percentile": 0.5577129637280013,
+       "own_neighbour_fraction": 1.0,
+       "separation_percentile": 0.9413368586300918,
+       "weak_margin_percentile": 0.7108155002891845,
+       "weak_other_similarity": 0.337615,
+       "weak_own_similarity": 0.73336,
+       "within_similarity": 0.970711
+      },
+      "esm": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 3013,
+         "cross_similarity": 0.942132,
+         "rank": 1
+        }
+       ],
+       "nearest_similarity": 0.942132,
+       "own_fraction_percentile": 0.525159051474841,
+       "own_neighbour_fraction": 1.0,
+       "separation_percentile": 0.8729240684127902,
+       "weak_margin_percentile": 0.8973808146740477,
+       "weak_other_similarity": 0.939516,
+       "weak_own_similarity": 0.999248,
+       "within_similarity": 1.0
+      }
+     },
      "uniref50": {
       "coverage": 1.0,
       "family_count": 1,
@@ -7809,22 +5993,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1036",
-      "map_position": {
-       "bacformer": [
-        14972,
-        25029
-       ],
-       "esm": [
-        9003,
-        -7514
-       ]
-      },
       "median_gene_length_nt": 543,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01889,
-       "esm": 0.000566
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "Trk system potassium transporter TrkA",
@@ -7833,46 +6003,18 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "1037",
-      "map_position": {
-       "bacformer": [
-        16464,
-        27818
-       ],
-       "esm": [
-        4031,
-        -9855
-       ]
-      },
       "median_gene_length_nt": 1377,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02103,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
-      "best_product": "phenylalanine--tRNA ligase subunit alpha",
-      "catalogue_ordinal": 1478,
-      "display_name": "pheS",
+      "best_product": "redox-regulated ATPase YchF",
+      "catalogue_ordinal": 1062,
+      "display_name": "ychF",
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
-      "label": "1478",
-      "map_position": {
-       "bacformer": [
-        13942,
-        28090
-       ],
-       "esm": [
-        3175,
-        -9810
-       ]
-      },
-      "median_gene_length_nt": 984,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.0123,
-       "esm": 0.0
-      }
+      "label": "1062",
+      "median_gene_length_nt": 1092,
+      "prevalence_band": "core"
      },
      {
       "best_product": "Transposase",
@@ -7881,22 +6023,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "16908",
-      "map_position": {
-       "bacformer": [
-        8387,
-        -18839
-       ],
-       "esm": [
-        3933,
-        17133
-       ]
-      },
       "median_gene_length_nt": 144,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "IS91, transposase, truncation",
@@ -7905,22 +6033,8 @@
       "display_name_source": "label",
       "genome_count": 1,
       "label": "16909",
-      "map_position": {
-       "bacformer": [
-        11094,
-        -11949
-       ],
-       "esm": [
-        4322,
-        16374
-       ]
-      },
       "median_gene_length_nt": 147,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "type II toxin-antitoxin system toxin CcdB",
@@ -7929,22 +6043,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 73,
       "label": "17413",
-      "map_position": {
-       "bacformer": [
-        -3786,
-        10110
-       ],
-       "esm": [
-        9687,
-        -3206
-       ]
-      },
       "median_gene_length_nt": 306,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.0839,
-       "esm": 0.0003532
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "peptide deformylase",
@@ -7953,22 +6053,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "17526",
-      "map_position": {
-       "bacformer": [
-        15719,
-        27539
-       ],
-       "esm": [
-        3102,
-        -9899
-       ]
-      },
       "median_gene_length_nt": 510,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02271,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "type II toxin-antitoxin system antitoxin CcdA",
@@ -7977,22 +6063,18 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 40,
       "label": "17527",
-      "map_position": {
-       "bacformer": [
-        -4177,
-        10055
-       ],
-       "esm": [
-        5308,
-        -2928
-       ]
-      },
       "median_gene_length_nt": 219,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1805,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
+     },
+     {
+      "best_product": "DNA polymerase III subunit epsilon",
+      "catalogue_ordinal": 1843,
+      "display_name": "dnaQ",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 100,
+      "label": "1843",
+      "median_gene_length_nt": 741,
+      "prevalence_band": "core"
      },
      {
       "best_product": "3-hydroxyacyl-ACP dehydratase FabZ",
@@ -8001,94 +6083,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "2253",
-      "map_position": {
-       "bacformer": [
-        15927,
-        27656
-       ],
-       "esm": [
-        3333,
-        -9582
-       ]
-      },
       "median_gene_length_nt": 456,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02225,
-       "esm": 0.0
-      }
-     },
-     {
-      "best_product": "oligoribonuclease",
-      "catalogue_ordinal": 2515,
-      "display_name": "orn",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 100,
-      "label": "2515",
-      "map_position": {
-       "bacformer": [
-        11758,
-        25996
-       ],
-       "esm": [
-        3258,
-        -10077
-       ]
-      },
-      "median_gene_length_nt": 546,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02542,
-       "esm": 0.0
-      }
-     },
-     {
-      "best_product": "bifunctional tRNA (adenosine(37)-C2)-methyltransferase TrmG/ribosomal RNA large subunit methyltransferase RlmN",
-      "catalogue_ordinal": 2568,
-      "display_name": "rlmN",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 100,
-      "label": "2568",
-      "map_position": {
-       "bacformer": [
-        15171,
-        26479
-       ],
-       "esm": [
-        3541,
-        -9483
-       ]
-      },
-      "median_gene_length_nt": 1155,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01993,
-       "esm": 0.0
-      }
-     },
-     {
-      "best_product": "lysine--tRNA ligase",
-      "catalogue_ordinal": 2718,
-      "display_name": "lysS",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 100,
-      "label": "2718",
-      "map_position": {
-       "bacformer": [
-        11220,
-        26481
-       ],
-       "esm": [
-        3037,
-        -9979
-       ]
-      },
-      "median_gene_length_nt": 1518,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.0414,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "lysine--tRNA ligase",
@@ -8097,22 +6093,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 99,
       "label": "3013",
-      "map_position": {
-       "bacformer": [
-        11229,
-        27279
-       ],
-       "esm": [
-        2947,
-        -9908
-       ]
-      },
       "median_gene_length_nt": 1518,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02339,
-       "esm": 5.877e-05
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "class 1 integron integrase IntI1",
@@ -8121,22 +6103,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 64,
       "label": "3657",
-      "map_position": {
-       "bacformer": [
-        583,
-        16219
-       ],
-       "esm": [
-        3424,
-        703
-       ]
-      },
       "median_gene_length_nt": 1014,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1073,
-       "esm": 0.0006562
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Transposon Tn21 modulator protein",
@@ -8145,46 +6113,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 35,
       "label": "4754",
-      "map_position": {
-       "bacformer": [
-        24,
-        9210
-       ],
-       "esm": [
-        7664,
-        3720
-       ]
-      },
       "median_gene_length_nt": 201,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1382,
-       "esm": 5.96e-08
-      }
-     },
-     {
-      "best_product": "30S ribosome-binding factor RbfA",
-      "catalogue_ordinal": 491,
-      "display_name": "rbfA",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 100,
-      "label": "491",
-      "map_position": {
-       "bacformer": [
-        15377,
-        28749
-       ],
-       "esm": [
-        4713,
-        -10238
-       ]
-      },
-      "median_gene_length_nt": 402,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01973,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Transposon Tn21 resolvase",
@@ -8193,22 +6123,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 20,
       "label": "5612",
-      "map_position": {
-       "bacformer": [
-        2999,
-        19508
-       ],
-       "esm": [
-        2845,
-        -4099
-       ]
-      },
       "median_gene_length_nt": 561,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.05302,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Tn3-like element TnAs3 family transposase",
@@ -8217,22 +6133,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 19,
       "label": "5672",
-      "map_position": {
-       "bacformer": [
-        -1031,
-        5047
-       ],
-       "esm": [
-        8886,
-        -3321
-       ]
-      },
       "median_gene_length_nt": 2967,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1517,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "putative hexosyltransferase CapU",
@@ -8241,22 +6143,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 17,
       "label": "5789",
-      "map_position": {
-       "bacformer": [
-        13968,
-        6107
-       ],
-       "esm": [
-        12577,
-        -1132
-       ]
-      },
       "median_gene_length_nt": 1089,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.02312,
-       "esm": 0.0001893
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Peptidoglycan/xylan/chitin deacetylase, PgdA/NodB/CDA1 family",
@@ -8265,22 +6153,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 17,
       "label": "5837",
-      "map_position": {
-       "bacformer": [
-        13874,
-        6639
-       ],
-       "esm": [
-        10845,
-        -2504
-       ]
-      },
       "median_gene_length_nt": 822,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.02358,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "lauroyl-Kdo(2)-lipid IV(A) myristoyltransferase",
@@ -8289,22 +6163,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 15,
       "label": "6011",
-      "map_position": {
-       "bacformer": [
-        14096,
-        6814
-       ],
-       "esm": [
-        10048,
-        -4331
-       ]
-      },
       "median_gene_length_nt": 945,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.02275,
-       "esm": 8.315e-05
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "virulence factor VirK",
@@ -8313,22 +6173,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 14,
       "label": "6258",
-      "map_position": {
-       "bacformer": [
-        13584,
-        5784
-       ],
-       "esm": [
-        11863,
-        -1156
-       ]
-      },
       "median_gene_length_nt": 951,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.02734,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "shikimate dehydrogenase",
@@ -8337,22 +6183,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "668",
-      "map_position": {
-       "bacformer": [
-        14981,
-        24455
-       ],
-       "esm": [
-        6031,
-        -10623
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.03791,
-       "esm": 0.001671
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "DNA-protecting protein DprA",
@@ -8361,22 +6193,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "669",
-      "map_position": {
-       "bacformer": [
-        16189,
-        26828
-       ],
-       "esm": [
-        8336,
-        -8973
-       ]
-      },
       "median_gene_length_nt": 1125,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02488,
-       "esm": 0.0004382
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "large-conductance mechanosensitive channel protein MscL",
@@ -8385,22 +6203,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "688",
-      "map_position": {
-       "bacformer": [
-        15635,
-        29137
-       ],
-       "esm": [
-        -7414,
-        -3821
-       ]
-      },
       "median_gene_length_nt": 411,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01815,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "16S rRNA (cytosine(967)-C(5))-methyltransferase RsmB",
@@ -8409,22 +6213,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "689",
-      "map_position": {
-       "bacformer": [
-        16227,
-        26990
-       ],
-       "esm": [
-        6005,
-        -10675
-       ]
-      },
       "median_gene_length_nt": 1290,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02099,
-       "esm": 0.0001324
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "methionyl-tRNA formyltransferase",
@@ -8433,22 +6223,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "690",
-      "map_position": {
-       "bacformer": [
-        15793,
-        27623
-       ],
-       "esm": [
-        4356,
-        -11202
-       ]
-      },
       "median_gene_length_nt": 948,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01029,
-       "esm": 0.0002506
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "DUF494 domain-containing protein",
@@ -8457,22 +6233,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "691",
-      "map_position": {
-       "bacformer": [
-        14749,
-        24567
-       ],
-       "esm": [
-        6792,
-        -6250
-       ]
-      },
       "median_gene_length_nt": 474,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01841,
-       "esm": 0.0001552
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "Transposase",
@@ -8481,22 +6243,8 @@
       "display_name_source": "label",
       "genome_count": 7,
       "label": "7443",
-      "map_position": {
-       "bacformer": [
-        7316,
-        -19849
-       ],
-       "esm": [
-        5038,
-        14850
-       ]
-      },
       "median_gene_length_nt": 402,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.3731,
-       "esm": 0.0003532
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "IS91 family transposase",
@@ -8505,22 +6253,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 6,
       "label": "7651",
-      "map_position": {
-       "bacformer": [
-        3806,
-        6643
-       ],
-       "esm": [
-        8619,
-        3366
-       ]
-      },
       "median_gene_length_nt": 855,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.2844,
-       "esm": 0.008686
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DUF2282 domain-containing protein",
@@ -8529,22 +6263,8 @@
       "display_name_source": "label",
       "genome_count": 4,
       "label": "8400",
-      "map_position": {
-       "bacformer": [
-        9914,
-        20150
-       ],
-       "esm": [
-        9934,
-        -14519
-       ]
-      },
       "median_gene_length_nt": 291,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.02865,
-       "esm": 0.0005065
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "UPF0276 protein ECPG_04746",
@@ -8553,22 +6273,8 @@
       "display_name_source": "pfam_architecture",
       "genome_count": 4,
       "label": "8446",
-      "map_position": {
-       "bacformer": [
-        16721,
-        18887
-       ],
-       "esm": [
-        7420,
-        -9393
-       ]
-      },
       "median_gene_length_nt": 927,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.01383,
-       "esm": 0.0001487
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "L-threonylcarbamoyladenylate synthase type 1 TsaC",
@@ -8577,22 +6283,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "879",
-      "map_position": {
-       "bacformer": [
-        15066,
-        24684
-       ],
-       "esm": [
-        5703,
-        -10396
-       ]
-      },
       "median_gene_length_nt": 573,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.01972,
-       "esm": 0.0005807
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "alternative ribosome-rescue factor ArfA",
@@ -8601,22 +6293,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "880",
-      "map_position": {
-       "bacformer": [
-        15005,
-        29963
-       ],
-       "esm": [
-        3569,
-        18542
-       ]
-      },
       "median_gene_length_nt": 219,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.02385,
-       "esm": 0.0002134
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "DoxX",
@@ -8625,22 +6303,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 3,
       "label": "9257",
-      "map_position": {
-       "bacformer": [
-        14088,
-        14857
-       ],
-       "esm": [
-        -5759,
-        -31
-       ]
-      },
       "median_gene_length_nt": 528,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.004005,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Putative DNA-binding domain-containing protein",
@@ -8649,22 +6313,8 @@
       "display_name_source": "label",
       "genome_count": 3,
       "label": "9258",
-      "map_position": {
-       "bacformer": [
-        18232,
-        18072
-       ],
-       "esm": [
-        11093,
-        -6475
-       ]
-      },
       "median_gene_length_nt": 759,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.0049,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Ribbon-helix-helix protein, CopG family",
@@ -8673,22 +6323,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 2,
       "label": "9798",
-      "map_position": {
-       "bacformer": [
-        8554,
-        -14414
-       ],
-       "esm": [
-        6899,
-        14216
-       ]
-      },
       "median_gene_length_nt": 870,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.008035,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DUF4440 domain-containing protein",
@@ -8697,22 +6333,8 @@
       "display_name_source": "label",
       "genome_count": 2,
       "label": "9799",
-      "map_position": {
-       "bacformer": [
-        12791,
-        -3113
-       ],
-       "esm": [
-        11645,
-        7237
-       ]
-      },
       "median_gene_length_nt": 288,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.003947,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "cloud"
      }
     ],
     "offsets": [
@@ -8987,7 +6609,7 @@
       "short_name": "Pep_deformylase"
      }
     },
-    "resolved_neighbour_count": 38,
+    "resolved_neighbour_count": 35,
     "uniref50_families": [
      {
       "distinct_symbol_count": 1,
@@ -8995,6 +6617,7 @@
       "modal_architecture": "PF01327",
       "modal_product": "peptide deformylase",
       "modal_symbol": "def",
+      "named_gene_count": 103,
       "pfam_annotated_gene_count": 103,
       "rank": 0,
       "uniref50_accession": "UniRef50_Q9KVU3"
@@ -9076,7 +6699,9 @@
    "response": {
     "anchor": {
      "arrangement_ranks": [],
-     "is_anchored": false
+     "is_anchored": false,
+     "kind": null,
+     "projected_copies": []
     },
     "annotations": {
      "gene_symbol": [
@@ -10632,140 +8257,6 @@
      "gene_count": 143,
      "gene_length_interquartile_range_nt": 0,
      "genome_count": 81,
-     "geometry": {
-      "bacformer": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.9496,
-         0.9316,
-         0.9268,
-         0.9153,
-         0.8952
-        ],
-        [
-         0.9496,
-         1.0,
-         0.9196,
-         0.9164,
-         0.9439,
-         0.8786
-        ],
-        [
-         0.9316,
-         0.9196,
-         1.0,
-         0.9049,
-         0.8701,
-         0.8664
-        ],
-        [
-         0.9268,
-         0.9164,
-         0.9049,
-         1.0,
-         0.8876,
-         0.8981
-        ],
-        [
-         0.9153,
-         0.9439,
-         0.8701,
-         0.8876,
-         1.0,
-         0.8371
-        ],
-        [
-         0.8952,
-         0.8786,
-         0.8664,
-         0.8981,
-         0.8371,
-         1.0
-        ]
-       ],
-       "map_position": [
-        3920,
-        20729
-       ],
-       "nearest_locus_ordinals": [
-        5975,
-        5385,
-        12120,
-        13450,
-        14251
-       ],
-       "nearest_medoid_distance": 0.0504,
-       "separation_percentile": 0.025282987689002726,
-       "within_medoid_distance": 0.04963
-      },
-      "esm": {
-       "cosine_matrix": [
-        [
-         1.0,
-         0.999,
-         0.9986,
-         0.9984,
-         0.9964,
-         0.9952
-        ],
-        [
-         0.999,
-         1.0,
-         0.9981,
-         0.9988,
-         0.9978,
-         0.9958
-        ],
-        [
-         0.9986,
-         0.9981,
-         1.0,
-         0.9985,
-         0.9962,
-         0.9956
-        ],
-        [
-         0.9984,
-         0.9988,
-         0.9985,
-         1.0,
-         0.9959,
-         0.995
-        ],
-        [
-         0.9964,
-         0.9978,
-         0.9962,
-         0.9959,
-         1.0,
-         0.9968
-        ],
-        [
-         0.9952,
-         0.9958,
-         0.9956,
-         0.995,
-         0.9968,
-         1.0
-        ]
-       ],
-       "map_position": [
-        27198,
-        -3781
-       ],
-       "nearest_locus_ordinals": [
-        5385,
-        5975,
-        12120,
-        14225,
-        13450
-       ],
-       "nearest_medoid_distance": 0.0009605,
-       "separation_percentile": 0.0128067421300504,
-       "within_medoid_distance": 0.000779
-      }
-     },
      "interest_score": 1584310.0143,
      "label": "17315",
      "median_gene_length_nt": 477,
@@ -10776,6 +8267,82 @@
       "concordance_class": "single"
      },
      "prevalence_band": "shell",
+     "similarity": {
+      "bacformer": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 5975,
+         "cross_similarity": 0.917288,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 5385,
+         "cross_similarity": 0.911654,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 12120,
+         "cross_similarity": 0.904743,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 13450,
+         "cross_similarity": 0.893647,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 10097,
+         "cross_similarity": 0.875997,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.917288,
+       "own_fraction_percentile": 0.0917954226224903,
+       "own_neighbour_fraction": 0.951049,
+       "separation_percentile": 0.04833512352309345,
+       "weak_margin_percentile": 0.14203090142939767,
+       "weak_other_similarity": 0.742636,
+       "weak_own_similarity": 0.781933,
+       "within_similarity": 0.924221
+      },
+      "esm": {
+       "nearest_loci": [
+        {
+         "catalogue_ordinal": 12120,
+         "cross_similarity": 0.998644,
+         "rank": 1
+        },
+        {
+         "catalogue_ordinal": 5385,
+         "cross_similarity": 0.998624,
+         "rank": 2
+        },
+        {
+         "catalogue_ordinal": 5975,
+         "cross_similarity": 0.99842,
+         "rank": 3
+        },
+        {
+         "catalogue_ordinal": 14225,
+         "cross_similarity": 0.995552,
+         "rank": 4
+        },
+        {
+         "catalogue_ordinal": 13450,
+         "cross_similarity": 0.994365,
+         "rank": 5
+        }
+       ],
+       "nearest_similarity": 0.998644,
+       "own_fraction_percentile": 0.05023547880690738,
+       "own_neighbour_fraction": 0.993007,
+       "separation_percentile": 0.04180781624390647,
+       "weak_margin_percentile": 0.0715525076427332,
+       "weak_other_similarity": 0.997705,
+       "weak_own_similarity": 0.998407,
+       "within_similarity": 0.999122
+      }
+     },
      "uniref50": {
       "coverage": 1.0,
       "family_count": 2,
@@ -10786,28 +8353,24 @@
     },
     "neighbour_display_rows": [
      {
+      "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
+      "catalogue_ordinal": 10097,
+      "display_name": "radC",
+      "display_name_source": "bakta_symbol",
+      "genome_count": 2,
+      "label": "10097",
+      "median_gene_length_nt": 477,
+      "prevalence_band": "cloud"
+     },
+     {
       "best_product": "DUF987 domain-containing protein",
       "catalogue_ordinal": 10237,
       "display_name": "locus 10237",
       "display_name_source": "label",
       "genome_count": 2,
       "label": "10237",
-      "map_position": {
-       "bacformer": [
-        14140,
-        -20605
-       ],
-       "esm": [
-        4043,
-        16154
-       ]
-      },
       "median_gene_length_nt": 222,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.01352,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
@@ -10816,22 +8379,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 1,
       "label": "12120",
-      "map_position": {
-       "bacformer": [
-        4130,
-        20790
-       ],
-       "esm": [
-        27195,
-        -3782
-       ]
-      },
       "median_gene_length_nt": 477,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
@@ -10840,22 +8389,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 1,
       "label": "13450",
-      "map_position": {
-       "bacformer": [
-        4236,
-        20762
-       ],
-       "esm": [
-        27197,
-        -3781
-       ]
-      },
       "median_gene_length_nt": 477,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "DNA repair protein RadC",
@@ -10864,46 +8399,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 1,
       "label": "14225",
-      "map_position": {
-       "bacformer": [
-        4042,
-        20817
-       ],
-       "esm": [
-        27195,
-        -3782
-       ]
-      },
       "median_gene_length_nt": 477,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
-     },
-     {
-      "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
-      "catalogue_ordinal": 14251,
-      "display_name": "radC",
-      "display_name_source": "bakta_symbol",
-      "genome_count": 1,
-      "label": "14251",
-      "map_position": {
-       "bacformer": [
-        3984,
-        20757
-       ],
-       "esm": [
-        27195,
-        -3783
-       ]
-      },
-      "median_gene_length_nt": 447,
-      "prevalence_band": "rare",
-      "within_medoid_distance": {
-       "bacformer": null,
-       "esm": null
-      }
+      "prevalence_band": "rare"
      },
      {
       "best_product": "Aec71",
@@ -10912,22 +8409,8 @@
       "display_name_source": "label",
       "genome_count": 38,
       "label": "17146",
-      "map_position": {
-       "bacformer": [
-        11146,
-        -20832
-       ],
-       "esm": [
-        5270,
-        14763
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.09762,
-       "esm": 8.988e-05
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DUF905 domain-containing protein",
@@ -10936,22 +8419,8 @@
       "display_name_source": "label",
       "genome_count": 61,
       "label": "17172",
-      "map_position": {
-       "bacformer": [
-        11821,
-        -18906
-       ],
-       "esm": [
-        3819,
-        17083
-       ]
-      },
       "median_gene_length_nt": 159,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.2251,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Anti-restriction protein",
@@ -10960,22 +8429,8 @@
       "display_name_source": "label",
       "genome_count": 24,
       "label": "17221",
-      "map_position": {
-       "bacformer": [
-        11316,
-        -24416
-       ],
-       "esm": [
-        3079,
-        14348
-       ]
-      },
       "median_gene_length_nt": 480,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.04076,
-       "esm": 0.0002043
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "type IV toxin-antitoxin system toxin CbtA",
@@ -10984,22 +8439,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 28,
       "label": "17222",
-      "map_position": {
-       "bacformer": [
-        11735,
-        -22677
-       ],
-       "esm": [
-        4006,
-        14696
-       ]
-      },
       "median_gene_length_nt": 369,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.05809,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
@@ -11008,22 +8449,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 81,
       "label": "17315",
-      "map_position": {
-       "bacformer": [
-        3920,
-        20729
-       ],
-       "esm": [
-        27198,
-        -3781
-       ]
-      },
       "median_gene_length_nt": 477,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.04963,
-       "esm": 0.000779
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "putative GTPase",
@@ -11032,22 +8459,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 54,
       "label": "17320",
-      "map_position": {
-       "bacformer": [
-        -281,
-        3036
-       ],
-       "esm": [
-        12321,
-        -2873
-       ]
-      },
       "median_gene_length_nt": 873,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.09062,
-       "esm": 0.000555
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Uncharacterized protein YeeT",
@@ -11056,22 +8469,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 76,
       "label": "17390",
-      "map_position": {
-       "bacformer": [
-        13970,
-        -20487
-       ],
-       "esm": [
-        3918,
-        16439
-       ]
-      },
       "median_gene_length_nt": 222,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1871,
-       "esm": 0.0006019
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Anti-restriction protein",
@@ -11080,22 +8479,8 @@
       "display_name_source": "label",
       "genome_count": 9,
       "label": "17428",
-      "map_position": {
-       "bacformer": [
-        11328,
-        -24602
-       ],
-       "esm": [
-        3188,
-        14489
-       ]
-      },
       "median_gene_length_nt": 486,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.2326,
-       "esm": 0.001942
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Type IV toxin-antitoxin system YeeU family antitoxin",
@@ -11104,22 +8489,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 33,
       "label": "17510",
-      "map_position": {
-       "bacformer": [
-        11874,
-        -22814
-       ],
-       "esm": [
-        3961,
-        14716
-       ]
-      },
       "median_gene_length_nt": 369,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.03255,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DUF496 domain-containing protein",
@@ -11128,22 +8499,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 100,
       "label": "2709",
-      "map_position": {
-       "bacformer": [
-        -464,
-        -16923
-       ],
-       "esm": [
-        8773,
-        12822
-       ]
-      },
       "median_gene_length_nt": 330,
-      "prevalence_band": "core",
-      "within_medoid_distance": {
-       "bacformer": 0.1255,
-       "esm": 0.0
-      }
+      "prevalence_band": "core"
      },
      {
       "best_product": "Protein YeeW",
@@ -11152,22 +8509,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 67,
       "label": "3620",
-      "map_position": {
-       "bacformer": [
-        12607,
-        -21566
-       ],
-       "esm": [
-        6483,
-        15284
-       ]
-      },
       "median_gene_length_nt": 195,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.134,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "YagB/YeeU/YfjZ family protein",
@@ -11176,22 +8519,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 65,
       "label": "3650",
-      "map_position": {
-       "bacformer": [
-        11551,
-        -22469
-       ],
-       "esm": [
-        3749,
-        14594
-       ]
-      },
       "median_gene_length_nt": 369,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.2657,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DNA polymerase III subunit gamma/tau",
@@ -11200,22 +8529,8 @@
       "display_name_source": "label",
       "genome_count": 57,
       "label": "3872",
-      "map_position": {
-       "bacformer": [
-        5391,
-        -9556
-       ],
-       "esm": [
-        11114,
-        5721
-       ]
-      },
       "median_gene_length_nt": 270,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.4915,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Phage protein",
@@ -11224,22 +8539,8 @@
       "display_name_source": "label",
       "genome_count": 57,
       "label": "3882",
-      "map_position": {
-       "bacformer": [
-        5258,
-        -9635
-       ],
-       "esm": [
-        5612,
-        9730
-       ]
-      },
       "median_gene_length_nt": 411,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.2285,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Aec69",
@@ -11248,22 +8549,8 @@
       "display_name_source": "pfam_architecture",
       "genome_count": 57,
       "label": "3891",
-      "map_position": {
-       "bacformer": [
-        7063,
-        -9719
-       ],
-       "esm": [
-        5258,
-        9834
-       ]
-      },
       "median_gene_length_nt": 456,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1891,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DNA-binding protein",
@@ -11272,22 +8559,8 @@
       "display_name_source": "label",
       "genome_count": 48,
       "label": "4064",
-      "map_position": {
-       "bacformer": [
-        2527,
-        -99
-       ],
-       "esm": [
-        12581,
-        2762
-       ]
-      },
       "median_gene_length_nt": 681,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.09357,
-       "esm": 0.0004568
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "META domain-containing protein",
@@ -11296,22 +8569,8 @@
       "display_name_source": "label",
       "genome_count": 48,
       "label": "4081",
-      "map_position": {
-       "bacformer": [
-        5349,
-        -9481
-       ],
-       "esm": [
-        4851,
-        9903
-       ]
-      },
       "median_gene_length_nt": 678,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.08208,
-       "esm": 0.0001605
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "CP4-6 prophage protein",
@@ -11320,22 +8579,8 @@
       "display_name_source": "label",
       "genome_count": 48,
       "label": "4093",
-      "map_position": {
-       "bacformer": [
-        11082,
-        -21617
-       ],
-       "esm": [
-        4732,
-        14368
-       ]
-      },
       "median_gene_length_nt": 234,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1796,
-       "esm": 0.002359
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Ag43/Cah family autotransporter adhesin",
@@ -11344,22 +8589,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 46,
       "label": "4141",
-      "map_position": {
-       "bacformer": [
-        16701,
-        760
-       ],
-       "esm": [
-        14143,
-        -20795
-       ]
-      },
       "median_gene_length_nt": 2847,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1237,
-       "esm": 0.0004508
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Aec77",
@@ -11368,22 +8599,8 @@
       "display_name_source": "label",
       "genome_count": 44,
       "label": "4198",
-      "map_position": {
-       "bacformer": [
-        13146,
-        -21312
-       ],
-       "esm": [
-        3837,
-        15465
-       ]
-      },
       "median_gene_length_nt": 489,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1989,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "S-methyl-5-thioribose kinase",
@@ -11392,22 +8609,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 43,
       "label": "4230",
-      "map_position": {
-       "bacformer": [
-        19051,
-        11197
-       ],
-       "esm": [
-        8431,
-        -5070
-       ]
-      },
       "median_gene_length_nt": 1260,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1578,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Antirestriction protein",
@@ -11416,22 +8619,8 @@
       "display_name_source": "label",
       "genome_count": 43,
       "label": "4238",
-      "map_position": {
-       "bacformer": [
-        11339,
-        -24451
-       ],
-       "esm": [
-        3248,
-        14416
-       ]
-      },
       "median_gene_length_nt": 486,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1163,
-       "esm": 1.192e-07
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "hypothetical protein",
@@ -11440,22 +8629,8 @@
       "display_name_source": "label",
       "genome_count": 40,
       "label": "4347",
-      "map_position": {
-       "bacformer": [
-        12899,
-        -17820
-       ],
-       "esm": [
-        3028,
-        19162
-       ]
-      },
       "median_gene_length_nt": 114,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1362,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Cytoskeleton-binding toxin CbtA",
@@ -11464,22 +8639,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 38,
       "label": "4457",
-      "map_position": {
-       "bacformer": [
-        12711,
-        -22009
-       ],
-       "esm": [
-        3049,
-        15981
-       ]
-      },
       "median_gene_length_nt": 378,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1752,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DUF4942 domain-containing protein",
@@ -11488,22 +8649,8 @@
       "display_name_source": "label",
       "genome_count": 36,
       "label": "4570",
-      "map_position": {
-       "bacformer": [
-        13222,
-        -20511
-       ],
-       "esm": [
-        7121,
-        15730
-       ]
-      },
       "median_gene_length_nt": 843,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3548,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DUF945 domain-containing protein",
@@ -11512,22 +8659,8 @@
       "display_name_source": "label",
       "genome_count": 36,
       "label": "4573",
-      "map_position": {
-       "bacformer": [
-        11097,
-        -20928
-       ],
-       "esm": [
-        4845,
-        16364
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3847,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "CP4-44 prophage",
@@ -11536,22 +8669,8 @@
       "display_name_source": "label",
       "genome_count": 36,
       "label": "4591",
-      "map_position": {
-       "bacformer": [
-        14214,
-        -20755
-       ],
-       "esm": [
-        4211,
-        16017
-       ]
-      },
       "median_gene_length_nt": 222,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.05126,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Aec77",
@@ -11560,22 +8679,8 @@
       "display_name_source": "label",
       "genome_count": 32,
       "label": "5001",
-      "map_position": {
-       "bacformer": [
-        13150,
-        -21444
-       ],
-       "esm": [
-        3786,
-        15449
-       ]
-      },
       "median_gene_length_nt": 489,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.02925,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "UPF0401 protein c3666",
@@ -11584,22 +8689,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 32,
       "label": "5017",
-      "map_position": {
-       "bacformer": [
-        11844,
-        -18096
-       ],
-       "esm": [
-        3966,
-        18055
-       ]
-      },
       "median_gene_length_nt": 234,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.03339,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Antirestriction protein",
@@ -11608,22 +8699,8 @@
       "display_name_source": "label",
       "genome_count": 31,
       "label": "5060",
-      "map_position": {
-       "bacformer": [
-        11266,
-        -24442
-       ],
-       "esm": [
-        3380,
-        14255
-       ]
-      },
       "median_gene_length_nt": 474,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1629,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Toxin",
@@ -11632,22 +8709,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 31,
       "label": "5077",
-      "map_position": {
-       "bacformer": [
-        12957,
-        -22192
-       ],
-       "esm": [
-        3053,
-        15940
-       ]
-      },
       "median_gene_length_nt": 378,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.03683,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Antitoxin of toxin-antitoxin stability system",
@@ -11656,22 +8719,8 @@
       "display_name_source": "label",
       "genome_count": 31,
       "label": "5078",
-      "map_position": {
-       "bacformer": [
-        -5604,
-        -2258
-       ],
-       "esm": [
-        10121,
-        3143
-       ]
-      },
       "median_gene_length_nt": 645,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.01174,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "CP4-57 prophage protein",
@@ -11680,22 +8729,8 @@
       "display_name_source": "label",
       "genome_count": 30,
       "label": "5087",
-      "map_position": {
-       "bacformer": [
-        11253,
-        -20806
-       ],
-       "esm": [
-        5060,
-        16962
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1354,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Membrane protein, yeeR",
@@ -11704,22 +8739,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 29,
       "label": "5129",
-      "map_position": {
-       "bacformer": [
-        7470,
-        -7818
-       ],
-       "esm": [
-        3156,
-        8336
-       ]
-      },
       "median_gene_length_nt": 1074,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.0267,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DUF945 domain-containing protein",
@@ -11728,22 +8749,8 @@
       "display_name_source": "label",
       "genome_count": 27,
       "label": "5181",
-      "map_position": {
-       "bacformer": [
-        10996,
-        -20769
-       ],
-       "esm": [
-        5268,
-        14853
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1768,
-       "esm": 0.0001307
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Cytoskeleton-binding toxin CbtA",
@@ -11752,22 +8759,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 26,
       "label": "5220",
-      "map_position": {
-       "bacformer": [
-        12882,
-        -22252
-       ],
-       "esm": [
-        3092,
-        15749
-       ]
-      },
       "median_gene_length_nt": 264,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.04482,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Membrane protein, yeeR",
@@ -11776,22 +8769,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 24,
       "label": "5307",
-      "map_position": {
-       "bacformer": [
-        7232,
-        -8227
-       ],
-       "esm": [
-        3824,
-        8713
-       ]
-      },
       "median_gene_length_nt": 2517,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1742,
-       "esm": 0.0001745
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
@@ -11800,22 +8779,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 23,
       "label": "5385",
-      "map_position": {
-       "bacformer": [
-        3946,
-        20834
-       ],
-       "esm": [
-        27197,
-        -3782
-       ]
-      },
       "median_gene_length_nt": 477,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.01625,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "hypothetical protein",
@@ -11824,22 +8789,8 @@
       "display_name_source": "label",
       "genome_count": 21,
       "label": "5541",
-      "map_position": {
-       "bacformer": [
-        13237,
-        -18173
-       ],
-       "esm": [
-        2432,
-        19275
-       ]
-      },
       "median_gene_length_nt": 114,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1416,
-       "esm": 0.0
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "putative acylesterase/phospholipase RssA, containd patatin domain",
@@ -11848,22 +8799,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 21,
       "label": "5548",
-      "map_position": {
-       "bacformer": [
-        2730,
-        531
-       ],
-       "esm": [
-        12393,
-        2028
-       ]
-      },
       "median_gene_length_nt": 1071,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.03528,
-       "esm": 6.521e-05
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Aec71",
@@ -11872,22 +8809,8 @@
       "display_name_source": "label",
       "genome_count": 18,
       "label": "5677",
-      "map_position": {
-       "bacformer": [
-        10956,
-        -21089
-       ],
-       "esm": [
-        5176,
-        15135
-       ]
-      },
       "median_gene_length_nt": 822,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.05434,
-       "esm": 0.0006225
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Toxin",
@@ -11896,22 +8819,8 @@
       "display_name_source": "label",
       "genome_count": 18,
       "label": "5704",
-      "map_position": {
-       "bacformer": [
-        12618,
-        -22165
-       ],
-       "esm": [
-        2990,
-        16066
-       ]
-      },
       "median_gene_length_nt": 378,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1412,
-       "esm": 0.002083
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
@@ -11920,22 +8829,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 15,
       "label": "5975",
-      "map_position": {
-       "bacformer": [
-        4003,
-        20825
-       ],
-       "esm": [
-        27199,
-        -3782
-       ]
-      },
       "median_gene_length_nt": 477,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.04837,
-       "esm": 5.96e-08
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Antitoxin of the YeeV-YeeU toxin-antitoxin system",
@@ -11944,22 +8839,8 @@
       "display_name_source": "label",
       "genome_count": 15,
       "label": "6000",
-      "map_position": {
-       "bacformer": [
-        11752,
-        -22759
-       ],
-       "esm": [
-        3731,
-        14608
-       ]
-      },
       "median_gene_length_nt": 369,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.1395,
-       "esm": 0.002677
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Toxin of the CbtA-CbeA toxin-antitoxin system",
@@ -11968,22 +8849,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 15,
       "label": "6004",
-      "map_position": {
-       "bacformer": [
-        12867,
-        -21522
-       ],
-       "esm": [
-        3008,
-        16111
-       ]
-      },
       "median_gene_length_nt": 378,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.4702,
-       "esm": 0.001631
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "Aec77",
@@ -11992,22 +8859,8 @@
       "display_name_source": "label",
       "genome_count": 15,
       "label": "6013",
-      "map_position": {
-       "bacformer": [
-        13284,
-        -21127
-       ],
-       "esm": [
-        3895,
-        15542
-       ]
-      },
       "median_gene_length_nt": 489,
-      "prevalence_band": "shell",
-      "within_medoid_distance": {
-       "bacformer": 0.3955,
-       "esm": 0.0006425
-      }
+      "prevalence_band": "shell"
      },
      {
       "best_product": "CP4-44 prophage",
@@ -12016,22 +8869,8 @@
       "display_name_source": "label",
       "genome_count": 14,
       "label": "6251",
-      "map_position": {
-       "bacformer": [
-        12468,
-        -21670
-       ],
-       "esm": [
-        6308,
-        14812
-       ]
-      },
       "median_gene_length_nt": 204,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1004,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Antirestriction protein",
@@ -12040,22 +8879,8 @@
       "display_name_source": "label",
       "genome_count": 13,
       "label": "6265",
-      "map_position": {
-       "bacformer": [
-        11344,
-        -24566
-       ],
-       "esm": [
-        3141,
-        14332
-       ]
-      },
       "median_gene_length_nt": 486,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.06696,
-       "esm": 0.001676
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Antirestriction protein",
@@ -12064,22 +8889,8 @@
       "display_name_source": "label",
       "genome_count": 13,
       "label": "6393",
-      "map_position": {
-       "bacformer": [
-        12653,
-        -17871
-       ],
-       "esm": [
-        3224,
-        18815
-       ]
-      },
       "median_gene_length_nt": 183,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.2389,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "CP4-44 prophage",
@@ -12088,22 +8899,8 @@
       "display_name_source": "label",
       "genome_count": 12,
       "label": "6429",
-      "map_position": {
-       "bacformer": [
-        13623,
-        -19690
-       ],
-       "esm": [
-        3494,
-        17779
-       ]
-      },
       "median_gene_length_nt": 222,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1427,
-       "esm": 0.0004547
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Antirestriction protein",
@@ -12112,22 +8909,8 @@
       "display_name_source": "label",
       "genome_count": 12,
       "label": "6452",
-      "map_position": {
-       "bacformer": [
-        11350,
-        -24463
-       ],
-       "esm": [
-        3263,
-        14660
-       ]
-      },
       "median_gene_length_nt": 234,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1106,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "CP4-44 prophage",
@@ -12136,22 +8919,8 @@
       "display_name_source": "label",
       "genome_count": 12,
       "label": "6555",
-      "map_position": {
-       "bacformer": [
-        14367,
-        -20530
-       ],
-       "esm": [
-        3998,
-        16248
-       ]
-      },
       "median_gene_length_nt": 222,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.07531,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Toxin of the CbtA-CbeA toxin-antitoxin system",
@@ -12160,22 +8929,8 @@
       "display_name_source": "label",
       "genome_count": 11,
       "label": "6639",
-      "map_position": {
-       "bacformer": [
-        12987,
-        -22403
-       ],
-       "esm": [
-        3019,
-        15997
-       ]
-      },
       "median_gene_length_nt": 378,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1591,
-       "esm": 0.0005164
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "hypothetical protein",
@@ -12184,22 +8939,8 @@
       "display_name_source": "label",
       "genome_count": 10,
       "label": "6960",
-      "map_position": {
-       "bacformer": [
-        13081,
-        -19501
-       ],
-       "esm": [
-        903,
-        20603
-       ]
-      },
       "median_gene_length_nt": 441,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.02167,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Type IV toxin-antitoxin system YeeU family antitoxin",
@@ -12208,22 +8949,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 9,
       "label": "7135",
-      "map_position": {
-       "bacformer": [
-        11662,
-        -22944
-       ],
-       "esm": [
-        3725,
-        14664
-       ]
-      },
       "median_gene_length_nt": 381,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1295,
-       "esm": 0.0002603
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DUF945 domain-containing protein",
@@ -12232,22 +8959,8 @@
       "display_name_source": "label",
       "genome_count": 8,
       "label": "7408",
-      "map_position": {
-       "bacformer": [
-        10832,
-        -20741
-       ],
-       "esm": [
-        5065,
-        14813
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.08187,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Antirestriction protein",
@@ -12256,22 +8969,8 @@
       "display_name_source": "label",
       "genome_count": 6,
       "label": "7688",
-      "map_position": {
-       "bacformer": [
-        11303,
-        -24589
-       ],
-       "esm": [
-        3260,
-        14398
-       ]
-      },
       "median_gene_length_nt": 486,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.03951,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Aec71",
@@ -12280,22 +8979,8 @@
       "display_name_source": "label",
       "genome_count": 6,
       "label": "7693",
-      "map_position": {
-       "bacformer": [
-        10973,
-        -20935
-       ],
-       "esm": [
-        5388,
-        14554
-       ]
-      },
       "median_gene_length_nt": 819,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.03096,
-       "esm": 7.218e-05
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Membrane protein",
@@ -12304,22 +8989,8 @@
       "display_name_source": "label",
       "genome_count": 6,
       "label": "7739",
-      "map_position": {
-       "bacformer": [
-        7479,
-        -8139
-       ],
-       "esm": [
-        3517,
-        8898
-       ]
-      },
       "median_gene_length_nt": 684,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.3255,
-       "esm": 0.0003871
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Cytoskeleton-binding toxin CbtA",
@@ -12328,22 +8999,8 @@
       "display_name_source": "bakta_symbol",
       "genome_count": 6,
       "label": "7819",
-      "map_position": {
-       "bacformer": [
-        12947,
-        -22282
-       ],
-       "esm": [
-        3037,
-        16066
-       ]
-      },
       "median_gene_length_nt": 375,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1336,
-       "esm": 0.001006
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Aec77",
@@ -12352,22 +9009,8 @@
       "display_name_source": "label",
       "genome_count": 5,
       "label": "8252",
-      "map_position": {
-       "bacformer": [
-        13062,
-        -20378
-       ],
-       "esm": [
-        3934,
-        17627
-       ]
-      },
       "median_gene_length_nt": 489,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.01912,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "UPF0401 protein c3666",
@@ -12376,22 +9019,8 @@
       "display_name_source": "label",
       "genome_count": 5,
       "label": "8304",
-      "map_position": {
-       "bacformer": [
-        12971,
-        -18503
-       ],
-       "esm": [
-        1780,
-        20069
-       ]
-      },
       "median_gene_length_nt": 234,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.1321,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "DUF4942 domain-containing protein",
@@ -12400,22 +9029,8 @@
       "display_name_source": "label",
       "genome_count": 4,
       "label": "8734",
-      "map_position": {
-       "bacformer": [
-        13009,
-        -20325
-       ],
-       "esm": [
-        5821,
-        16930
-       ]
-      },
       "median_gene_length_nt": 711,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.01398,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      },
      {
       "best_product": "Antitoxin of toxin-antitoxin stability system",
@@ -12424,22 +9039,8 @@
       "display_name_source": "label",
       "genome_count": 3,
       "label": "9568",
-      "map_position": {
-       "bacformer": [
-        -5831,
-        -2358
-       ],
-       "esm": [
-        9943,
-        3073
-       ]
-      },
       "median_gene_length_nt": 543,
-      "prevalence_band": "cloud",
-      "within_medoid_distance": {
-       "bacformer": 0.005873,
-       "esm": 0.0
-      }
+      "prevalence_band": "cloud"
      }
     ],
     "offsets": [
@@ -12842,6 +9443,7 @@
       "modal_architecture": "PF04002",
       "modal_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
       "modal_symbol": "radC",
+      "named_gene_count": 134,
       "pfam_annotated_gene_count": 136,
       "rank": 0,
       "uniref50_accession": "UniRef50_P76362"
@@ -12852,6 +9454,7 @@
       "modal_architecture": "PF04002",
       "modal_product": "DNA repair protein RadC, contains a helix-hairpin-helix DNA-binding motif",
       "modal_symbol": "radC",
+      "named_gene_count": 7,
       "pfam_annotated_gene_count": 7,
       "rank": 1,
       "uniref50_accession": "UniRef50_Q664A4"
@@ -12865,8 +9468,8 @@
   "grouped_on_context_alone": [
    {
     "display_name": "ydcD",
-    "esm_nearest_medoid_distance": 0.01738,
-    "esm_within_medoid_distance": 0.0199,
+    "esm_nearest_similarity": 0.973293,
+    "esm_within_similarity": 0.980104,
     "gene_count": 32,
     "label": "4976",
     "pfam_architecture_count": 0,
@@ -12876,8 +9479,8 @@
    },
    {
     "display_name": "spaO",
-    "esm_nearest_medoid_distance": 0.007113,
-    "esm_within_medoid_distance": 0.0256,
+    "esm_nearest_similarity": 0.984875,
+    "esm_within_similarity": 0.974402,
     "gene_count": 27,
     "label": "5169",
     "pfam_architecture_count": 1,
@@ -12887,8 +9490,8 @@
    },
    {
     "display_name": "locus 5296",
-    "esm_nearest_medoid_distance": 0.00783,
-    "esm_within_medoid_distance": 0.02975,
+    "esm_nearest_similarity": 0.983327,
+    "esm_within_similarity": 0.970248,
     "gene_count": 24,
     "label": "5296",
     "pfam_architecture_count": 0,
@@ -12898,8 +9501,8 @@
    },
    {
     "display_name": "locus 5413",
-    "esm_nearest_medoid_distance": 0.009514,
-    "esm_within_medoid_distance": 0.01274,
+    "esm_nearest_similarity": 0.982301,
+    "esm_within_similarity": 0.974522,
     "gene_count": 22,
     "label": "5413",
     "pfam_architecture_count": 0,
@@ -12909,8 +9512,8 @@
    },
    {
     "display_name": "locus 5479",
-    "esm_nearest_medoid_distance": 0.009693,
-    "esm_within_medoid_distance": 0.0138,
+    "esm_nearest_similarity": 0.985026,
+    "esm_within_similarity": 0.981025,
     "gene_count": 21,
     "label": "5479",
     "pfam_architecture_count": 3,
@@ -12920,8 +9523,8 @@
    },
    {
     "display_name": "yffB",
-    "esm_nearest_medoid_distance": 0.005725,
-    "esm_within_medoid_distance": 0.007592,
+    "esm_nearest_similarity": 0.989244,
+    "esm_within_similarity": 0.989427,
     "gene_count": 20,
     "label": "5580",
     "pfam_architecture_count": 0,
@@ -12931,8 +9534,8 @@
    },
    {
     "display_name": "locus 6764",
-    "esm_nearest_medoid_distance": 0.0272,
-    "esm_within_medoid_distance": 0.02836,
+    "esm_nearest_similarity": 0.958058,
+    "esm_within_similarity": 0.943273,
     "gene_count": 10,
     "label": "6764",
     "pfam_architecture_count": 1,
@@ -12942,8 +9545,8 @@
    },
    {
     "display_name": "PrgH",
-    "esm_nearest_medoid_distance": 0.006697,
-    "esm_within_medoid_distance": 0.01111,
+    "esm_nearest_similarity": 0.984215,
+    "esm_within_similarity": 0.977782,
     "gene_count": 2,
     "label": "10252",
     "pfam_architecture_count": 1,
@@ -12953,8 +9556,8 @@
    },
    {
     "display_name": "locus 10515",
-    "esm_nearest_medoid_distance": 0.00879,
-    "esm_within_medoid_distance": 0.01124,
+    "esm_nearest_similarity": 0.988348,
+    "esm_within_similarity": 0.977522,
     "gene_count": 2,
     "label": "10515",
     "pfam_architecture_count": 0,
@@ -12964,8 +9567,8 @@
    },
    {
     "display_name": "locus 17237",
-    "esm_nearest_medoid_distance": 0.003662,
-    "esm_within_medoid_distance": 0.003662,
+    "esm_nearest_similarity": 0.995068,
+    "esm_within_similarity": 0.992676,
     "gene_count": 8,
     "label": "17237",
     "pfam_architecture_count": 1,
@@ -12977,8 +9580,8 @@
   "pfam_conflicts": [
    {
     "display_name": "yjjJ",
-    "esm_nearest_medoid_distance": 0.03046,
-    "esm_within_medoid_distance": 0.02403,
+    "esm_nearest_similarity": 0.964511,
+    "esm_within_similarity": 0.968274,
     "gene_count": 100,
     "label": "1",
     "pfam_architecture_count": 4,
@@ -12988,8 +9591,8 @@
    },
    {
     "display_name": "wzy",
-    "esm_nearest_medoid_distance": 0.02052,
-    "esm_within_medoid_distance": 0.01118,
+    "esm_nearest_similarity": 0.976433,
+    "esm_within_similarity": 0.984692,
     "gene_count": 92,
     "label": "3374",
     "pfam_architecture_count": 4,
@@ -12999,8 +9602,8 @@
    },
    {
     "display_name": "ybiA",
-    "esm_nearest_medoid_distance": 0.08347,
-    "esm_within_medoid_distance": 0.0006973,
+    "esm_nearest_similarity": 0.917738,
+    "esm_within_similarity": 0.963345,
     "gene_count": 87,
     "label": "3433",
     "pfam_architecture_count": 2,
@@ -13010,8 +9613,8 @@
    },
    {
     "display_name": "hokG",
-    "esm_nearest_medoid_distance": 0.007868,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.992132,
+    "esm_within_similarity": 1.0,
     "gene_count": 87,
     "label": "3435",
     "pfam_architecture_count": 3,
@@ -13021,8 +9624,8 @@
    },
    {
     "display_name": "locus 3976",
-    "esm_nearest_medoid_distance": 0.08148,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.918522,
+    "esm_within_similarity": 1.0,
     "gene_count": 52,
     "label": "3976",
     "pfam_architecture_count": 2,
@@ -13032,8 +9635,8 @@
    },
    {
     "display_name": "gam",
-    "esm_nearest_medoid_distance": 0.01475,
-    "esm_within_medoid_distance": 5.96e-08,
+    "esm_nearest_similarity": 0.983634,
+    "esm_within_similarity": 0.999725,
     "gene_count": 49,
     "label": "4056",
     "pfam_architecture_count": 2,
@@ -13043,8 +9646,8 @@
    },
    {
     "display_name": "locus 4064",
-    "esm_nearest_medoid_distance": 0.0228,
-    "esm_within_medoid_distance": 0.0004568,
+    "esm_nearest_similarity": 0.976432,
+    "esm_within_similarity": 0.999543,
     "gene_count": 48,
     "label": "4064",
     "pfam_architecture_count": 2,
@@ -13054,8 +9657,8 @@
    },
    {
     "display_name": "ymjC",
-    "esm_nearest_medoid_distance": 0.08525,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.914753,
+    "esm_within_similarity": 0.989964,
     "gene_count": 47,
     "label": "4105",
     "pfam_architecture_count": 2,
@@ -13065,8 +9668,8 @@
    },
    {
     "display_name": "waaU",
-    "esm_nearest_medoid_distance": 0.005076,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.994923,
+    "esm_within_similarity": 1.0,
     "gene_count": 47,
     "label": "4106",
     "pfam_architecture_count": 2,
@@ -13076,8 +9679,8 @@
    },
    {
     "display_name": "nanK2",
-    "esm_nearest_medoid_distance": 0.07199,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.928523,
+    "esm_within_similarity": 1.0,
     "gene_count": 44,
     "label": "4193",
     "pfam_architecture_count": 2,
@@ -13087,8 +9690,8 @@
    },
    {
     "display_name": "yagP",
-    "esm_nearest_medoid_distance": 0.07019,
-    "esm_within_medoid_distance": 0.0002969,
+    "esm_nearest_similarity": 0.929806,
+    "esm_within_similarity": 0.999703,
     "gene_count": 43,
     "label": "4220",
     "pfam_architecture_count": 2,
@@ -13098,8 +9701,8 @@
    },
    {
     "display_name": "locus 4379",
-    "esm_nearest_medoid_distance": 0.07379,
-    "esm_within_medoid_distance": 0.01462,
+    "esm_nearest_similarity": 0.900953,
+    "esm_within_similarity": 0.947066,
     "gene_count": 39,
     "label": "4379",
     "pfam_architecture_count": 4,
@@ -13109,8 +9712,8 @@
    },
    {
     "display_name": "locus 4382",
-    "esm_nearest_medoid_distance": 0.05395,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.946055,
+    "esm_within_similarity": 1.0,
     "gene_count": 39,
     "label": "4382",
     "pfam_architecture_count": 2,
@@ -13120,8 +9723,8 @@
    },
    {
     "display_name": "ylbF",
-    "esm_nearest_medoid_distance": 0.0124,
-    "esm_within_medoid_distance": 0.003361,
+    "esm_nearest_similarity": 0.985485,
+    "esm_within_similarity": 0.985463,
     "gene_count": 36,
     "label": "4567",
     "pfam_architecture_count": 2,
@@ -13131,8 +9734,8 @@
    },
    {
     "display_name": "locus 4568",
-    "esm_nearest_medoid_distance": 0.03276,
-    "esm_within_medoid_distance": 0.003635,
+    "esm_nearest_similarity": 0.962042,
+    "esm_within_similarity": 0.990095,
     "gene_count": 36,
     "label": "4568",
     "pfam_architecture_count": 5,
@@ -13142,8 +9745,8 @@
    },
    {
     "display_name": "ret",
-    "esm_nearest_medoid_distance": 0.03185,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.968155,
+    "esm_within_similarity": 1.0,
     "gene_count": 36,
     "label": "4571",
     "pfam_architecture_count": 2,
@@ -13153,8 +9756,8 @@
    },
    {
     "display_name": "locus 4707",
-    "esm_nearest_medoid_distance": 0.04368,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.956323,
+    "esm_within_similarity": 1.0,
     "gene_count": 35,
     "label": "4707",
     "pfam_architecture_count": 2,
@@ -13164,8 +9767,8 @@
    },
    {
     "display_name": "papB",
-    "esm_nearest_medoid_distance": 0.0238,
-    "esm_within_medoid_distance": 0.007542,
+    "esm_nearest_similarity": 0.975885,
+    "esm_within_similarity": 0.97691,
     "gene_count": 32,
     "label": "4977",
     "pfam_architecture_count": 2,
@@ -13175,8 +9778,8 @@
    },
    {
     "display_name": "yagA",
-    "esm_nearest_medoid_distance": 0.01989,
-    "esm_within_medoid_distance": 0.000128,
+    "esm_nearest_similarity": 0.979991,
+    "esm_within_similarity": 0.989927,
     "gene_count": 29,
     "label": "5102",
     "pfam_architecture_count": 3,
@@ -13186,8 +9789,8 @@
    },
    {
     "display_name": "locus 5479",
-    "esm_nearest_medoid_distance": 0.009693,
-    "esm_within_medoid_distance": 0.0138,
+    "esm_nearest_similarity": 0.985026,
+    "esm_within_similarity": 0.981025,
     "gene_count": 21,
     "label": "5479",
     "pfam_architecture_count": 3,
@@ -13197,8 +9800,8 @@
    },
    {
     "display_name": "kfiD",
-    "esm_nearest_medoid_distance": 0.0297,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.970359,
+    "esm_within_similarity": 0.987173,
     "gene_count": 21,
     "label": "5492",
     "pfam_architecture_count": 2,
@@ -13208,8 +9811,8 @@
    },
    {
     "display_name": "locus 5563",
-    "esm_nearest_medoid_distance": 0.009273,
-    "esm_within_medoid_distance": 0.002666,
+    "esm_nearest_similarity": 0.984382,
+    "esm_within_similarity": 0.56996,
     "gene_count": 20,
     "label": "5563",
     "pfam_architecture_count": 2,
@@ -13219,8 +9822,8 @@
    },
    {
     "display_name": "tnp",
-    "esm_nearest_medoid_distance": 0.05164,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.947624,
+    "esm_within_similarity": 1.000001,
     "gene_count": 20,
     "label": "5573",
     "pfam_architecture_count": 3,
@@ -13230,8 +9833,8 @@
    },
    {
     "display_name": "locus 5583",
-    "esm_nearest_medoid_distance": 0.01357,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.986435,
+    "esm_within_similarity": 0.98725,
     "gene_count": 20,
     "label": "5583",
     "pfam_architecture_count": 2,
@@ -13241,8 +9844,8 @@
    },
    {
     "display_name": "locus 5616",
-    "esm_nearest_medoid_distance": 0.03545,
-    "esm_within_medoid_distance": 0.0002643,
+    "esm_nearest_similarity": 0.963806,
+    "esm_within_similarity": 0.983749,
     "gene_count": 19,
     "label": "5616",
     "pfam_architecture_count": 3,
@@ -13252,8 +9855,8 @@
    },
    {
     "display_name": "deoR",
-    "esm_nearest_medoid_distance": 0.06451,
-    "esm_within_medoid_distance": 5.96e-08,
+    "esm_nearest_similarity": 0.935493,
+    "esm_within_similarity": 0.954448,
     "gene_count": 18,
     "label": "5673",
     "pfam_architecture_count": 2,
@@ -13263,8 +9866,8 @@
    },
    {
     "display_name": "rloB",
-    "esm_nearest_medoid_distance": 0.03098,
-    "esm_within_medoid_distance": 0.02079,
+    "esm_nearest_similarity": 0.958929,
+    "esm_within_similarity": 0.977205,
     "gene_count": 17,
     "label": "5727",
     "pfam_architecture_count": 3,
@@ -13274,8 +9877,8 @@
    },
    {
     "display_name": "rfbG",
-    "esm_nearest_medoid_distance": 0.03255,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.967446,
+    "esm_within_similarity": 0.954243,
     "gene_count": 16,
     "label": "5839",
     "pfam_architecture_count": 4,
@@ -13285,8 +9888,8 @@
    },
    {
     "display_name": "locus 5841",
-    "esm_nearest_medoid_distance": 0.02001,
-    "esm_within_medoid_distance": 0.0171,
+    "esm_nearest_similarity": 0.979376,
+    "esm_within_similarity": 0.97849,
     "gene_count": 16,
     "label": "5841",
     "pfam_architecture_count": 5,
@@ -13296,8 +9899,8 @@
    },
    {
     "display_name": "locus 5849",
-    "esm_nearest_medoid_distance": 0.02874,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.971256,
+    "esm_within_similarity": 0.985428,
     "gene_count": 16,
     "label": "5849",
     "pfam_architecture_count": 2,
@@ -13307,8 +9910,8 @@
    },
    {
     "display_name": "finQ",
-    "esm_nearest_medoid_distance": 0.02328,
-    "esm_within_medoid_distance": 1.192e-07,
+    "esm_nearest_similarity": 0.976721,
+    "esm_within_similarity": 0.996246,
     "gene_count": 16,
     "label": "5858",
     "pfam_architecture_count": 2,
@@ -13318,8 +9921,8 @@
    },
    {
     "display_name": "araC",
-    "esm_nearest_medoid_distance": 0.04013,
-    "esm_within_medoid_distance": 5.96e-08,
+    "esm_nearest_similarity": 0.95881,
+    "esm_within_similarity": 0.999901,
     "gene_count": 15,
     "label": "5988",
     "pfam_architecture_count": 2,
@@ -13329,8 +9932,8 @@
    },
    {
     "display_name": "insB",
-    "esm_nearest_medoid_distance": 0.06219,
-    "esm_within_medoid_distance": 0.0003192,
+    "esm_nearest_similarity": 0.936491,
+    "esm_within_similarity": 0.999001,
     "gene_count": 14,
     "label": "6119",
     "pfam_architecture_count": 2,
@@ -13340,8 +9943,8 @@
    },
    {
     "display_name": "locus 6269",
-    "esm_nearest_medoid_distance": 0.04054,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.959464,
+    "esm_within_similarity": 1.0,
     "gene_count": 13,
     "label": "6269",
     "pfam_architecture_count": 2,
@@ -13351,8 +9954,8 @@
    },
    {
     "display_name": "locus 6418",
-    "esm_nearest_medoid_distance": 0.03048,
-    "esm_within_medoid_distance": 0.02235,
+    "esm_nearest_similarity": 0.966768,
+    "esm_within_similarity": 0.970338,
     "gene_count": 12,
     "label": "6418",
     "pfam_architecture_count": 3,
@@ -13362,8 +9965,8 @@
    },
    {
     "display_name": "mrr",
-    "esm_nearest_medoid_distance": 0.02127,
-    "esm_within_medoid_distance": 0.009322,
+    "esm_nearest_similarity": 0.971222,
+    "esm_within_similarity": 0.980684,
     "gene_count": 12,
     "label": "6449",
     "pfam_architecture_count": 2,
@@ -13373,8 +9976,8 @@
    },
    {
     "display_name": "locus 6566",
-    "esm_nearest_medoid_distance": 0.03665,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.963345,
+    "esm_within_similarity": 1.0,
     "gene_count": 11,
     "label": "6566",
     "pfam_architecture_count": 2,
@@ -13384,8 +9987,8 @@
    },
    {
     "display_name": "locus 7058",
-    "esm_nearest_medoid_distance": 0.01373,
-    "esm_within_medoid_distance": 4.19e-05,
+    "esm_nearest_similarity": 0.981228,
+    "esm_within_similarity": 0.977009,
     "gene_count": 9,
     "label": "7058",
     "pfam_architecture_count": 3,
@@ -13395,8 +9998,8 @@
    },
    {
     "display_name": "aMBF1",
-    "esm_nearest_medoid_distance": 0.01939,
-    "esm_within_medoid_distance": 0.006257,
+    "esm_nearest_similarity": 0.98107,
+    "esm_within_similarity": 0.987485,
     "gene_count": 6,
     "label": "7778",
     "pfam_architecture_count": 3,
@@ -13406,8 +10009,8 @@
    },
    {
     "display_name": "locus 8044",
-    "esm_nearest_medoid_distance": 0.02439,
-    "esm_within_medoid_distance": 0.0,
+    "esm_nearest_similarity": 0.975611,
+    "esm_within_similarity": 0.980339,
     "gene_count": 5,
     "label": "8044",
     "pfam_architecture_count": 2,
@@ -13417,8 +10020,8 @@
    },
    {
     "display_name": "locus 9002",
-    "esm_nearest_medoid_distance": 0.0126,
-    "esm_within_medoid_distance": 1.192e-07,
+    "esm_nearest_similarity": 0.987396,
+    "esm_within_similarity": 0.982339,
     "gene_count": 3,
     "label": "9002",
     "pfam_architecture_count": 2,
@@ -13428,8 +10031,8 @@
    },
    {
     "display_name": "yeeT",
-    "esm_nearest_medoid_distance": 0.009165,
-    "esm_within_medoid_distance": 0.0002108,
+    "esm_nearest_similarity": 0.990077,
+    "esm_within_similarity": 0.988392,
     "gene_count": 11,
     "label": "17308",
     "pfam_architecture_count": 2,
@@ -13924,470 +10527,6 @@
    }
   ],
   "landing_locus": "2811",
-  "map_projections": [
-   {
-    "cosine_scale_factor": 10000,
-    "extent": [
-     -27899,
-     -32500,
-     27899,
-     32500
-    ],
-    "method": "umap-learn(cosine)",
-    "null_bin_counts": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     1,
-     1,
-     1,
-     9,
-     12,
-     46,
-     92,
-     169,
-     316,
-     664,
-     1200,
-     2149,
-     3383,
-     5091,
-     7191,
-     9295,
-     11591,
-     13696,
-     15213,
-     16072,
-     16071,
-     15318,
-     13777,
-     12397,
-     10758,
-     8943,
-     7472,
-     6086,
-     4765,
-     3754,
-     3010,
-     2349,
-     1769,
-     1366,
-     1207,
-     829,
-     700,
-     553,
-     454,
-     381,
-     300,
-     232,
-     199,
-     167,
-     145,
-     132,
-     102,
-     79,
-     72,
-     46,
-     49,
-     38,
-     38,
-     25,
-     13,
-     21,
-     19,
-     13,
-     12,
-     5,
-     12,
-     6,
-     10,
-     8,
-     11,
-     6,
-     12,
-     8,
-     7,
-     5,
-     4,
-     5,
-     2,
-     1,
-     2,
-     4,
-     4,
-     0,
-     1,
-     2,
-     2,
-     2,
-     1,
-     1,
-     2,
-     0,
-     0,
-     2,
-     0,
-     0,
-     1,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "null_bin_lower_edge": -1.0,
-    "null_bin_width": 0.010000000000000009,
-    "null_mean_cosine": 0.06510151,
-    "representation": "bacformer",
-    "requested_metric": "cosine",
-    "scatter_sprite": {
-     "alpha_per_locus": 0.55,
-     "content_digest": "77cf6767c412819950fabdba6697c480a31875c3816255e3200cbc6063060db7",
-     "dust_radius_pixels": 2.2,
-     "pixel_size": 1200,
-     "plotted_locus_count": 17531,
-     "unplotted_locus_count": 0,
-     "viewport_centre": [
-      0.0,
-      0.0
-     ],
-     "viewport_span": 67600.0
-    },
-    "separation_measurable_locus_count": 12104
-   },
-   {
-    "cosine_scale_factor": 10000,
-    "extent": [
-     -27200,
-     -32500,
-     27200,
-     32500
-    ],
-    "method": "umap-learn(cosine)",
-    "null_bin_counts": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     1,
-     2,
-     1,
-     1,
-     5,
-     2,
-     4,
-     5,
-     6,
-     3,
-     10,
-     7,
-     7,
-     15,
-     22,
-     37,
-     23,
-     30,
-     28,
-     23,
-     25,
-     47,
-     61,
-     59,
-     90,
-     57,
-     98,
-     89,
-     122,
-     124,
-     111,
-     140,
-     137,
-     137,
-     177,
-     208,
-     211,
-     202,
-     239,
-     225,
-     265,
-     258,
-     336,
-     304,
-     361,
-     380,
-     396,
-     407,
-     428,
-     444,
-     482,
-     488,
-     525,
-     563,
-     510,
-     631,
-     608,
-     645,
-     692,
-     691,
-     735,
-     779,
-     772,
-     825,
-     755,
-     869,
-     894,
-     922,
-     954,
-     1026,
-     1059,
-     1081,
-     1146,
-     1125,
-     1162,
-     1271,
-     1246,
-     1310,
-     1362,
-     1369,
-     1377,
-     1434,
-     1519,
-     1522,
-     1608,
-     1633,
-     1746,
-     1877,
-     1817,
-     1861,
-     2029,
-     2010,
-     2068,
-     2115,
-     2373,
-     2276,
-     2379,
-     2503,
-     2605,
-     2695,
-     2903,
-     2976,
-     3118,
-     3236,
-     3289,
-     3455,
-     3550,
-     3723,
-     3963,
-     4087,
-     4097,
-     4325,
-     4418,
-     4589,
-     4683,
-     4849,
-     4948,
-     4979,
-     4947,
-     4982,
-     4912,
-     4894,
-     4651,
-     4452,
-     4195,
-     3858,
-     3573,
-     3160,
-     2714,
-     2425,
-     1964,
-     1728,
-     1371,
-     1117,
-     877,
-     493,
-     157,
-     9
-    ],
-    "null_bin_lower_edge": -1.0,
-    "null_bin_width": 0.010000000000000009,
-    "null_mean_cosine": 0.64478767,
-    "representation": "esm",
-    "requested_metric": "cosine",
-    "scatter_sprite": {
-     "alpha_per_locus": 0.55,
-     "content_digest": "0fc7053492bfb6270acf3d5e1004ed476a70ff5ff4d23fda91f4c10547c92770",
-     "dust_radius_pixels": 2.2,
-     "pixel_size": 1200,
-     "plotted_locus_count": 17531,
-     "unplotted_locus_count": 0,
-     "viewport_centre": [
-      0.0,
-      0.0
-     ],
-     "viewport_span": 67600.0
-    },
-    "separation_measurable_locus_count": 12104
-   }
-  ],
   "model": {
    "exclusivity_form": "damped_exclusion",
    "key": "nuna4",
@@ -14400,7 +10539,7 @@
    "exclusivity_form": "damped_exclusion",
    "gene_count": 489146,
    "genome_count": 100,
-   "git_sha": "7f0e7ab",
+   "git_sha": "899a124",
    "locus_count": 17531,
    "omitted_sections": {
     "seqid_to_medoid": "the audit ran with --skip-seqid-to-medoid, so member-vs-medoid identity was never measured \u2014 seqid_coverage is NULL for every locus, and that is a fact about the RUN"
@@ -14458,6 +10597,28 @@
     "seed",
     "0"
    ]
+  ],
+  "similarity_baselines": [
+   {
+    "floor_median": 0.7416989207267761,
+    "floor_p25": 0.6013510823249817,
+    "floor_p75": 0.8229839205741882,
+    "floor_p99": 0.930893384218216,
+    "form": "raw",
+    "measurable_locus_count": 12104,
+    "neighbour_knn_k": 200,
+    "representation": "esm"
+   },
+   {
+    "floor_median": 0.05870269238948822,
+    "floor_p25": 0.02728018257766962,
+    "floor_p75": 0.09382157772779465,
+    "floor_p99": 0.22524143427610407,
+    "form": "raw",
+    "measurable_locus_count": 12104,
+    "neighbour_knn_k": 200,
+    "representation": "bacformer"
+   }
   ],
   "species": {
    "key": "ecoli",

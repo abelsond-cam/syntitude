@@ -224,7 +224,9 @@ describe("⛔ the residual lists — two, never one, and fetched only when opene
         grouped_on_context_alone: [
           {
             label: "4976", display_name: "ydcD", prevalence_band: "shell", gene_count: 32, uniref50_family_count: 3,
-            pfam_architecture_count: null, syntenic_a5: 0.35, esm_within_medoid_distance: 0.02, esm_nearest_medoid_distance: 0.02,
+            // ⛔ SIMILARITIES, not the distances this row used to carry: 0.98 is what the footer
+            // prints, and a surviving `1 − d` in the component would print 0.02.
+            pfam_architecture_count: null, syntenic_a5: 0.35, esm_within_similarity: 0.98, esm_nearest_similarity: 0.98,
           },
         ],
         pfam_conflicts: [],
