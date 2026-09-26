@@ -29,7 +29,7 @@ def create_application(configuration: Configuration | None = None) -> Flask:
     """Build the app. Pass a `Configuration` in tests; omit it to read the environment."""
     configuration = configuration or Configuration.from_environment()
     application = Flask(__name__)
-    application.config["SYNTITUDE"] = configuration
+    application.config["BACATLAS"] = configuration
     application.extensions["bacatlas_database"] = Database(configuration)
 
     for blueprint in BLUEPRINTS:

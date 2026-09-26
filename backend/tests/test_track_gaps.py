@@ -32,9 +32,9 @@ SAMPLE = 150
 
 @pytest.fixture(scope="module")
 def application():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — this runs against a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — this runs against a loaded database")
     create_engine(url, future=True)
     return create_application(Configuration(database_url=url))
 

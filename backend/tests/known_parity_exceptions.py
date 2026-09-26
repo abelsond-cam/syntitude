@@ -271,10 +271,11 @@ class DisplayedValueException:
 #: ⛔ **The page never printed `contig_index + 1`.** `.nseq` shipped the names in `contig_idx` order
 #: precisely so it would not have to (`genome_sequence.schema.md`, trap 1), and T6 measured the
 #: page's contig equal to the API's `seqid` on **every one of 1,021,997 genes** (both species,
-#: `SYNTITUDE_SEQUENCE_PARITY_EVERY_GENE=1`, 2026-09-18). The 28.6 % `index + 1` divergence is real in
+#: `BACATLAS_SEQUENCE_PARITY_EVERY_GENE=1`, 2026-09-18). The 28.6 % `index + 1` divergence is real in
 #: the database but was never on the page.
 #:
-#: Measured on `syntitude_dev`: `seqid == f"{sample_id}.{contig_name}"` on all 26,878 contigs, which is
+#: Measured on the dev database (`syntitude_dev` when measured, `bacatlas_dev` since 2026-09-26 —
+#: renamed in place, so the measurement stands): `seqid == f"{sample_id}.{contig_name}"` on all 26,878 contigs, which is
 #: the rule below. The API serves both fields, so this is the card's choice of which to print — a
 #: difference a reader sees, recorded here rather than absorbed, and a decision for the owner.
 CONTIG_ROW_SHOWS_NAME_NOT_SEQID = DisplayedValueException(

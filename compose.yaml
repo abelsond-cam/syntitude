@@ -9,9 +9,9 @@
 #
 # ⛔ The `.env` names are deliberately NOT the containers' own variable names. Compose lets the
 # invoking shell OVERRIDE `.env`, and the Mac development setup (backend/README.md) sets
-# `SYNTITUDE_DATABASE_URL=…@localhost…` and `SYNTITUDE_ROOT_GFF=~/…` in the shell — so a compose file
+# `BACATLAS_DATABASE_URL=…@localhost…` and `BACATLAS_ROOT_GFF=~/…` in the shell — so a compose file
 # that read those names would hand the api container a database on its own loopback and a path from
-# another machine. The container-side values are built here, from `SYNTITUDE_DB_*` and `SYNTITUDE_HOST_*`.
+# another machine. The container-side values are built here, from `BACATLAS_DB_*` and `BACATLAS_HOST_*`.
 
 name: bacatlas
 
@@ -29,16 +29,16 @@ services:
     restart: unless-stopped
     logging: *bounded-logs
     environment:
-      POSTGRES_USER: ${SYNTITUDE_DB_USER:-syntitude}
-      POSTGRES_PASSWORD: ${SYNTITUDE_DB_PASSWORD:?set SYNTITUDE_DB_PASSWORD in .env (see .env.example)}
-      POSTGRES_DB: ${SYNTITUDE_DB_NAME:-syntitude}
-      SYNTITUDE_RESTORE_JOBS: ${SYNTITUDE_RESTORE_JOBS:-4}
+      POSTGRES_USER: ${BACATLAS_DB_USER:-bacatlas}
+      POSTGRES_PASSWORD: ${BACATLAS_DB_PASSWORD:?set BACATLAS_DB_PASSWORD in .env (see .env.example)}
+      POSTGRES_DB: ${BACATLAS_DB_NAME:-bacatlas}
+      BACATLAS_RESTORE_JOBS: ${BACATLAS_RESTORE_JOBS:-4}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro
       # A DIRECTORY holding `bacatlas.dump`, not the file itself: binding a file that does not
       # exist makes Docker create a DIRECTORY of that name on the host, right where the dump goes.
-      - ${SYNTITUDE_HOST_DUMP_DIR:-./deploy/dump}:/restore:ro
+      - ${BACATLAS_HOST_DUMP_DIR:-./deploy/dump}:/restore:ro
     # Docker's default /dev/shm is 64 MB; a parallel hash join outgrows it and fails the QUERY with
     # "could not resize shared memory segment" — a 500 on one endpoint, not a crash anyone sees.
     shm_size: 256m
@@ -48,7 +48,7 @@ services:
       #    listens on the socket ONLY, so a socket probe reports "ready" mid-restore;
       #  - no restore-failure marker (see deploy/postgres/initdb/): after a failed restore the
       #    container restarts, skips the restore, and would otherwise come up healthy and empty.
-      test: ["CMD-SHELL", "test ! -e \"$${PGDATA}/SYNTITUDE_RESTORE_FAILED\" && pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      test: ["CMD-SHELL", "test ! -e \"$${PGDATA}/BACATLAS_RESTORE_FAILED\" && pg_isready -h 127.0.0.1 -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -68,15 +68,15 @@ services:
       db:
         condition: service_healthy
     environment:
-      SYNTITUDE_DATABASE_URL: postgresql+psycopg://${SYNTITUDE_DB_USER:-syntitude}:${SYNTITUDE_DB_PASSWORD}@db:5432/${SYNTITUDE_DB_NAME:-syntitude}
-      SYNTITUDE_PROFILE: production
+      BACATLAS_DATABASE_URL: postgresql+psycopg://${BACATLAS_DB_USER:-bacatlas}:${BACATLAS_DB_PASSWORD}@db:5432/${BACATLAS_DB_NAME:-bacatlas}
+      BACATLAS_PROFILE: production
       # Set only when a GFF tree was given. Left empty, the sequence endpoint answers with its named
       # 503 ("no annotation store configured") and every other endpoint is unaffected.
-      SYNTITUDE_ROOT_GFF: ${SYNTITUDE_HOST_GFF_DIR:+/srv/bacatlas/gff}
-      WEB_CONCURRENCY: ${SYNTITUDE_API_WORKERS:-4}
+      BACATLAS_ROOT_GFF: ${BACATLAS_HOST_GFF_DIR:+/srv/bacatlas/gff}
+      WEB_CONCURRENCY: ${BACATLAS_API_WORKERS:-4}
     volumes:
       # Read-only: the service never writes, and a bind mount is the one way it could write to the host.
-      - ${SYNTITUDE_HOST_GFF_DIR:-./deploy/no_annotation_store}:/srv/bacatlas/gff:ro
+      - ${BACATLAS_HOST_GFF_DIR:-./deploy/no_annotation_store}:/srv/bacatlas/gff:ro
     healthcheck:
       # `/health` answers 503 when the database is unreachable, which `urlopen` raises on.
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=4)"]
@@ -90,8 +90,8 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_PUBLIC_BASE: ${SYNTITUDE_PUBLIC_BASE:-/}
-        VITE_API_BASE_URL: ${SYNTITUDE_API_BASE_URL:-}
+        VITE_PUBLIC_BASE: ${BACATLAS_PUBLIC_BASE:-/}
+        VITE_API_BASE_URL: ${BACATLAS_API_BASE_URL:-}
     image: bacatlas-web:local
     restart: unless-stopped
     logging: *bounded-logs
@@ -99,10 +99,10 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "${SYNTITUDE_HTTP_BIND:-127.0.0.1}:${SYNTITUDE_HTTP_PORT:-8080}:80"
+      - "${BACATLAS_HTTP_BIND:-127.0.0.1}:${BACATLAS_HTTP_PORT:-8080}:80"
     healthcheck:
       # The image records the base it was built for, so this probes the path it actually serves.
-      test: ["CMD-SHELL", "wget -q -O /dev/null \"http://127.0.0.1$${SYNTITUDE_PUBLIC_BASE}\" || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null \"http://127.0.0.1$${BACATLAS_PUBLIC_BASE}\" || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3

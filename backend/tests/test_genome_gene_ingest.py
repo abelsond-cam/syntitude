@@ -28,7 +28,7 @@ from bacatlas_backend.models.genome import Genome, GenomeAssembly, GenomeContig
 
 pandas = pytest.importorskip("pandas")
 
-DATA_ROOT = Path(os.environ.get("SYNTITUDE_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
+DATA_ROOT = Path(os.environ.get("BACATLAS_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
 MODEL_LABEL = "ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL"
 RUN_ID = "ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0"
 

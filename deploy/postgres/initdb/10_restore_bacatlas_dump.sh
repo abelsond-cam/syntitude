@@ -17,7 +17,7 @@
 set -Eeuo pipefail
 
 dump=/restore/bacatlas.dump
-failed_marker="$PGDATA/SYNTITUDE_RESTORE_FAILED"
+failed_marker="$PGDATA/BACATLAS_RESTORE_FAILED"
 
 trap 'echo "bacatlas: RESTORE FAILED — the database is incomplete. Run: docker compose down -v" >&2;
       echo "restore of $dump failed at $(date -u +%FT%TZ); docker compose down -v" > "$failed_marker"' ERR
@@ -38,7 +38,7 @@ else
   # here; every object is owned by the role that restores it instead.
   pg_restore --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
     --no-owner --no-privileges --exit-on-error \
-    --jobs "${SYNTITUDE_RESTORE_JOBS:-4}" \
+    --jobs "${BACATLAS_RESTORE_JOBS:-4}" \
     "$dump"
   # ⚠ pg_restore restores rows, not planner statistics. Until autovacuum gets round to it, every
   # query is planned against a table the planner believes is empty.

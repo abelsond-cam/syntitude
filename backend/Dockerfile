@@ -48,7 +48,7 @@ USER bacatlas
 
 EXPOSE 8000
 
-# `create_application()` with no argument reads `SYNTITUDE_*` from the environment and raises at
+# `create_application()` with no argument reads `BACATLAS_*` from the environment and raises at
 # start-up on anything missing, so a misconfigured container dies here, visibly, not on a request.
 # Workers come from `WEB_CONCURRENCY`, which gunicorn reads itself; `compose.yaml` sets it.
 # `--no-control-socket`: gunicorn 26's runtime-control socket lives in $HOME, which this user does not

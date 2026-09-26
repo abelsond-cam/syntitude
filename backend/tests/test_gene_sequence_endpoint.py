@@ -6,7 +6,7 @@ with the gene. Slicing `start - flank` unconditionally returns the *downstream* 
 renders as a perfectly plausible 100 bases of DNA. Nothing on the page could contradict it, so the
 check below goes back to the contig and reads the bases itself.
 
-⚠ These run against `SYNTITUDE_DATABASE_URL` with the catalogues loaded AND `SYNTITUDE_ROOT_GFF`
+⚠ These run against `BACATLAS_DATABASE_URL` with the catalogues loaded AND `BACATLAS_ROOT_GFF`
 pointing at the annotation store. Missing either, they skip with the reason.
 """
 
@@ -37,12 +37,12 @@ PANGENOME = 1
 
 @pytest.fixture(scope="module")
 def application():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set")
-    root = os.environ.get("SYNTITUDE_ROOT_GFF")
+        pytest.skip("BACATLAS_DATABASE_URL is not set")
+    root = os.environ.get("BACATLAS_ROOT_GFF")
     if not root:
-        pytest.skip("SYNTITUDE_ROOT_GFF is not set — the sequence endpoint reads the original GFFs")
+        pytest.skip("BACATLAS_ROOT_GFF is not set — the sequence endpoint reads the original GFFs")
     return create_application(Configuration.from_environment())
 
 
@@ -58,7 +58,7 @@ def engine(application):
 
 @pytest.fixture(scope="module")
 def gff_root(application):
-    return application.config["SYNTITUDE"].artifact_roots["gff"]
+    return application.config["BACATLAS"].artifact_roots["gff"]
 
 
 def _a_gene(session, *, strand: str):

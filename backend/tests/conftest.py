@@ -32,8 +32,8 @@ from bacatlas_backend.models.pangenome import Pangenome
 from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 PROBE_URL = os.environ.get(
-    "SYNTITUDE_PROBE_DATABASE_URL",
-    f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/syntitude_schema_probe",
+    "BACATLAS_PROBE_DATABASE_URL",
+    f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/bacatlas_schema_probe",
 )
 
 #: The ten signed offsets, `0` deliberately absent.
@@ -167,7 +167,7 @@ def make_locus(seeded, *, ordinal=0, label="0", **overrides):
 #: Where the cluster artifacts are mirrored on this machine. ⚠ Overridable, because a machine that
 #: does not have them must SKIP rather than fail — the mirror is ~150 MB of pulled files and is not
 #: a checked-in fixture.
-NUNA_DATA_ROOT = Path(os.environ.get("SYNTITUDE_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
+NUNA_DATA_ROOT = Path(os.environ.get("BACATLAS_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
 
 #: ⭐ The SITE catalogue, not the export. `data/{species}.json` in this repo is what `render_site`
 #: shipped, so it alone carries `meta.landing`, `meta.examples` and the vendored `pfam_names` —

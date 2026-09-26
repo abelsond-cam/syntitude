@@ -37,9 +37,9 @@ SPECIES = ["ecoli", "kp"]
 
 @pytest.fixture(scope="module")
 def loaded_session():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — the rebuild runs against a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — the rebuild runs against a loaded database")
     engine = create_engine(url, future=True)
     with Session(engine) as session:
         if session.execute(select(func.count()).select_from(Locus)).scalar_one() < 30_000:

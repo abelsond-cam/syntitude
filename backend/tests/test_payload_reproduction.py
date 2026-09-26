@@ -145,7 +145,7 @@ def test_the_SITE_catalogue_is_the_wrong_oracle_and_differs_in_exactly_the_known
 ):
     """⛔⛔ **The trap that costs a day if it is discovered rather than recorded.**
 
-    Both files are legitimately in use. `data/browser/…json` is the export; `syntitude/data/
+    Both files are legitimately in use. `data/browser/…json` is the export; `bacatlas/data/
     ecoli.json` is that payload after `render_page` mutated it. Diffing a rebuild against the second
     reports differences that are all correct behaviour. Pinned as a test so the difference is a
     fact rather than a comment — and so a future `render` that mutates something *else* is caught.

@@ -7,7 +7,7 @@ count does not grow with the neighbour count"*, checked by driving the locus wit
 neighbours and the one with the MOST and requiring the same count — which is scale-free, and which a
 recorded budget of "11" would not be.
 
-⚠ These run against `SYNTITUDE_DATABASE_URL` with the published catalogues loaded and PUBLISHED. A
+⚠ These run against `BACATLAS_DATABASE_URL` with the published catalogues loaded and PUBLISHED. A
 loaded-but-unpublished pangenome serves nothing, so the fixture says which of the two is missing
 rather than skipping on a bare `None`.
 """
@@ -31,9 +31,9 @@ from bacatlas_backend.services.locus_search_service import escape_like_pattern
 
 @pytest.fixture(scope="module")
 def application():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — the API tests run against a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — the API tests run against a loaded database")
     engine = create_engine(url, future=True)
     with Session(engine) as session:
         published = session.execute(
@@ -191,7 +191,7 @@ def test_rank_one_of_the_list_IS_the_nearest_similarity_the_card_prints(client):
 
 def test_a_slot_is_null_plus_a_REASON_and_never_a_bare_minus_one(client, application):
     """⛔ `occ(code)` is deleted — the packed form is where "−1 means five things" lives."""
-    with Session(create_engine(application.config["SYNTITUDE"].database_url, future=True)) as session:
+    with Session(create_engine(application.config["BACATLAS"].database_url, future=True)) as session:
         label = session.execute(
             select(Locus.node_label)
             .where(Locus.pangenome_id == 1, Locus.member_gene_count > 50)
@@ -229,7 +229,7 @@ def test_a_member_past_the_arrangement_CAP_is_not_reported_as_having_no_coordina
     and told the reader those genes had no coordinates. **15,912 E. coli genes over 2,340 loci** and
     **10,437 kp genes over 1,548**.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         label, total, size, in_arrangements = session.execute(
             select(
@@ -258,7 +258,7 @@ def test_a_member_past_the_arrangement_CAP_is_not_reported_as_having_no_coordina
 def test_the_stored_arrangement_member_total_agrees_with_the_rows_it_summarises(application):
     """⚠ A denormalised count that drifts is worse than none: it reads as measured. Checked against
     the rows for EVERY locus in both catalogues, not a sample."""
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
@@ -308,7 +308,7 @@ def test_membership_completeness_is_a_UNION_over_genomes_and_never_a_sum(applica
     locus's own genome count at 415 loci, and would call **72 loci complete that are not** — at each
     of which the page would then say "has no gene at this locus", which is false.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         # ⛔ The stored union must equal `count(DISTINCT g)` over the unnested arrays, for EVERY
         # locus in both catalogues. A denormalised count that drifts reads as a measured one.
@@ -364,7 +364,7 @@ def test_the_incomplete_loci_are_the_share_the_published_page_measured(client, a
     Reproducing a number the reference computed a different way is the strongest check available
     that the union means what the page meant by it — not a threshold this rebuild invented.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         shares = dict(
             session.execute(
@@ -438,7 +438,7 @@ def test_a_gap_is_keyed_by_its_two_LABELS_and_never_by_an_index(client):
 
 def test_an_anchored_genome_gets_its_arrangement_even_past_the_display_cap(client, application):
     """⚠ *"Otherwise the reader is told their genome sits in #37 and has no button to go back."*"""
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         label = session.execute(
             select(Locus.node_label)
@@ -492,7 +492,7 @@ def test_the_anchor_block_is_MARKED_even_when_the_arrangement_was_within_the_cap
     listed — so a client inferring "the anchored one is the extra row" marks the wrong row on the
     common case. The ranks are recomputed from the rows, and this is what pins that.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         from bacatlas_backend.models.genome import Genome
         from bacatlas_backend.models.locus_arrangement import LocusArrangement
@@ -525,7 +525,7 @@ def test_an_anchored_genome_with_no_gene_here_is_NOT_the_same_as_no_anchor(clien
     this locus"* against *"you have not anchored one"*. A client that read only the list would
     render one as the other.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         from bacatlas_backend.models.genome import Genome
         from bacatlas_backend.models.locus_arrangement import LocusArrangement
@@ -566,7 +566,7 @@ def test_every_arrangement_slot_that_NAMES_a_neighbour_resolves_to_one(client, a
     ⚠ Sampled over 120 loci rather than one: on any single ordinary locus the bug does not appear,
     which is exactly why it survived 279 tests.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         labels = (
             session.execute(

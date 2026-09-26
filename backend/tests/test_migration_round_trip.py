@@ -30,8 +30,8 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 #: Running `-m alembic` from `BACKEND_ROOT` also means `env.py` imports THIS checkout's models.
 ALEMBIC = [sys.executable, "-m", "alembic"]
 PROBE_URL = os.environ.get(
-    "SYNTITUDE_MIGRATION_DATABASE_URL",
-    f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/syntitude_migrate_probe",
+    "BACATLAS_MIGRATION_DATABASE_URL",
+    f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/bacatlas_migrate_probe",
 )
 
 pytestmark = pytest.mark.skipif(
@@ -43,7 +43,7 @@ def _alembic(*args):
     return subprocess.run(
         [*ALEMBIC, *args],
         cwd=BACKEND_ROOT,
-        env={**os.environ, "SYNTITUDE_DATABASE_URL": PROBE_URL},
+        env={**os.environ, "BACATLAS_DATABASE_URL": PROBE_URL},
         capture_output=True,
         text=True,
     )

@@ -9,7 +9,7 @@ worker must be able to import this without importing pytest's collection.
 - *Before* — `frozen_page_sequence_recorder.js`, which runs the published `app.js`'s own `seqGene`
   over the committed `.nseq` + `.loci` files and reads back what the tab DISPLAYED.
 - *After* — `load_gene_sequences` → `serialise_gene_sequence`, exactly what the endpoint returns,
-  slicing the original gzipped Bakta GFF under `SYNTITUDE_ROOT_GFF`.
+  slicing the original gzipped Bakta GFF under `BACATLAS_ROOT_GFF`.
 
 **The page's display is PARSED, never re-rendered.** Formatting the API's numbers into the page's
 sentences would be a second implementation of the page, and the one thing a parity suite must not

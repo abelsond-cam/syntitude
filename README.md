@@ -55,21 +55,21 @@ one host, from `compose.yaml`:
 It needs Docker Engine 25+ with the Compose v2 plugin, and nothing else: no Python, no Node, no `nuna`.
 
 ```bash
-cp .env.example .env               # then set SYNTITUDE_DB_PASSWORD (openssl rand -hex 24) and the paths
+cp .env.example .env               # then set BACATLAS_DB_PASSWORD (openssl rand -hex 24) and the paths
 mkdir -p deploy/dump               # the dump goes here, named bacatlas.dump — see below
 docker compose up -d --wait        # builds, restores, and returns once all three are healthy
 curl -s localhost:8080/api/v1/health
 ```
 
 Every setting is documented in `.env.example`. ⚠ **Its names are not the containers' names**: Compose lets
-the invoking shell override `.env`, and the Mac development setup sets `SYNTITUDE_DATABASE_URL` and
-`SYNTITUDE_ROOT_GFF` in the shell for the local server — so `compose.yaml` builds those two from
-`SYNTITUDE_DB_*` and `SYNTITUDE_HOST_GFF_DIR` instead of reading them.
+the invoking shell override `.env`, and the Mac development setup sets `BACATLAS_DATABASE_URL` and
+`BACATLAS_ROOT_GFF` in the shell for the local server — so `compose.yaml` builds those two from
+`BACATLAS_DB_*` and `BACATLAS_HOST_GFF_DIR` instead of reading them.
 
 **The dump.** Taken on the machine that ran the ingest, never on the server:
 
 ```bash
-pg_dump -Fc -d syntitude_dev -f deploy/dump/bacatlas.dump    # *.dump is gitignored
+pg_dump -Fc -d bacatlas_dev -f deploy/dump/bacatlas.dump    # *.dump is gitignored
 ```
 
 **The restore drill.** One command does it and checks the result:
@@ -91,7 +91,7 @@ the drill itself, is:
 ```bash
 docker compose down -v                  # ⛔ -v deletes the database volume; that is the point
 time docker compose up -d --wait        # restore, ANALYZE, and all three healthy
-docker compose logs db | grep syntitude # the restore's own line, with its duration
+docker compose logs db | grep bacatlas # the restore's own line, with its duration
 ```
 
 ⛔ **A failed restore does not heal on restart.** The volume is no longer empty, so the next start skips the
@@ -104,10 +104,10 @@ endpoint fails until the schema exists. `docker compose run --rm api alembic upg
 empty, which is useful only for checking the plumbing.
 
 **Sequences.** The Sequence tab reads the gzipped Bakta GFFs, mounted **read-only** from
-`SYNTITUDE_HOST_GFF_DIR`. Without it the sequence endpoint answers `503` with a named reason and nothing
+`BACATLAS_HOST_GFF_DIR`. Without it the sequence endpoint answers `503` with a named reason and nothing
 else is affected. On Linux the tree must be readable by uid 10001, the api's user.
 
-**A subpath.** For `https://host/bacatlas/`, set `SYNTITUDE_PUBLIC_BASE=/bacatlas/` and rebuild
+**A subpath.** For `https://host/bacatlas/`, set `BACATLAS_PUBLIC_BASE=/bacatlas/` and rebuild
 (`docker compose up -d --build`) — the base is compiled into the bundle. The API then lives at
 `/bacatlas/api/v1`, and the institution's reverse proxy must forward `/bacatlas/` to this host **with
 the prefix intact**. Nothing in the code names a base or an origin; see `frontend/README.md`.

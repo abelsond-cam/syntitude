@@ -41,17 +41,17 @@ class Configuration:
 
     @classmethod
     def from_environment(cls) -> Configuration:
-        """Build from ``SYNTITUDE_*`` variables. Raises on anything missing or unreadable."""
+        """Build from ``BACATLAS_*`` variables. Raises on anything missing or unreadable."""
         roots: dict[str, Path] = {}
         for key in ARTIFACT_ROOT_KEYS:
-            raw = os.environ.get(f"SYNTITUDE_ROOT_{key.upper()}")
+            raw = os.environ.get(f"BACATLAS_ROOT_{key.upper()}")
             if raw:
                 roots[key] = Path(raw).expanduser()
         return cls(
-            database_url=_require("SYNTITUDE_DATABASE_URL"),
+            database_url=_require("BACATLAS_DATABASE_URL"),
             artifact_roots=roots,
-            deployment_profile=os.environ.get("SYNTITUDE_PROFILE", "development"),
-            sql_echo=os.environ.get("SYNTITUDE_SQL_ECHO", "").lower() in {"1", "true", "yes"},
+            deployment_profile=os.environ.get("BACATLAS_PROFILE", "development"),
+            sql_echo=os.environ.get("BACATLAS_SQL_ECHO", "").lower() in {"1", "true", "yes"},
         )
 
     def resolve_artifact(self, root_key: str, relative_path: str) -> Path:
@@ -65,6 +65,6 @@ class Configuration:
             raise KeyError(
                 f"artifact root {root_key!r} is not configured for profile "
                 f"{self.deployment_profile!r} (have: {sorted(self.artifact_roots) or 'none'}). "
-                f"Set SYNTITUDE_ROOT_{root_key.upper()}."
+                f"Set BACATLAS_ROOT_{root_key.upper()}."
             )
         return self.artifact_roots[root_key] / relative_path

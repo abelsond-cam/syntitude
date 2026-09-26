@@ -6,7 +6,7 @@ request: at the 80,000-genome design target the aggregate is over ~412 M members
 keystroke. The route's statement count is pinned in `test_route_cost.py`; what the counts MEAN is
 pinned here, and against the published page in `test_anchoring_parity.py` (T4).
 
-⚠ The endpoint tests run against `SYNTITUDE_DATABASE_URL` with both catalogues loaded, published and
+⚠ The endpoint tests run against `BACATLAS_DATABASE_URL` with both catalogues loaded, published and
 migrated to the table; the ingest tests at the bottom run on the schema probe, where a hand-built
 catalogue can put a genome at ρ > 1 on purpose.
 """
@@ -39,9 +39,9 @@ from tests.conftest import make_locus
 
 @pytest.fixture(scope="module")
 def application():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — the endpoint is tested on a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — the endpoint is tested on a loaded database")
     engine = create_engine(url, future=True)
     with Session(engine) as session:
         published = session.execute(
@@ -178,7 +178,7 @@ def test_the_per_genome_counts_are_COUNT_DISTINCT_and_add_up_to_the_locus_side(a
     is exactly "genomes this locus is in" summed over loci — `locus.member_genome_count`, written by a
     different code path from different frames. A row count would exceed it by every ρ > 1 gene.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         for pangenome_id in session.execute(
             select(PathogenSpecies.default_pangenome_id)
@@ -208,7 +208,7 @@ def test_the_stored_counts_are_the_ingest_definition_recomputed(application):
     them with `GENOME_LOCUS_COUNT_SELECT`. Recomputing the latter over the same rows must reproduce
     the former exactly, genome for genome, on both species.
     """
-    engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
+    engine = create_engine(application.config["BACATLAS"].database_url, future=True)
     with Session(engine) as session:
         examined = 0
         for pangenome_id in session.execute(

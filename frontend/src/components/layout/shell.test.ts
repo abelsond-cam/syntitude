@@ -468,9 +468,11 @@ describe("⛔ the site's own name, in every place a reader meets it", () => {
    * payload is schema 14 and the live pages are schema 9, so a re-render would publish an unverified
    * Sequence tab). This is what keeps that patch honest until the next real render.
    *
-   * ⚠ It checks the capitalised NAME only. `SYNTITUDE_*` environment variables, the `syntitude`
-   * database and the repo name are a separate, later rename, and matching them here would fail for a
-   * reason that has nothing to do with what a reader sees.
+   * ⚠ It checks the capitalised NAME only — deliberately. The environment variables, the database,
+   * the Python package and the repo name were renamed separately on 2026-09-26; matching them here
+   * would fail for a reason that has nothing to do with what a reader sees.
+   * ⛔ The needle below IS the old name. Renaming it makes this guard match every file, and the
+   * obvious fix for that — broadening the exclusion — turns the guard into a permanent no-op.
    */
   it("⭐ the OLD name survives nowhere — not in the app, not in the two published pages", () => {
     const root = resolve(process.cwd(), "..");

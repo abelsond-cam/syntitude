@@ -57,4 +57,4 @@ RUN sed "s#@PUBLIC_BASE@#${VITE_PUBLIC_BASE}#g" /etc/nginx/bacatlas.conf.templat
 COPY --from=build /srv/bacatlas/frontend/dist /usr/share/nginx/html${VITE_PUBLIC_BASE}
 
 # Read by the compose healthcheck, so it probes the path this image actually serves.
-ENV SYNTITUDE_PUBLIC_BASE=${VITE_PUBLIC_BASE}
+ENV BACATLAS_PUBLIC_BASE=${VITE_PUBLIC_BASE}

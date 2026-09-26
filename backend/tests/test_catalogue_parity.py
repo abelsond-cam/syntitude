@@ -9,7 +9,7 @@ order, same labels, non-empty. This repo's own rule, and its own scar: *a diff l
 on a missing column reports "0 differ" while silently skipping exactly the columns that changed*
 (`4ab35ca`). A suite that examined 300 of 17,531 loci must say 300, not "pass".
 
-⚠ **They read `SYNTITUDE_DATABASE_URL`, not the schema probe.** The probe database is dropped and
+⚠ **They read `BACATLAS_DATABASE_URL`, not the schema probe.** The probe database is dropped and
 recreated per module; loading a whole catalogue into it would cost ~2 minutes per run and would test
 a load this suite had just performed rather than the one of record. If the published *E. coli*
 pangenome is not loaded there, every test here SKIPS with the reason — it does not pass.
@@ -67,9 +67,9 @@ def parity(request):
     path = PUBLISHED_SITE_CATALOGUE_DIR / f"{species_key}.json"
     if not path.exists():
         pytest.skip(f"the published site catalogue is not present at {path}")
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — parity runs against the loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — parity runs against the loaded database")
 
     entry = published_catalogue(species_key)
     engine = create_engine(url, future=True)

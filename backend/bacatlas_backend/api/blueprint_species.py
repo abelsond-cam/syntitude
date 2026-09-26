@@ -549,7 +549,7 @@ def get_gene_sequence(species_key: str, sample_id: str, locus_label: str):
         if locus_id is None:
             return _not_found(f"no locus {locus_label!r} in {species_key}")
 
-        configuration = current_app.config["SYNTITUDE"]
+        configuration = current_app.config["BACATLAS"]
         try:
             gff_root = configuration.artifact_roots["gff"]
         except KeyError:
@@ -560,7 +560,7 @@ def get_gene_sequence(species_key: str, sample_id: str, locus_label: str):
                     {
                         "error": "sequence_unavailable",
                         "detail": "this server has no annotation store configured, so no sequence "
-                        "can be read (set SYNTITUDE_ROOT_GFF)",
+                        "can be read (set BACATLAS_ROOT_GFF)",
                     }
                 ),
                 503,

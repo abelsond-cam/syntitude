@@ -2,7 +2,7 @@
 
 Writes, per species, `frontend/tests/fixtures/api_responses_{species}.json`. (It also wrote the two
 catalogue sprites until the page stopped drawing them, 2026-09-22.) Run from `backend/` with
-`SYNTITUDE_DATABASE_URL` set, both catalogues loaded and published, and `SYNTITUDE_ROOT_GFF` set (the
+`BACATLAS_DATABASE_URL` set, both catalogues loaded and published, and `BACATLAS_ROOT_GFF` set (the
 sequence endpoint reads the GFFs):
 
     python scripts/dump_api_locus_fixture.py

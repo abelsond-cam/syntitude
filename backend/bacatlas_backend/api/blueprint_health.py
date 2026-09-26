@@ -25,7 +25,7 @@ def report_health():
     database = current_app.extensions["bacatlas_database"]
     report: dict[str, object] = {
         "service": "bacatlas-backend",
-        "deployment_profile": current_app.config["SYNTITUDE"].deployment_profile,
+        "deployment_profile": current_app.config["BACATLAS"].deployment_profile,
         "database_reachable": False,
         "schema_present": False,
     }

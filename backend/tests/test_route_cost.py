@@ -35,20 +35,20 @@ LOCUS_VIEW_MINIMUM = 10
 #: ⚠ A genome PROJECTED onto the ecoli catalogue, if one is loaded. The projection is an optional
 #: addition to a published catalogue, so these two tests skip rather than fail where none exists —
 #: a database without a projection is a valid database.
-PROJECTED_SAMPLE_ID = os.environ.get("SYNTITUDE_PROJECTED_SAMPLE_ID", "SAMN05374479")
+PROJECTED_SAMPLE_ID = os.environ.get("BACATLAS_PROJECTED_SAMPLE_ID", "SAMN05374479")
 
 
 @pytest.fixture(scope="module")
 def application():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — route costs are measured on a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — route costs are measured on a loaded database")
     create_engine(url, future=True)
     return create_application(
         Configuration(
             database_url=url,
-            artifact_roots={"gff": __import__("pathlib").Path(os.environ["SYNTITUDE_ROOT_GFF"])}
-            if os.environ.get("SYNTITUDE_ROOT_GFF")
+            artifact_roots={"gff": __import__("pathlib").Path(os.environ["BACATLAS_ROOT_GFF"])}
+            if os.environ.get("BACATLAS_ROOT_GFF")
             else {},
         )
     )

@@ -10,7 +10,7 @@ a Pfam architecture was truncated at 256 characters into a valid-looking differe
 pin the answers the pass established. Each one is a question the census raised and a verification
 that settled it — never a tolerance, and never a snapshot that could be re-baselined.
 
-⚠ These run against `SYNTITUDE_DATABASE_URL` with both catalogues loaded. A census over an empty
+⚠ These run against `BACATLAS_DATABASE_URL` with both catalogues loaded. A census over an empty
 table says nothing, and says so.
 """
 
@@ -34,9 +34,9 @@ from bacatlas_backend.models.pangenome import PangenomeEvaluation
 
 @pytest.fixture(scope="module")
 def loaded_session():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — the audit runs against a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — the audit runs against a loaded database")
     engine = create_engine(url, future=True)
     with Session(engine) as session:
         loci = session.execute(select(func.count()).select_from(Locus)).scalar_one()
@@ -139,7 +139,7 @@ def test_an_audit_metric_name_is_never_truncated_into_a_collision(loaded_session
 
 def test_the_git_sha_recorded_NAMES_A_NUNA_COMMIT_and_not_an_ingest_tree_one(loaded_session):
     """⛔ A live bug for the length of one commit: `_git_sha()` runs in the cwd, so the ingest wrote
-    SYNTITUDE's HEAD into a column that says *"the version of the registry this row was read from"*.
+    BacAtlas's HEAD into a column that says *"the version of the registry this row was read from"*.
     A real short sha, the right length and shape, and about the wrong repository.
 
     ⚠ **The assertion is that the sha RESOLVES in nuna, not that it equals nuna's HEAD.** The stored

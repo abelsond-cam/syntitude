@@ -26,9 +26,9 @@ SPECIES_KEYS = ("ecoli", "kp")
 
 @pytest.fixture(scope="module")
 def application():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — these run against a loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — these run against a loaded database")
     engine = create_engine(url, future=True)
     with Session(engine) as session:
         published = session.execute(

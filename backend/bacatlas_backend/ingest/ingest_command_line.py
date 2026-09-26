@@ -290,7 +290,7 @@ def build_parser() -> argparse.ArgumentParser:
     # load a table that has nothing to do with it. `main` requires them for every other stage.
     parser.add_argument("--model-label", default=None, help="the audit's --model-label")
     parser.add_argument("--run-id", default=None, help="the assignment stem")
-    parser.add_argument("--database-url", default=os.environ.get("SYNTITUDE_DATABASE_URL"))
+    parser.add_argument("--database-url", default=os.environ.get("BACATLAS_DATABASE_URL"))
     parser.add_argument("--stage", choices=("reference", "genomes", "pangenome", "projection", "all"),
                         default="all",
                         help="`reference` is the public vocabularies, global to every species and "
@@ -331,7 +331,7 @@ def main(argv: list[str] | None = None) -> int:
     """Run a load and return a shell exit code: 0 clean, 1 refusals or unreconciled, 2 misconfigured."""
     args = build_parser().parse_args(argv)
     if not args.database_url:
-        print("SYNTITUDE_DATABASE_URL is not set and --database-url was not given", file=sys.stderr)
+        print("BACATLAS_DATABASE_URL is not set and --database-url was not given", file=sys.stderr)
         return 2
 
     # ⛔ The reference stage reads no artifacts at all — the vocabularies are global — so it must

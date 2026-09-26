@@ -25,10 +25,10 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-database_url = os.environ.get("SYNTITUDE_DATABASE_URL")
+database_url = os.environ.get("BACATLAS_DATABASE_URL")
 if not database_url:
     raise RuntimeError(
-        "SYNTITUDE_DATABASE_URL is not set. Alembic refuses to guess a database it is about to "
+        "BACATLAS_DATABASE_URL is not set. Alembic refuses to guess a database it is about to "
         "alter — see bacatlas_backend/migrations/env.py."
     )
 config.set_main_option("sqlalchemy.url", database_url)

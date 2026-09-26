@@ -368,7 +368,7 @@ def test_the_only_tier_difference_from_the_frozen_page_is_the_recorded_one(ecoli
 
     from tests.known_parity_exceptions import AUDIT_TIER_RETIREMENT
 
-    data_root = Path(os.environ.get("SYNTITUDE_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
+    data_root = Path(os.environ.get("BACATLAS_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
     label = "ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL"
     waterfall = data_root / "proc" / "analysis" / "accessory_audit" / f"{label}_homology_waterfall.csv"
     if not waterfall.is_file():

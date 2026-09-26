@@ -31,7 +31,7 @@ fail() { printf '  FAIL  %s\n' "$1"; failures=$((failures + 1)); }
 # ── preflight: nothing is deleted until all of this holds ─────────────────────────────────────────
 [ -f .env ] || { echo "no .env beside compose.yaml — copy .env.example and fill it in"; exit 2; }
 set -a; . ./.env; set +a
-dump_dir="${SYNTITUDE_HOST_DUMP_DIR:-./deploy/dump}"
+dump_dir="${BACATLAS_HOST_DUMP_DIR:-./deploy/dump}"
 dump="$dump_dir/bacatlas.dump"
 [ -f "$dump" ] || { echo "no dump at $dump — refusing to delete a database it cannot replace"; exit 2; }
 command -v curl >/dev/null || { echo "curl is required"; exit 2; }
@@ -39,10 +39,10 @@ docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required"
 engine=$(docker version --format '{{.Server.Version}}' 2>/dev/null || echo 0)
 [ "${engine%%.*}" -ge 25 ] 2>/dev/null || { echo "Docker Engine 25+ is required (found $engine)"; exit 2; }
 
-base="${SYNTITUDE_PUBLIC_BASE:-/}"
-host="${SYNTITUDE_HTTP_BIND:-127.0.0.1}"
+base="${BACATLAS_PUBLIC_BASE:-/}"
+host="${BACATLAS_HTTP_BIND:-127.0.0.1}"
 [ "$host" = "0.0.0.0" ] && host=127.0.0.1
-url="http://$host:${SYNTITUDE_HTTP_PORT:-8080}${base}"
+url="http://$host:${BACATLAS_HTTP_PORT:-8080}${base}"
 api="${url}api/v1"
 
 echo "BacAtlas restore drill — $(date -u +%FT%TZ)"
@@ -109,7 +109,7 @@ for key in $species; do
   genome=$(get "$api/species/$key/genomes?limit=1" | json 'd["genomes"][0]["sample_id"]' 2>/dev/null || true)
   [ -n "$genome" ] && pass "$key: genome list answers ($genome first)" || fail "$key: genome list"
 
-  if [ -n "${SYNTITUDE_HOST_GFF_DIR:-}" ] && [ -n "$genome" ]; then
+  if [ -n "${BACATLAS_HOST_GFF_DIR:-}" ] && [ -n "$genome" ]; then
     code=$(status "$api/species/$key/genomes/$genome/loci/$landing/sequence")
     [ "$code" = "200" ] && pass "$key: sequence read from the GFF tree" \
       || fail "$key: sequence endpoint $code — is the GFF tree readable by uid 10001?"

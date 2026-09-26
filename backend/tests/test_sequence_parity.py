@@ -22,7 +22,7 @@ the API's into sentences.
   genes, most contigs whose name is not their index, the fewest contigs — three distinct on both
   species today), plus a stratified ~50 loci of every other genome with minus-strand, contig-edge
   and exact-truncation-boundary genes over-represented, and two near-core loci it LACKS.
-- ``SYNTITUDE_SEQUENCE_PARITY_EVERY_GENE=1`` (~3.5 min, 8 workers): the rendered tab for EVERY gene of
+- ``BACATLAS_SEQUENCE_PARITY_EVERY_GENE=1`` (~3.5 min, 8 workers): the rendered tab for EVERY gene of
   both catalogues, ~1.02 M.
 
 ⛔ **Coverage is asserted BEFORE any difference is reported**, by every test, through one helper —
@@ -31,7 +31,7 @@ genes on contigs whose name is not their index. `4ab35ca`: a comparison that ski
 compare reports "0 differ" while skipping exactly what changed.
 
 ⚠ Skips, with the reason, when node, the nuna checkout (`app.js`, `dom_shim.js`), the committed
-`.nseq` files, `SYNTITUDE_ROOT_GFF` or the loaded database is absent. Never passes vacuously.
+`.nseq` files, `BACATLAS_ROOT_GFF` or the loaded database is absent. Never passes vacuously.
 """
 
 from __future__ import annotations
@@ -72,13 +72,13 @@ from tests.sequence_parity_comparison import (
 SPECIES_KEYS = ("ecoli", "kp")
 
 #: ⭐ Named for what it does: render and compare the Sequence tab for every gene, not a sample.
-EVERY_GENE = os.environ.get("SYNTITUDE_SEQUENCE_PARITY_EVERY_GENE", "").lower() in {"1", "true", "yes"}
-WORKERS = int(os.environ.get("SYNTITUDE_SEQUENCE_PARITY_WORKERS", min(8, os.cpu_count() or 1)))
+EVERY_GENE = os.environ.get("BACATLAS_SEQUENCE_PARITY_EVERY_GENE", "").lower() in {"1", "true", "yes"}
+WORKERS = int(os.environ.get("BACATLAS_SEQUENCE_PARITY_WORKERS", min(8, os.cpu_count() or 1)))
 
 FROZEN_APP_JS = Path(
-    os.environ.get("SYNTITUDE_FROZEN_APP_JS", Path.home() / "developer/nuna/src/nuna/tl/locus_browser/app.js")
+    os.environ.get("BACATLAS_FROZEN_APP_JS", Path.home() / "developer/nuna/src/nuna/tl/locus_browser/app.js")
 )
-FROZEN_DOM_SHIM = Path(os.environ.get("SYNTITUDE_FROZEN_DOM_SHIM", Path.home() / "developer/nuna/tests/js/dom_shim.js"))
+FROZEN_DOM_SHIM = Path(os.environ.get("BACATLAS_FROZEN_DOM_SHIM", Path.home() / "developer/nuna/tests/js/dom_shim.js"))
 SEQUENCE_DIR = PUBLISHED_SITE_CATALOGUE_DIR / "seq"
 RECORDER = Path(__file__).with_name("frozen_page_sequence_recorder.js")
 
@@ -208,16 +208,16 @@ def species_setup(request):
     species_key = request.param
     node = shutil.which("node")
     _require(node, "node is not on PATH — the frozen page cannot be run")
-    _require(FROZEN_APP_JS.is_file(), f"the frozen page is not at {FROZEN_APP_JS} (SYNTITUDE_FROZEN_APP_JS)")
-    _require(FROZEN_DOM_SHIM.is_file(), f"nuna's DOM shim is not at {FROZEN_DOM_SHIM} (SYNTITUDE_FROZEN_DOM_SHIM)")
+    _require(FROZEN_APP_JS.is_file(), f"the frozen page is not at {FROZEN_APP_JS} (BACATLAS_FROZEN_APP_JS)")
+    _require(FROZEN_DOM_SHIM.is_file(), f"nuna's DOM shim is not at {FROZEN_DOM_SHIM} (BACATLAS_FROZEN_DOM_SHIM)")
     payload_path = PUBLISHED_SITE_CATALOGUE_DIR / f"{species_key}.json"
     _require(payload_path.is_file(), f"the published catalogue is not at {payload_path}")
     _require(SEQUENCE_DIR.is_dir(), f"the retired .nseq files are not at {SEQUENCE_DIR}")
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
-    _require(url, "SYNTITUDE_DATABASE_URL is not set — T6 runs against the loaded database")
-    gff_root = os.environ.get("SYNTITUDE_ROOT_GFF")
-    _require(gff_root, "SYNTITUDE_ROOT_GFF is not set — the API reads the original GFFs")
-    _require(Path(gff_root).is_dir(), f"SYNTITUDE_ROOT_GFF={gff_root} is not a directory")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
+    _require(url, "BACATLAS_DATABASE_URL is not set — T6 runs against the loaded database")
+    gff_root = os.environ.get("BACATLAS_ROOT_GFF")
+    _require(gff_root, "BACATLAS_ROOT_GFF is not set — the API reads the original GFFs")
+    _require(Path(gff_root).is_dir(), f"BACATLAS_ROOT_GFF={gff_root} is not a directory")
 
     payload = json.loads(payload_path.read_text())
     engine = create_engine(url, future=True)
@@ -472,8 +472,8 @@ def http_client():
     from bacatlas_backend.application_factory import create_application
     from bacatlas_backend.configuration import Configuration
 
-    if not os.environ.get("SYNTITUDE_DATABASE_URL") or not os.environ.get("SYNTITUDE_ROOT_GFF"):
-        pytest.skip("SYNTITUDE_DATABASE_URL and SYNTITUDE_ROOT_GFF are both needed for the endpoint")
+    if not os.environ.get("BACATLAS_DATABASE_URL") or not os.environ.get("BACATLAS_ROOT_GFF"):
+        pytest.skip("BACATLAS_DATABASE_URL and BACATLAS_ROOT_GFF are both needed for the endpoint")
     return create_application(Configuration.from_environment()).test_client()
 
 

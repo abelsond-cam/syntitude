@@ -5,7 +5,7 @@ under another gene's name, and **nothing downstream can see it**: every row is w
 join succeeds, and the page renders. It is caught here or not at all.
 
 ⚠ **Coverage is reported, always.** By default this walks 30 genomes (~10 s). Set
-`SYNTITUDE_FULL_COHORT=1` for all 280 (~85 s), which is what an ingest run must pass. Either way the
+`BACATLAS_FULL_COHORT=1` for all 280 (~85 s), which is what an ingest run must pass. Either way the
 test asserts the number it actually examined, because a suite that examined 30 of 280 must say 30.
 """
 
@@ -23,8 +23,8 @@ from bacatlas_backend.ingest.genome_gene_alignment import (
     flatten_to_extractor_order,
 )
 
-DATA_ROOT = Path(os.environ.get("SYNTITUDE_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
-FULL_COHORT = os.environ.get("SYNTITUDE_FULL_COHORT", "").lower() in {"1", "true", "yes"}
+DATA_ROOT = Path(os.environ.get("BACATLAS_NUNA_DATA_ROOT", "~/developer/nuna/data")).expanduser()
+FULL_COHORT = os.environ.get("BACATLAS_FULL_COHORT", "").lower() in {"1", "true", "yes"}
 SAMPLED_GENOMES = 30
 
 pandas = pytest.importorskip("pandas")

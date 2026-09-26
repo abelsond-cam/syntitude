@@ -12,13 +12,13 @@ block.
 ```bash
 brew install postgresql@16 && brew services start postgresql@16
 export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
-createdb syntitude_dev
-psql -d syntitude_dev -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+createdb bacatlas_dev
+psql -d bacatlas_dev -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 
 uv venv --python 3.13 .venv                    # from the repo root
 uv pip install --python .venv/bin/python -e backend
 
-export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
+export BACATLAS_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/bacatlas_dev"
 .venv/bin/python -m bacatlas_backend.serve --debug
 curl -s localhost:5001/api/v1/health | python3 -m json.tool
 ```
@@ -33,13 +33,13 @@ exception then rather than a 404 on one endpoint three weeks later.
 
 | variable | meaning |
 |---|---|
-| `SYNTITUDE_DATABASE_URL` | required |
-| `SYNTITUDE_PROFILE` | `development` (default) or `production` |
-| `SYNTITUDE_SQL_ECHO` | `1` to log SQL |
-| `SYNTITUDE_ROOT_GFF` | where the gzipped Bakta GFFs live — the **sequence source** |
-| `SYNTITUDE_ROOT_ASSEMBLIES` | assembly FASTAs, the fallback if a GFF carries no `##FASTA` |
-| `SYNTITUDE_ROOT_EMBEDDINGS` | ESM / Bacformer `.npy`; offline jobs only, never a request |
-| `SYNTITUDE_ROOT_ANALYSIS` | audit tables, catalogue maps, assignment TSVs |
+| `BACATLAS_DATABASE_URL` | required |
+| `BACATLAS_PROFILE` | `development` (default) or `production` |
+| `BACATLAS_SQL_ECHO` | `1` to log SQL |
+| `BACATLAS_ROOT_GFF` | where the gzipped Bakta GFFs live — the **sequence source** |
+| `BACATLAS_ROOT_ASSEMBLIES` | assembly FASTAs, the fallback if a GFF carries no `##FASTA` |
+| `BACATLAS_ROOT_EMBEDDINGS` | ESM / Bacformer `.npy`; offline jobs only, never a request |
+| `BACATLAS_ROOT_ANALYSIS` | audit tables, catalogue maps, assignment TSVs |
 
 An `artifact_pointer` row stores a root **key** plus a relative path, so moving the store is a
 config change and never a database migration.
@@ -88,7 +88,7 @@ original. The pangenome layer needs `node_order`, `oriented_windows`, `arrangeme
 second implementation of any of those is exactly what this design exists to avoid.
 
 ```bash
-export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
+export BACATLAS_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/bacatlas_dev"
 
 # ONE genome layer for both species: contigs, genes, functional labels. Model-INDEPENDENT — a new
 # pangenome must never rewrite it. ~180 s for all 280 genomes.
@@ -164,7 +164,7 @@ rather than on it — and the result still looks exactly like a scatter plot wit
 against the actual PNG bytes for precisely that.
 
 ⭐ **The parity suites need a loaded database.** `tests/test_catalogue_parity.py` (T1, T3a, T5, T7)
-reads `SYNTITUDE_DATABASE_URL` and compares every locus against the published catalogue in
+reads `BACATLAS_DATABASE_URL` and compares every locus against the published catalogue in
 `data/{species}.json`. Without that variable, or with the run not loaded, it **skips with the
 reason** rather than passing.
 
@@ -178,7 +178,7 @@ resolve against the store.
 custom 2-bit-packed format existed for one reason: GitHub Pages applies `Range` to the *compressed*
 stream, so byte offsets return plausible wrong bytes with a 206 and no error — the browser therefore
 had to fetch whole files and decode DNA itself. A server has no such constraint. It slices the file
-Bakta wrote (~5 kB out, where the page pulled 1.3 MB in), and the endpoint needs `SYNTITUDE_ROOT_GFF`.
+Bakta wrote (~5 kB out, where the page pulled 1.3 MB in), and the endpoint needs `BACATLAS_ROOT_GFF`.
 
 ⛔ **Flanks are in the GENE's reading direction, not the contig's.** On a minus-strand gene the
 upstream flank sits at HIGHER contig coordinates and is reverse-complemented with it. Slicing
@@ -192,9 +192,9 @@ a 404 is *no such genome or locus*.
 
 | variable | meaning |
 |---|---|
-| `SYNTITUDE_ROOT_GFF` | the annotation store — **required by the sequence endpoint**, which is the only one that opens a file |
-| `SYNTITUDE_NUNA_DATA_ROOT` | the local artifact mirror (default `~/developer/nuna/data`) |
-| `SYNTITUDE_FULL_COHORT=1` | run the alignment gate over all 280 genomes (~85 s) instead of 30 |
+| `BACATLAS_ROOT_GFF` | the annotation store — **required by the sequence endpoint**, which is the only one that opens a file |
+| `BACATLAS_NUNA_DATA_ROOT` | the local artifact mirror (default `~/developer/nuna/data`) |
+| `BACATLAS_FULL_COHORT=1` | run the alignment gate over all 280 genomes (~85 s) instead of 30 |
 
 The loader reports counts and then **asks the database what it holds**, because a loader that
 reports its own writes back confirms itself. A refusal names the genome and the check that caught
@@ -206,7 +206,7 @@ it, rolls that genome back, and the run continues.
 .venv/bin/python -m pytest backend/tests -q
 ```
 
-They need the `syntitude_dev` database running; override with `SYNTITUDE_TEST_DATABASE_URL`.
+They need the `bacatlas_dev` database running; override with `BACATLAS_TEST_DATABASE_URL`.
 
 ### ⚠ The `nuna` cross-check runs from nuna's venv, not this one
 

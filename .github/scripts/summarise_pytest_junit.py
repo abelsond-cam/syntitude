@@ -1,7 +1,7 @@
 """Turn a pytest JUnit report into a GitHub job summary that says what did NOT run, and why.
 
 ⛔ Most of the backend suite SKIPS in CI, by design: the parity, API and ingest suites need the fully
-loaded database (`SYNTITUDE_DATABASE_URL`), the cluster-artifact mirror, or `nuna` — a private repo —
+loaded database (`BACATLAS_DATABASE_URL`), the cluster-artifact mirror, or `nuna` — a private repo —
 and CI has none of the three. A bare green tick over that reads as "the parity suites passed in CI".
 They did not, and cannot, run there. This summary puts the skip count first and names every skipped
 module with its reason, so the tick can only be read as what it is.

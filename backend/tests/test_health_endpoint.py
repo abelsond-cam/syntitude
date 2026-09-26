@@ -6,8 +6,8 @@ from bacatlas_backend.application_factory import create_application
 from bacatlas_backend.configuration import Configuration
 
 DEV_URL = os.environ.get(
-    "SYNTITUDE_TEST_DATABASE_URL",
-    f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/syntitude_dev",
+    "BACATLAS_TEST_DATABASE_URL",
+    f"postgresql+psycopg://{os.environ.get('USER', 'postgres')}@localhost:5432/bacatlas_dev",
 )
 
 

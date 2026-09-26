@@ -7,7 +7,7 @@ catalogue the static site ships. That claim is only worth something if it is che
 export was written, reused rather than re-implemented.
 
 ⛔ **The file to diff against is the EXPORT, not the site catalogue.** ``data/browser/
-locus_browser_{set}_{label}.json`` is what :func:`build_payload` emitted. ``syntitude/data/
+locus_browser_{set}_{label}.json`` is what :func:`build_payload` emitted. ``bacatlas/data/
 {species}.json`` is that file *after* ``render_page`` mutated it: three extra blocks
 (``cog_names``, ``go_names``, ``pfam_names``) and two extra ``meta`` keys (``landing``,
 ``examples``) that ``build_payload`` never produced. Both are legitimately in use, for different

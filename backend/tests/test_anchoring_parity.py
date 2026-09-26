@@ -207,9 +207,9 @@ def parity(request, tmp_path_factory) -> AnchoringParity:
     payload = PUBLISHED_SITE_CATALOGUE_DIR / f"{species_key}.json"
     if not payload.exists():
         pytest.skip(f"the published site catalogue is not present at {payload}")
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set — T4 compares the page with the loaded database")
+        pytest.skip("BACATLAS_DATABASE_URL is not set — T4 compares the page with the loaded database")
 
     entry = published_catalogue(species_key)
     engine = create_engine(url, future=True)
@@ -447,9 +447,9 @@ def test_T4_every_anchored_arrangement_PAST_THE_CAP_is_offered_by_the_views_own_
 # ── T4.4 · the per-genome locus count ──────────────────────────────────────────────────────────
 @pytest.fixture(scope="module")
 def client():
-    url = os.environ.get("SYNTITUDE_DATABASE_URL")
+    url = os.environ.get("BACATLAS_DATABASE_URL")
     if not url:
-        pytest.skip("SYNTITUDE_DATABASE_URL is not set")
+        pytest.skip("BACATLAS_DATABASE_URL is not set")
     return create_application(Configuration(database_url=url)).test_client()
 
 

@@ -519,7 +519,7 @@ def nuna_git_sha() -> str | None:
     ⛔⛔ **`export_payload._git_sha()` cannot be reused here, and reusing it was a live bug for the
     length of one commit.** It runs `git rev-parse` with no `cwd`, which is correct where it lives
     (the exporter runs inside the nuna checkout) and wrong from here: the ingest runs in the
-    *syntitude* tree, so it returned **syntitude's** HEAD and wrote it into a column whose docstring
+    *bacatlas* tree, so it returned **bacatlas's** HEAD and wrote it into a column whose docstring
     says *"the version of the registry this row was read from"*. The value was a real short sha, the
     right length and the right shape — and about the wrong repository.
     ⚠ Anchored on `nuna.__file__` rather than on a configured path, so it follows the package that
