@@ -216,3 +216,76 @@ def test_an_IDENTICAL_roster_is_still_idempotent(session, seeded, monkeypatch, t
         session, artifacts, pathogen_species_id=seeded["species"].pathogen_species_id
     )
     assert first == again
+
+
+# ------------------------------------------------- what publishing must NOT do, and the key guard
+
+
+def test_publishing_one_catalogue_does_NOT_hide_the_other(session, seeded):
+    """⛔⛔ The defect that defeated the whole feature: publishing nuna5 deleted nuna4 from the picker.
+
+    `publish_pangenome` used to clear `is_published` on whatever the species pointer previously
+    named. That was harmless while the column had no reader and a species had one catalogue — it
+    retired a superseded GENERATION. Once `is_published` became picker visibility and the pointer's
+    previous value became a different MODEL, the same line meant "promoting nuna5 removes nuna4",
+    with nothing in any output saying so.
+
+    ⚠ Publishing ADDS. Hiding a catalogue is a separate, explicit act.
+    """
+    from syntitude_backend.ingest.publish_pangenome import publish_pangenome
+
+    seeded["pangenome"].is_published = True
+    seeded["species"].default_pangenome_id = seeded["pangenome"].pangenome_id
+    second = _second_catalogue(session, seeded)
+    session.flush()
+    assert {p.catalogue_key for p, _s, _m in list_catalogues(session)} == {"probe-nuna4", "probe-nuna5"}
+
+    publish_pangenome(session, run_id=second.run_id, force=True)
+    session.flush()
+    session.refresh(seeded["species"])
+
+    offered = {p.catalogue_key for p, _s, _m in list_catalogues(session)}
+    assert "probe-nuna5" in offered, "the newly published catalogue is offered"
+    assert "probe-nuna4" in offered, "and the comparator the picker exists to show is STILL offered"
+    assert seeded["species"].default_pangenome_id == second.pangenome_id, "the pointer still moved"
+
+
+def test_a_key_with_NO_HYPHEN_is_refused_because_the_resolver_reads_the_hyphen(session, seeded):
+    """⛔ The API tells a catalogue key from a species key by the hyphen, so a hyphenless key is
+    either unreachable or — worse — silently resolves to the species DEFAULT instead of itself.
+
+    `--catalogue-key ecoli` was accepted by the old guard, which exempted a key equal to its species.
+    """
+    with pytest.raises(Exception, match="no hyphen"):
+        catalogue_key_for("ecoli", "nuna5", "sensitive")
+    with pytest.raises(Exception, match="no hyphen"):
+        catalogue_key_for("ecoli", "nuna5", "ecoli")
+
+
+def test_an_underscore_ANYWHERE_is_refused_not_just_the_species_prefix():
+    """⛔ Prefix-freeness is STRUCTURAL, not a comparison against whatever keys exist today.
+
+    The payload glob is `locus_browser_<key>_*.json`, so key A captures key B exactly when B starts
+    with `A + "_"` — which requires an underscore inside B. Forbidding the character makes the
+    property hold for every key that will ever be added, in any order.
+
+    The earlier guard checked one key against one species key and so still admitted `ecoli-nuna5`
+    beside `ecoli-nuna5_damped`: the shorter key's glob matches the longer key's payload and, being
+    the newer export, wins.
+    """
+    with pytest.raises(Exception, match="underscore"):
+        catalogue_key_for("ecoli", "nuna5", "ecoli-nuna5_damped")
+    with pytest.raises(Exception, match="underscore"):
+        catalogue_key_for("kp", "nuna5", "ecoli_nuna5")
+
+
+def test_every_key_the_registry_can_produce_satisfies_both_rules():
+    """⚠ The default must never trip its own guard — check it against nuna's real model keys."""
+    model_keys = [
+        "nuna4", "nuna5", "nuna5damped", "nuna5logp02", "nuna5k250",
+        "nuna5contk250", "nuna5logp02cont", "nuna6", "nuna6d", "nuna5esm097", "nuna5esm096",
+    ]
+    for species in ("ecoli", "kp"):
+        for model in model_keys:
+            key = catalogue_key_for(species, model)
+            assert "-" in key and "_" not in key, key

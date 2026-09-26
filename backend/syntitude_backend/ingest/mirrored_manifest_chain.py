@@ -31,8 +31,24 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-#: The directory both trees share from, and the reason a rewrite is possible at all.
-MIRROR_PIVOT = "analysis"
+#: The directories both trees share from, and the reason a rewrite is possible at all.
+#:
+#: ⛔ **`comparison` is here because a model that misses every pivot is recorded as ONE STEP, with no
+#: warning.** `run_nuna_model.sbatch` writes to `$PROC/comparison/nuna/$MODEL/…`, while the older
+#: sweeps wrote under `analysis/…`. nuna5 — the five-step model of record — has its step manifests
+#: under `comparison`, so with `analysis` as the only pivot every parent lookup returned `None`, the
+#: chain walk stopped at the step-4 manifest, and the ingest recorded a **one-step** model whose
+#: global merge was labelled `step_ordinal 2`. `ingest_pangenome_run` raises only on an EMPTY chain;
+#: a chain of length one merely appends a note. Compare the loaded nuna4 rows, which have
+#: `chain_depth 3` and three `pangenome_step` rows.
+#:
+#: ⚠ Both names are siblings under `processed/<dataset>/`, which is exactly what the local mirror
+#: root corresponds to — so either one re-roots correctly. Add a pivot here when a new output tree
+#: appears; the alternative is a silent provenance loss, not an error.
+MIRROR_PIVOTS = ("analysis", "comparison")
+
+#: Retained as the primary pivot's name for any reader that imported it.
+MIRROR_PIVOT = MIRROR_PIVOTS[0]
 
 
 def mirror_path(remote: Path | str, processed_root: Path) -> Path | None:
@@ -40,11 +56,16 @@ def mirror_path(remote: Path | str, processed_root: Path) -> Path | None:
 
     ``None`` is not a failure — a path that is already local has nothing to rewrite. It is the
     caller's job to notice a chain that came out shorter than it should have.
+
+    ⚠ The EARLIEST pivot in the path wins, not the first in ``MIRROR_PIVOTS``: re-rooting has to cut
+    at the shared ancestor, and cutting at a later segment would silently drop directories between
+    them.
     """
     parts = Path(remote).parts
-    if MIRROR_PIVOT not in parts:
+    cuts = [parts.index(pivot) for pivot in MIRROR_PIVOTS if pivot in parts]
+    if not cuts:
         return None
-    return Path(processed_root).joinpath(*parts[parts.index(MIRROR_PIVOT) :])
+    return Path(processed_root).joinpath(*parts[min(cuts) :])
 
 
 @contextmanager

@@ -177,7 +177,12 @@ def reconcile(session: Session, report: GenomeLayerReport) -> list[str]:
 
 
 def load_pangenome_layer(
-    session: Session, artifacts: CatalogueArtifacts, *, species_key: str, catalogue_key: str | None = None
+    session: Session,
+    artifacts: CatalogueArtifacts,
+    *,
+    species_key: str,
+    catalogue_key: str | None = None,
+    collection_key: str | None = None,
 ) -> list[str]:
     """Model registry → roster → run → catalogue, in the one order the foreign keys allow.
 
@@ -201,7 +206,7 @@ def load_pangenome_layer(
     ).scalar_one()
 
     collection_id, roster = ingest_genome_collection(
-        session, artifacts, pathogen_species_id=species_id
+        session, artifacts, pathogen_species_id=species_id, collection_key=collection_key
     )
     session.flush()
 
@@ -301,6 +306,12 @@ def build_parser() -> argparse.ArgumentParser:
                              "step: a load that is not published changes nothing a reader can see")
     parser.add_argument("--species-key", default=None,
                         help="the browser key (`ecoli` | `kp`); defaults to the artifacts' own")
+    parser.add_argument("--collection-key", default=None,
+                        help="the genome roster this catalogue is built on; defaults to the "
+                             "artifacts' set key. ⛔ Two catalogues of one species SHARE a collection, "
+                             "and the membership ordinal is what arr.gid indexes into — so a model "
+                             "over a genuinely different roster needs its own key here, or the "
+                             "roster guard will refuse the load")  # fmt: skip
     parser.add_argument("--catalogue-key", default=None,
                         help="how a reader addresses THIS catalogue (`ecoli-nuna5`). Defaults to "
                              "`{species}-{model}`, which is also what nuna's exporter writes as "
@@ -387,6 +398,7 @@ def main(argv: list[str] | None = None) -> int:
                 artifacts,
                 species_key=args.species_key or artifacts.species_key,
                 catalogue_key=args.catalogue_key,
+                collection_key=args.collection_key,
             ):
                 print(line)
             session.commit()

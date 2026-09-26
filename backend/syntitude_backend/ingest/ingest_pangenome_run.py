@@ -295,15 +295,38 @@ def catalogue_key_for(species_key: str, model_key: str, override: str | None = N
     readers got wrong in one day. Refuse it here rather than write a comment asking people not to.
     """
     key = override or f"{species_key}-{model_key}"
-    if key != species_key and key.startswith(f"{species_key}_"):
-        raise PangenomeIngestError(
-            f"catalogue key {key!r} joins the species with an underscore. `{species_key}` would then "
-            f"also match this catalogue's payloads, and the newest export would win — silently "
-            f"serving one model's catalogue under another's key. Use a hyphen: "
-            f"{species_key}-{key[len(species_key) + 1:]}"
-        )
     if not key or any(c.isspace() for c in key) or "/" in key:
         raise PangenomeIngestError(f"catalogue key {key!r} is not URL-safe; it goes in a path segment.")
+
+    # ⛔ NO UNDERSCORE, ANYWHERE IN THE KEY. This is what makes prefix-freeness STRUCTURAL rather
+    # than a comparison against whatever keys happen to exist today. nuna's payload lookup globs
+    # `locus_browser_<key>_*.json`, so key A captures key B's payloads exactly when B starts with
+    # `A + "_"` — which requires an underscore inside B. Forbid the character and no key can ever be
+    # another's prefix, whatever is added later and in whatever order.
+    #
+    # ⚠ An earlier version of this guard only refused `{species_key}_…`. That checked one key against
+    # one species key, never against the SET, and so still admitted `ecoli-nuna5` beside
+    # `ecoli-nuna5_damped` — the precise silent repoint the hyphen was chosen to prevent.
+    if "_" in key:
+        raise PangenomeIngestError(
+            f"catalogue key {key!r} contains an underscore. nuna's payload lookup globs "
+            f"`locus_browser_<key>_*.json` and takes the newest match, so a key with an underscore "
+            f"can be captured by a shorter one and silently serve another model's catalogue. Use "
+            f"hyphens: {key.replace('_', '-')!r}"
+        )
+
+    # ⛔ AND IT MUST CONTAIN A HYPHEN, because that is the invariant the RESOLVER reads. `_resolve_
+    # pangenome` treats a key with a hyphen as a catalogue and one without as a species, so a
+    # hyphenless key is either unreachable (`/catalogues/sensitive` → "no species 'sensitive'") or,
+    # worse, silently resolves to the species DEFAULT instead of the catalogue that carries it
+    # (`--catalogue-key ecoli`). A guard that asserts a property the resolver depends on, without
+    # enforcing it, is the same shape as a run_id token nothing checks.
+    if "-" not in key:
+        raise PangenomeIngestError(
+            f"catalogue key {key!r} has no hyphen. The API tells a catalogue key from a species key "
+            f"by the hyphen, so this one would resolve as a species — returning the species' default "
+            f"catalogue, or nothing at all, rather than this one. Use `{species_key}-{key}`."
+        )
     return key
 
 

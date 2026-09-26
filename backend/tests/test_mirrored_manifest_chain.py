@@ -89,3 +89,52 @@ def test_a_path_that_RESOLVES_as_written_is_read_as_written(tmp_path):
 
     with manifests_resolved_against(Path("/a/mirror/that/does/not/exist")):
         assert run_manifest.read_manifest(assignments / "r.tsv") == {"run_id": "r", "rep": "esm"}
+
+
+# ------------------------------------------------ the second output tree, and the silence it caused
+
+
+def test_a_comparison_tree_path_is_mirrored_too(tmp_path):
+    """⛔ A model whose manifests miss EVERY pivot is recorded as ONE STEP, with no warning.
+
+    `run_nuna_model.sbatch` writes to `$PROC/comparison/nuna/$MODEL/…`; the older sweeps wrote under
+    `analysis/…`. nuna5 — the five-step model of record — is in the first tree, so while `analysis`
+    was the only pivot every parent lookup returned `None`, the chain walk stopped at the step-4
+    manifest, and the ingest would have recorded a one-step model with its global merge labelled
+    `step_ordinal 2`. `ingest_pangenome_run` raises only on an EMPTY chain; length one appends a note.
+    """
+    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+
+    remote = (
+        "/home/dca36/rds/rds-floto-bacterial-4k08a2yyQLw/david/nuna/processed/probe_ecoli_kleb_200"
+        "/comparison/nuna/nuna5/ecoli/step3c/assignments/run.tsv"
+    )
+    assert mirror_path(remote, tmp_path) == tmp_path / "comparison/nuna/nuna5/ecoli/step3c/assignments/run.tsv"
+
+
+def test_the_original_analysis_pivot_still_wins_where_it_applies(tmp_path):
+    """⚠ Adding a pivot must not move anything that already resolved."""
+    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+
+    remote = "/home/dca36/rds/x/nuna/processed/probe/analysis/step3b_rho_merge/assignments/run.tsv"
+    assert mirror_path(remote, tmp_path) == tmp_path / "analysis/step3b_rho_merge/assignments/run.tsv"
+
+
+def test_a_path_carrying_BOTH_pivots_is_cut_at_the_EARLIER_one(tmp_path):
+    """⛔ Re-rooting has to cut at the shared ancestor.
+
+    Cutting at whichever pivot appears first in the tuple rather than first in the PATH would drop
+    every directory between them — the mirrored file would then be looked for one or more levels too
+    shallow, `read_manifest` would miss it, and the chain would come out short again. Same silence,
+    a different cause.
+    """
+    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+
+    remote = "/home/x/processed/probe/comparison/nuna/nuna5/analysis/runs/run.tsv"
+    assert mirror_path(remote, tmp_path) == tmp_path / "comparison/nuna/nuna5/analysis/runs/run.tsv"
+
+
+def test_a_path_with_no_pivot_at_all_is_still_None(tmp_path):
+    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+
+    assert mirror_path("/home/x/processed/probe/elsewhere/run.tsv", tmp_path) is None

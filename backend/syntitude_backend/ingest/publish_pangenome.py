@@ -269,13 +269,21 @@ def publish_pangenome(
         .where(Pangenome.pangenome_id == pangenome.pangenome_id)
         .values(is_published=True)
     )
-    # ⚠ The previous generation is marked unpublished but NOT deleted — that is what makes the
-    # rollback one update rather than a re-ingest.
-    if report.previous_pangenome_id and report.previous_pangenome_id != pangenome.pangenome_id:
-        session.execute(
-            update(Pangenome)
-            .where(Pangenome.pangenome_id == report.previous_pangenome_id)
-            .values(is_published=False)
-        )
+    # ⛔ **THE OUTGOING DEFAULT IS NOT UN-PUBLISHED, AND THAT IS THE WHOLE POINT OF 2026-09-25.**
+    # This used to clear `is_published` on whatever the species pointer previously named. That was
+    # harmless while the column had no reader and a species had exactly one catalogue: it retired a
+    # superseded GENERATION of the same model. It is wrong now, and wrong in the one way that defeats
+    # the feature it sits inside.
+    #
+    # `is_published` means *offer this catalogue in the picker*, and `default_pangenome_id` means
+    # *serve this one when asked for the bare species*. They are different facts. The pointer's
+    # previous value is now typically a DIFFERENT MODEL — nuna4 — not an older generation of this
+    # one. Clearing it made `GET /api/v1/catalogues` drop nuna4 the moment nuna5 was published, so
+    # publishing the second model silently deleted the comparator the picker exists to show, with
+    # nothing in any output saying so. Reproduced end to end before this was changed.
+    #
+    # ⚠ **Publishing therefore adds, and never removes.** Hiding a catalogue is a separate, explicit
+    # act — it is not a side effect of promoting another one. Rollback is unaffected: it was always
+    # the pointer that made it one update, and the pointer still moves.
     report.published = True
     return report
