@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restore the Syntitude database from `/restore/syntitude.dump`, or start empty if there is none.
+# Restore the BacAtlas database from `/restore/bacatlas.dump`, or start empty if there is none.
 #
 # Run by the official postgres image's entrypoint, and ⚠ ONLY on the first start against an EMPTY
 # data volume — that is the image's rule, not ours. A new dump is therefore never picked up by a
@@ -16,10 +16,10 @@
 # a non-executable one into the entrypoint's shell, where `set -u` and any early exit would leak.
 set -Eeuo pipefail
 
-dump=/restore/syntitude.dump
+dump=/restore/bacatlas.dump
 failed_marker="$PGDATA/SYNTITUDE_RESTORE_FAILED"
 
-trap 'echo "syntitude: RESTORE FAILED — the database is incomplete. Run: docker compose down -v" >&2;
+trap 'echo "bacatlas: RESTORE FAILED — the database is incomplete. Run: docker compose down -v" >&2;
       echo "restore of $dump failed at $(date -u +%FT%TZ); docker compose down -v" > "$failed_marker"' ERR
 
 # `pg_trgm` whether or not a dump follows. The dump creates it too (`IF NOT EXISTS`), but a database
@@ -30,9 +30,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
   -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
 
 if [ ! -f "$dump" ]; then
-  echo "syntitude: no dump at $dump — the database starts EMPTY (no schema). See README.md."
+  echo "bacatlas: no dump at $dump — the database starts EMPTY (no schema). See README.md."
 else
-  echo "syntitude: restoring $(ls -lh "$dump" | awk '{print $5}') from $dump into $POSTGRES_DB"
+  echo "bacatlas: restoring $(ls -lh "$dump" | awk '{print $5}') from $dump into $POSTGRES_DB"
   started=$(date +%s)
   # `--no-owner --no-privileges`: the dump was taken on the Mac as that user, who does not exist
   # here; every object is owned by the role that restores it instead.
@@ -43,5 +43,5 @@ else
   # ⚠ pg_restore restores rows, not planner statistics. Until autovacuum gets round to it, every
   # query is planned against a table the planner believes is empty.
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c 'ANALYZE'
-  echo "syntitude: restore + ANALYZE finished in $(( $(date +%s) - started )) s"
+  echo "bacatlas: restore + ANALYZE finished in $(( $(date +%s) - started )) s"
 fi

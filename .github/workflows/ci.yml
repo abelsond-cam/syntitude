@@ -1,4 +1,4 @@
-# CI for the Syntitude service — the backend suite against a real Postgres, the front-end suite, and
+# CI for the BacAtlas service — the backend suite against a real Postgres, the front-end suite, and
 # the build.
 #
 # ⛔ READ THE JOB SUMMARY, NOT THE TICK. Most of the backend suite SKIPS here by design: the parity,
@@ -32,27 +32,27 @@ jobs:
         # `CREATE EXTENSION pg_trgm` works.
         image: postgres:16
         env:
-          POSTGRES_USER: syntitude
-          POSTGRES_PASSWORD: syntitude
+          POSTGRES_USER: bacatlas
+          POSTGRES_PASSWORD: bacatlas
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U syntitude"
+          --health-cmd "pg_isready -U bacatlas"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
       PGHOST: localhost
-      PGUSER: syntitude
-      PGPASSWORD: syntitude
+      PGUSER: bacatlas
+      PGPASSWORD: bacatlas
       # Both probe databases are DROPPED and rebuilt by the suites, per module — each gets its own.
-      SYNTITUDE_PROBE_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_schema_probe_ci
-      SYNTITUDE_MIGRATION_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_migrate_probe_ci
+      SYNTITUDE_PROBE_DATABASE_URL: postgresql+psycopg://bacatlas:bacatlas@localhost:5432/bacatlas_schema_probe_ci
+      SYNTITUDE_MIGRATION_DATABASE_URL: postgresql+psycopg://bacatlas:bacatlas@localhost:5432/bacatlas_migrate_probe_ci
       # ⛔ The health suite's own database. Unset, it defaults to `$USER@localhost/syntitude_dev` — which
       # exists on the Mac, so the suite passes there and fails here with a 503 on a server it cannot
       # reach. An EMPTY database is the right one: it is reachable, and unmigrated is the state whose
       # `run alembic upgrade head` note that suite exists to check.
-      SYNTITUDE_TEST_DATABASE_URL: postgresql+psycopg://syntitude:syntitude@localhost:5432/syntitude_unmigrated_ci
+      SYNTITUDE_TEST_DATABASE_URL: postgresql+psycopg://bacatlas:bacatlas@localhost:5432/bacatlas_unmigrated_ci
       # ⚠ Deliberately NOT set: SYNTITUDE_DATABASE_URL. CI has no loaded database, and pointing it at an
       # empty one would turn every parity skip into a failure that says nothing about parity.
     defaults:
@@ -78,11 +78,11 @@ jobs:
         # on `gin_trgm_ops`. The schema probe's fixture also creates it; provisioning it here as well
         # means neither suite depends on the other's fixture having run first.
         run: |
-          for database in syntitude_schema_probe_ci syntitude_migrate_probe_ci; do
+          for database in bacatlas_schema_probe_ci bacatlas_migrate_probe_ci; do
             psql -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE $database"
             psql -d "$database" -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm'
           done
-          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE syntitude_unmigrated_ci'
+          psql -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE bacatlas_unmigrated_ci'
 
       - name: Lint
         # Pinned: an unpinned ruff that learns a new rule turns this job red with no change to the code.

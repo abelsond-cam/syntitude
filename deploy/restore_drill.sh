@@ -32,7 +32,7 @@ fail() { printf '  FAIL  %s\n' "$1"; failures=$((failures + 1)); }
 [ -f .env ] || { echo "no .env beside compose.yaml — copy .env.example and fill it in"; exit 2; }
 set -a; . ./.env; set +a
 dump_dir="${SYNTITUDE_HOST_DUMP_DIR:-./deploy/dump}"
-dump="$dump_dir/syntitude.dump"
+dump="$dump_dir/bacatlas.dump"
 [ -f "$dump" ] || { echo "no dump at $dump — refusing to delete a database it cannot replace"; exit 2; }
 command -v curl >/dev/null || { echo "curl is required"; exit 2; }
 docker compose version >/dev/null 2>&1 || { echo "Docker Compose v2 is required"; exit 2; }
@@ -45,7 +45,7 @@ host="${SYNTITUDE_HTTP_BIND:-127.0.0.1}"
 url="http://$host:${SYNTITUDE_HTTP_PORT:-8080}${base}"
 api="${url}api/v1"
 
-echo "Syntitude restore drill — $(date -u +%FT%TZ)"
+echo "BacAtlas restore drill — $(date -u +%FT%TZ)"
 checksum=$( (sha256sum "$dump" 2>/dev/null || shasum -a 256 "$dump") | cut -c1-16)
 echo "  dump    $dump ($(du -h "$dump" | cut -f1), sha256 ${checksum}…)"
 echo "  serves  $url"

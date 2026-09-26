@@ -1,4 +1,4 @@
-# Syntitude — the read-only locus browser as three containers on one host.
+# BacAtlas — the read-only locus browser as three containers on one host.
 #
 #   db    postgres:16, restored from a `pg_dump -Fc` on first start (or empty — see below)
 #   api   gunicorn over the Flask app; reads the database and, for sequences, the GFF tree
@@ -13,7 +13,7 @@
 # that read those names would hand the api container a database on its own loopback and a path from
 # another machine. The container-side values are built here, from `SYNTITUDE_DB_*` and `SYNTITUDE_HOST_*`.
 
-name: syntitude
+name: bacatlas
 
 # ⚠ Bounded logs. Docker's default json-file log never rotates, and gunicorn and nginx both log
 # every request: on a VM left running for months that is a full disk, which takes the database down.
@@ -36,7 +36,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro
-      # A DIRECTORY holding `syntitude.dump`, not the file itself: binding a file that does not
+      # A DIRECTORY holding `bacatlas.dump`, not the file itself: binding a file that does not
       # exist makes Docker create a DIRECTORY of that name on the host, right where the dump goes.
       - ${SYNTITUDE_HOST_DUMP_DIR:-./deploy/dump}:/restore:ro
     # Docker's default /dev/shm is 64 MB; a parallel hash join outgrows it and fails the QUERY with
@@ -61,7 +61,7 @@ services:
   api:
     build:
       context: ./backend
-    image: syntitude-api:local
+    image: bacatlas-api:local
     restart: unless-stopped
     logging: *bounded-logs
     depends_on:
@@ -72,11 +72,11 @@ services:
       SYNTITUDE_PROFILE: production
       # Set only when a GFF tree was given. Left empty, the sequence endpoint answers with its named
       # 503 ("no annotation store configured") and every other endpoint is unaffected.
-      SYNTITUDE_ROOT_GFF: ${SYNTITUDE_HOST_GFF_DIR:+/srv/syntitude/gff}
+      SYNTITUDE_ROOT_GFF: ${SYNTITUDE_HOST_GFF_DIR:+/srv/bacatlas/gff}
       WEB_CONCURRENCY: ${SYNTITUDE_API_WORKERS:-4}
     volumes:
       # Read-only: the service never writes, and a bind mount is the one way it could write to the host.
-      - ${SYNTITUDE_HOST_GFF_DIR:-./deploy/no_annotation_store}:/srv/syntitude/gff:ro
+      - ${SYNTITUDE_HOST_GFF_DIR:-./deploy/no_annotation_store}:/srv/bacatlas/gff:ro
     healthcheck:
       # `/health` answers 503 when the database is unreachable, which `urlopen` raises on.
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=4)"]
@@ -92,7 +92,7 @@ services:
       args:
         VITE_PUBLIC_BASE: ${SYNTITUDE_PUBLIC_BASE:-/}
         VITE_API_BASE_URL: ${SYNTITUDE_API_BASE_URL:-}
-    image: syntitude-web:local
+    image: bacatlas-web:local
     restart: unless-stopped
     logging: *bounded-logs
     depends_on:

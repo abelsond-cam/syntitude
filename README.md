@@ -1,9 +1,9 @@
-# Syntitude — the Nuna pangenome navigator
+# BacAtlas — the Nuna pangenome navigator
 
 The published pages for [Nuna](https://github.com/abelsond-cam/nuna), a pangenome method that groups genes by
 the **position they hold in the genome** rather than by the sequence identity they share.
 
-**Live: https://abelsond-cam.github.io/syntitude/**
+**Live: https://abelsond-cam.github.io/bacatlas/**
 
 | page | what it is |
 |---|---|
@@ -28,7 +28,7 @@ model's payload by `nuna.tl.locus_browser.render_page`. Do not edit them here; t
 overwritten by the next deploy and would not exist in the source repo. Change `nuna` and re-deploy:
 
     # in ~/developer/nuna
-    uv run python -m nuna.tl.locus_browser.publish_site --site ~/developer/syntitude
+    uv run python -m nuna.tl.locus_browser.publish_site --site ~/developer/bacatlas
 
 The method's source is private while unpublished, which is also why the site lives in its own repo: GitHub
 Pages cannot build from a private repository on a free plan.
@@ -56,7 +56,7 @@ It needs Docker Engine 25+ with the Compose v2 plugin, and nothing else: no Pyth
 
 ```bash
 cp .env.example .env               # then set SYNTITUDE_DB_PASSWORD (openssl rand -hex 24) and the paths
-mkdir -p deploy/dump               # the dump goes here, named syntitude.dump — see below
+mkdir -p deploy/dump               # the dump goes here, named bacatlas.dump — see below
 docker compose up -d --wait        # builds, restores, and returns once all three are healthy
 curl -s localhost:8080/api/v1/health
 ```
@@ -69,7 +69,7 @@ the invoking shell override `.env`, and the Mac development setup sets `SYNTITUD
 **The dump.** Taken on the machine that ran the ingest, never on the server:
 
 ```bash
-pg_dump -Fc -d syntitude_dev -f deploy/dump/syntitude.dump    # *.dump is gitignored
+pg_dump -Fc -d syntitude_dev -f deploy/dump/bacatlas.dump    # *.dump is gitignored
 ```
 
 **The restore drill.** One command does it and checks the result:
@@ -107,9 +107,9 @@ empty, which is useful only for checking the plumbing.
 `SYNTITUDE_HOST_GFF_DIR`. Without it the sequence endpoint answers `503` with a named reason and nothing
 else is affected. On Linux the tree must be readable by uid 10001, the api's user.
 
-**A subpath.** For `https://host/syntitude/`, set `SYNTITUDE_PUBLIC_BASE=/syntitude/` and rebuild
+**A subpath.** For `https://host/bacatlas/`, set `SYNTITUDE_PUBLIC_BASE=/bacatlas/` and rebuild
 (`docker compose up -d --build`) — the base is compiled into the bundle. The API then lives at
-`/syntitude/api/v1`, and the institution's reverse proxy must forward `/syntitude/` to this host **with
+`/bacatlas/api/v1`, and the institution's reverse proxy must forward `/bacatlas/` to this host **with
 the prefix intact**. Nothing in the code names a base or an origin; see `frontend/README.md`.
 
 **New code.** `git pull && docker compose up -d --build` rebuilds the api and web images and leaves the
@@ -120,7 +120,7 @@ database alone.
 - **Docker Engine 25 or later** (the healthchecks use `start_interval`).
 - **The published port binds `127.0.0.1`** by default. If the institution's reverse proxy runs on another
   host, bind `0.0.0.0` and firewall it instead.
-- **TLS is the proxy's**, and the proxy must forward `/syntitude/` **with the prefix intact** (not stripped).
+- **TLS is the proxy's**, and the proxy must forward `/bacatlas/` **with the prefix intact** (not stripped).
 - **The GFF tree must be readable by uid 10001**, the api container's user.
 - **The API connects as the Postgres superuser.** Nothing writes on a request path, but a read-only role
   would make that a property of the database rather than of the code; it is not built.
