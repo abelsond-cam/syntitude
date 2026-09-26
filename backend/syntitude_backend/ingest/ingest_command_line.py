@@ -306,6 +306,11 @@ def build_parser() -> argparse.ArgumentParser:
                              "step: a load that is not published changes nothing a reader can see")
     parser.add_argument("--species-key", default=None,
                         help="the browser key (`ecoli` | `kp`); defaults to the artifacts' own")
+    parser.add_argument("--offer", action="store_true",
+                        help="after loading, SHOW this catalogue in the picker without making it the "
+                             "default. ⭐ The three decisions are separate: load it, offer it, serve "
+                             "it by default. This is the middle one — it is what lets nuna4 stay the "
+                             "default and the rollback while nuna5 is selectable beside it")  # fmt: skip
     parser.add_argument("--collection-key", default=None,
                         help="the genome roster this catalogue is built on; defaults to the "
                              "artifacts' set key. ⛔ Two catalogues of one species SHARE a collection, "
@@ -403,6 +408,20 @@ def main(argv: list[str] | None = None) -> int:
                 print(line)
             session.commit()
             differences += reconcile_pangenome(session, artifacts)
+            if args.offer:
+                from syntitude_backend.ingest.publish_pangenome import offer_catalogue
+
+                # ⚠ Read the key back off the row that was just written rather than recomputing it.
+                # Recomputing would be a second implementation of the same rule, and the two could
+                # disagree about exactly the string a reader addresses this catalogue by.
+                just_loaded = session.execute(
+                    select(Pangenome.catalogue_key)
+                    .where(Pangenome.run_id == artifacts.run_id)
+                    .order_by(Pangenome.ingest_generation.desc())
+                    .limit(1)
+                ).scalar_one()
+                print(offer_catalogue(session, catalogue_key=just_loaded))
+                session.commit()
             if args.publish:
                 try:
                     print(publish_pangenome(session, run_id=artifacts.run_id).render())

@@ -289,3 +289,41 @@ def test_every_key_the_registry_can_produce_satisfies_both_rules():
         for model in model_keys:
             key = catalogue_key_for(species, model)
             assert "-" in key and "_" not in key, key
+
+
+def test_offering_a_catalogue_does_not_make_it_the_default(session, seeded):
+    """⭐ Three separate decisions: LOAD it, OFFER it, SERVE it by default.
+
+    They were one act only while a species had one catalogue. Keeping them apart is what lets nuna4
+    stay the default and the rollback while nuna5 is selectable beside it — which is the shape the
+    user asked for. Publishing was the only verb available, and publishing moves the pointer.
+    """
+    from syntitude_backend.ingest.publish_pangenome import offer_catalogue
+
+    seeded["species"].default_pangenome_id = seeded["pangenome"].pangenome_id
+    second = _second_catalogue(session, seeded)
+    second.is_published = False
+    session.flush()
+    assert "probe-nuna5" not in {p.catalogue_key for p, _s, _m in list_catalogues(session)}
+
+    offer_catalogue(session, catalogue_key="probe-nuna5")
+    session.flush()
+    session.refresh(seeded["species"])
+
+    assert "probe-nuna5" in {p.catalogue_key for p, _s, _m in list_catalogues(session)}
+    assert seeded["species"].default_pangenome_id == seeded["pangenome"].pangenome_id, (
+        "offering must not promote — the default is a separate decision"
+    )
+
+
+def test_a_catalogue_can_be_taken_back_out_of_the_picker(session, seeded):
+    """And hiding is the same one boolean, not a delete — the catalogue stays addressable by key."""
+    from syntitude_backend.ingest.publish_pangenome import offer_catalogue
+
+    second = _second_catalogue(session, seeded)
+    session.flush()
+    offer_catalogue(session, catalogue_key="probe-nuna5", offered=False)
+    session.flush()
+
+    assert "probe-nuna5" not in {p.catalogue_key for p, _s, _m in list_catalogues(session)}
+    assert resolve_catalogue(session, "probe-nuna5").pangenome_id == second.pangenome_id

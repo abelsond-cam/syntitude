@@ -434,27 +434,47 @@ def ingest_pangenome_run(
         PangenomeInputEdge.child_pangenome_id == pangenome_id
     ).delete(synchronize_session=False)
     edges, unresolved = 0, []
+    # ⛔ ONE EDGE PER (input_key, parent), NOT ONE PER CHAIN STAGE — the unique constraint is
+    # `(child_pangenome_id, input_key, parent_run_id)` and a longer chain makes collisions ordinary.
+    # In a five-step model both step 3c and step 4 consume step 2's assignment, so the naive loop
+    # emitted `step2_assign -> <same step2 run>` twice and the whole ingest died on a UniqueViolation
+    # part-way through. It never fired on nuna4 only because that chain is one stage shorter.
+    #
+    # ⚠ Deduplicating loses nothing: the per-stage detail is already kept verbatim in
+    # `chain_manifest_json`. This table answers "what was this catalogue built from", which is a
+    # property of the pair, not of each stage that read it.
+    #
+    # The SHALLOWEST depth wins, because depth counts backwards along the chain (deeper is earlier in
+    # the pipeline) — so the smallest value is the nearest stage that consumed this parent, which is
+    # the honest answer to "how directly did this catalogue depend on it".
+    nearest: dict[tuple[str, str], int | None] = {}
     for entry in chain:
         for key in run_manifest.INPUT_KEYS:
             parent_path = entry.get(key)
             if not parent_path:
                 continue
-            parent_run_id = Path(parent_path).stem
-            parent_id = session.execute(
-                select(Pangenome.pangenome_id).where(Pangenome.run_id == parent_run_id)
-            ).scalar_one_or_none()
-            if parent_id is None:
-                unresolved.append(parent_run_id)
-            session.add(
-                PangenomeInputEdge(
-                    child_pangenome_id=pangenome_id,
-                    parent_run_id=parent_run_id[:256],
-                    parent_pangenome_id=parent_id,
-                    input_key=key,
-                    depth=entry.get("_depth"),
-                )
+            pair = (key, Path(parent_path).stem)
+            depth = entry.get("_depth")
+            seen = nearest.get(pair, "absent")
+            if seen == "absent" or (depth is not None and (seen is None or depth < seen)):
+                nearest[pair] = depth
+
+    for (key, parent_run_id), depth in nearest.items():
+        parent_id = session.execute(
+            select(Pangenome.pangenome_id).where(Pangenome.run_id == parent_run_id)
+        ).scalar_one_or_none()
+        if parent_id is None:
+            unresolved.append(parent_run_id)
+        session.add(
+            PangenomeInputEdge(
+                child_pangenome_id=pangenome_id,
+                parent_run_id=parent_run_id[:256],
+                parent_pangenome_id=parent_id,
+                input_key=key,
+                depth=depth,
             )
-            edges += 1
+        )
+        edges += 1
 
     # ── the graded headline ────────────────────────────────────────────────────────────────────
     session.query(PangenomeEvaluation).filter(

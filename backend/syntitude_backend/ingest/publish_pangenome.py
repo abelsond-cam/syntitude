@@ -228,6 +228,34 @@ def verify_pangenome_is_servable(session: Session, pangenome: Pangenome) -> tupl
     return passed, failed
 
 
+def offer_catalogue(session: Session, *, catalogue_key: str, offered: bool = True) -> str:
+    """Show a catalogue in the picker, or take it out — WITHOUT touching any default pointer.
+
+    ⭐ **The verb that `publish` is not.** Publishing decides what a bare species request serves;
+    this decides what the picker offers. They were one act only while a species had one catalogue.
+    A model can now be loaded, addressed by key for review, and shown to readers as three separate
+    decisions — which is what lets nuna4 stay the default and the rollback while nuna5 is selectable
+    beside it.
+
+    ⚠ It deliberately cannot make a catalogue the default. Promoting is `publish_pangenome`, which
+    verifies first; this writes one boolean and verifies nothing, because a catalogue that is already
+    loaded and addressable has already been verified by whatever put it there.
+    """
+    pangenome = session.execute(
+        select(Pangenome).where(Pangenome.catalogue_key == catalogue_key)
+    ).scalar_one_or_none()
+    if pangenome is None:
+        raise PublishRefused(f"no catalogue {catalogue_key!r} — nothing to offer.")
+    was = pangenome.is_published
+    session.execute(
+        update(Pangenome)
+        .where(Pangenome.pangenome_id == pangenome.pangenome_id)
+        .values(is_published=offered)
+    )
+    verb = "offered in the picker" if offered else "hidden from the picker"
+    return f"{catalogue_key}: {verb}" + ("" if was != offered else " (already was)")
+
+
 def publish_pangenome(
     session: Session, *, run_id: str, ingest_generation: int = 1, force: bool = False
 ) -> PublishReport:
