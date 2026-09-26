@@ -18,6 +18,28 @@ a published payload is the only other place they are written down, and that is a
 ⚠ Both are **`nuna4` on the superseded DAMPED weight** — the `-excl` token, decoded by
 `exclusivity.form_from_run_id`, is `damped_exclusion`. `-excl` is a *prefix* of `-exclLOGP`, so
 never test it with `in` / `endswith` / `.replace`.
+
+⛔ **`nuna5` is deliberately ABSENT, and that absence is the decision — not an omission to be fixed.**
+This file names what the STATIC site serves, and the static site is `nuna4` only (David, 2026-09-25):
+it is the parity oracle and the rollback, so it must not move when the service does. `nuna5` is
+ingested into the database and reached through the service, which holds every catalogue and lets the
+display pick one; it has no static page and no shipped payload for these triples to reconcile against.
+Adding a row here would assert a publication that does not exist.
+
+⚠ So this file and `pangenome.is_published` now mean **different things**, on purpose: `is_published`
+is picker visibility inside the service (four catalogues are visible), while a row here is a page on
+GitHub Pages (two). The day a nuna5 catalogue is published statically it gains a row and its own
+`dset` — which is why that key is carried explicitly rather than derived from the species.
+
+⛔ **Three keys, three jobs, and conflating any two of them has already cost a debugging session:**
+
+    pathogen_species.species_key    ecoli          the organism
+    PublishedCatalogue.dset         ecoli          the static page (`ecoli.html`), = `--dset`
+    pangenome.catalogue_key         ecoli-nuna4    the service's address, what the picker sends
+
+`dset` and `catalogue_key` differ for nuna4 and always will: the service reads the hyphen to tell
+"pin this catalogue" from "follow this species' default", so it cannot spell nuna4 as `ecoli`; and
+`ecoli.html` is a published url, so the static site cannot spell it `ecoli-nuna4`.
 """
 
 from __future__ import annotations
@@ -29,6 +51,14 @@ from dataclasses import dataclass
 class PublishedCatalogue:
     """One species' live catalogue, as `published.tsv` and the shipped payload agree it is."""
 
+    #: ⛔ The STATIC PUBLICATION key — the `published.tsv` row and the page it renders to, which is
+    #: what nuna's exporter takes as `--dset`. It equals `species_key` for both rows here because
+    #: nuna4 keeps the legacy urls `ecoli.html` / `kp.html`, and it must NOT be assumed to in general.
+    #: ⚠ This is NOT `pangenome.catalogue_key`, which addresses the SERVICE and is `ecoli-nuna4`. The
+    #: service reads the hyphen to tell "pin this catalogue" from "follow this species' default", so
+    #: it cannot spell nuna4 as `ecoli`; the static site cannot spell it `ecoli-nuna4` without
+    #: breaking a published url. Two vocabularies, both right, and they meet only here.
+    dset: str
     species_key: str
     set_key: str
     model_label: str
@@ -42,6 +72,7 @@ class PublishedCatalogue:
 
 PUBLISHED_CATALOGUES: tuple[PublishedCatalogue, ...] = (
     PublishedCatalogue(
+        dset="ecoli",
         species_key="ecoli",
         set_key="ecoli",
         model_label="ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL",
@@ -51,6 +82,7 @@ PUBLISHED_CATALOGUES: tuple[PublishedCatalogue, ...] = (
         locus_count=17_531,
     ),
     PublishedCatalogue(
+        dset="kp",
         species_key="kp",
         set_key="kp",
         model_label="kp_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL",
@@ -63,10 +95,16 @@ PUBLISHED_CATALOGUES: tuple[PublishedCatalogue, ...] = (
 )
 
 
-def catalogue(species_key: str) -> PublishedCatalogue:
-    """The published catalogue for one species, or a failure naming what is known."""
+def catalogue(dset: str) -> PublishedCatalogue:
+    """The statically published catalogue with this `published.tsv` key, or a failure naming what is known.
+
+    ⛔ Keyed on `dset`, not `species_key`. Scanning on the species cannot express "this species has two
+    published catalogues" — it returns whichever row comes first, silently — and that is precisely the
+    shape the rebuild removed everywhere else. The two keys coincide for both rows TODAY; the lookup is
+    written so that stops being load-bearing.
+    """
     for entry in PUBLISHED_CATALOGUES:
-        if entry.species_key == species_key:
+        if entry.dset == dset:
             return entry
-    known = [entry.species_key for entry in PUBLISHED_CATALOGUES]
-    raise KeyError(f"no published catalogue for {species_key!r}; known: {known}")
+    known = [entry.dset for entry in PUBLISHED_CATALOGUES]
+    raise KeyError(f"no published catalogue for {dset!r}; known: {known}")

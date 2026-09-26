@@ -805,17 +805,23 @@ def meta_block(
     contested = policy["contested_pfclass"]
     return {
         "species": species.scientific_name,
-        # ⚠ `species_key` is the BROWSER key, and it is a different vocabulary from the parquets'
-        # `species` column (`kpneumoniae`). It coincided with the export's `--dset` token only while
-        # each species had exactly ONE published catalogue — a fact about that cohort, never a rule.
+        # ⛔ `dset` is the STATIC PUBLICATION key — the `published.tsv` row this payload is the page for,
+        # which is what `render_page` matches to know which entry in the species picker is "me". It is
+        # NOT `pangenome.catalogue_key`, and the two are different vocabularies on purpose:
         #
-        # ⛔ THAT HAS NOW ENDED. nuna5 is published alongside nuna4 rather than over it, so E. coli has
-        # two catalogues and nuna's exporter gives the second its own key (`--dset ecoli-nuna5`); the
-        # key distinguishes CATALOGUES, and a species key cannot. Nothing on the ingest path reads
-        # `meta.dset`, so this is inert for now — but `test_the_rest_of_meta_is_identical_…` compares
-        # it, so the day a nuna5 catalogue is added to the parity fixtures this line reports `ecoli`
-        # against a payload saying `ecoli-nuna5` and the test fails. The fix then is a browser key on
-        # the PANGENOME defaulting to the species', not a loosened comparison.
+        #     published.tsv (static site)   ecoli          kp            ← nuna4 keeps the legacy urls
+        #     pangenome.catalogue_key       ecoli-nuna4    kp-nuna4      ← the service's address
+        #
+        # The service cannot key nuna4 as `ecoli`, because its resolver reads the hyphen: a key with one
+        # pins a catalogue, a bare species follows its default. Make them equal and that rule collapses.
+        # The static site cannot key nuna4 as `ecoli-nuna4` either, because `ecoli.html` is a published
+        # url and renaming it breaks every link that exists.
+        #
+        # ⚠ An earlier note here promised "a browser key on the PANGENOME" as the fix. It was WRONG, and
+        # the parity suite caught it: emitting `catalogue_key` makes a rebuilt E. coli payload say
+        # `ecoli-nuna4` against a frozen page saying `ecoli`. The divergence is real; it is just not
+        # this field's to resolve. The day a nuna5 catalogue is published STATICALLY it gains a
+        # `published.tsv` row (`ecoli-nuna5`) and that row's key is what belongs here.
         "dset": species.species_key,
         "model_id": pangenome.run_id,
         "model_label": model_label,

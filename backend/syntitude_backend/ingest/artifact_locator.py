@@ -214,7 +214,19 @@ class CatalogueArtifacts:
     # ── the oracle, which is never an input ───────────────────────────────────────────────────
     @property
     def published_payload(self) -> Path:
-        """⛔ **The acceptance ORACLE.** Reading it into the database would make the test circular."""
+        """⛔ **The acceptance ORACLE.** Reading it into the database would make the test circular.
+
+        ⚠ Named from `set_key`, which is the SPECIES' data set. nuna's exporter names a payload
+        `locus_browser_<dset>_<label>.json`, where `--dset` is the STATIC publication key — so the two
+        spellings diverge for any catalogue whose page key is not just the species: this would resolve
+        `locus_browser_ecoli_ecoli_nuna5_…` where such an export writes `locus_browser_ecoli-nuna5_…`.
+
+        Correct as it stands, because only STATICALLY published catalogues have an oracle and those are
+        `nuna4` only (see `published_catalogues`), where `set_key == dset`. The property is optional and
+        never raises, so a catalogue with no shipped payload simply reports `False`. The day a nuna5
+        payload is published statically, this takes that row's `dset` — not a glob, which is what
+        nuna's own `publish_site.find_payload` uses and why its keys must be prefix-free.
+        """
         return self.data_root / "browser" / f"locus_browser_{self.set_key}_{self.model_label}.json"
 
     # ── per-genome ────────────────────────────────────────────────────────────────────────────
