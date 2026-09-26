@@ -15,7 +15,7 @@ from contextlib import contextmanager
 from sqlalchemy import MetaData, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-from syntitude_backend.configuration import Configuration
+from bacatlas_backend.configuration import Configuration
 
 #: `%(column_0_N_name)s` truncates rather than overflowing Postgres' 63-byte identifier limit,
 #: which is what silently collides two constraint names on wide tables.

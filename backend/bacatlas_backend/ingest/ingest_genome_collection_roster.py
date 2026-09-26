@@ -25,11 +25,11 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.models.enumerations import RosterLineage
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollection, GenomeCollectionMembership
-from syntitude_backend.models.pangenome import Pangenome
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.models.enumerations import RosterLineage
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollection, GenomeCollectionMembership
+from bacatlas_backend.models.pangenome import Pangenome
 
 
 class RosterError(RuntimeError):

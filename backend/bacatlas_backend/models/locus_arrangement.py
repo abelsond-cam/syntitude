@@ -13,7 +13,7 @@ from sqlalchemy import BigInteger, Boolean, ForeignKey, Index, Integer, UniqueCo
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
+from bacatlas_backend.database import Base
 
 #: `catalogue_ordinal * 2 + same_strand`, or **−1 where the contig ends**.
 #: ⛔ −1 is a VALUE, not a wildcard: a member truncated at a contig edge has a genuinely different

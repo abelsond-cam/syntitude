@@ -27,8 +27,8 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from syntitude_backend.ingest.allele_variant_symbols import fold_symbol_column
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.allele_variant_symbols import fold_symbol_column
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
 
 #: The signed offsets, in display order. ⛔ `0` is absent — it is the focal gene.
 #: Asserted against `export_payload.OFFSETS` at load, because `locus_offset_occupant` has a CHECK
@@ -741,7 +741,7 @@ def _cluster_similarity(artifacts: CatalogueArtifacts, node_position, n_loci: in
     ⛔ **The nearest-loci CSV is addressed relative to the similarity CSV**, ``_nearest_sibling``'s own
     rule, so one run's medians can never be paired with another run's neighbour list.
     """
-    from syntitude_backend.ingest.artifact_locator import REPRESENTATIONS
+    from bacatlas_backend.ingest.artifact_locator import REPRESENTATIONS
 
     out: dict[str, dict] = {}
     locus_sets: dict[str, set] = {}

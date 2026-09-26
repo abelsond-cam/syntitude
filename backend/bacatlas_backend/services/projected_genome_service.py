@@ -19,8 +19,8 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.projected_genome import ProjectedGenePlacement, ProjectedGenome
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.projected_genome import ProjectedGenePlacement, ProjectedGenome
 
 
 @dataclass(frozen=True)

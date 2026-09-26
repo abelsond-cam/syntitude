@@ -15,7 +15,7 @@ from __future__ import annotations
 from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Index, Integer, SmallInteger, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
+from bacatlas_backend.database import Base
 
 #: The signed-offset vocabulary. ⛔ `0` is deliberately absent — it is the focal locus.
 SIGNED_OFFSETS = (-5, -4, -3, -2, -1, 1, 2, 3, 4, 5)

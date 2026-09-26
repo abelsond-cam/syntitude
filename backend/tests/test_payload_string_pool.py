@@ -11,7 +11,7 @@ import math
 
 import pytest
 
-from syntitude_backend.instruments.payload_string_pool import ABSENT, StringPool
+from bacatlas_backend.instruments.payload_string_pool import ABSENT, StringPool
 
 
 @pytest.fixture()

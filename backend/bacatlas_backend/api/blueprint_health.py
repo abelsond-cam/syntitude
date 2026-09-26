@@ -22,9 +22,9 @@ _SCHEMA_PROBE = text("SELECT to_regclass('public.pangenome') IS NOT NULL AS sche
 @health_blueprint.get("/health")
 def report_health():
     """Report process liveness and database reachability. 200 healthy, 503 otherwise."""
-    database = current_app.extensions["syntitude_database"]
+    database = current_app.extensions["bacatlas_database"]
     report: dict[str, object] = {
-        "service": "syntitude-backend",
+        "service": "bacatlas-backend",
         "deployment_profile": current_app.config["SYNTITUDE"].deployment_profile,
         "database_reachable": False,
         "schema_present": False,

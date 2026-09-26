@@ -6,8 +6,8 @@ front end reported "Unexpected token '<'" instead of the status. These need no d
 
 from __future__ import annotations
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
 
 #: Never connected to: nothing here reaches a route that opens a session.
 UNREACHABLE = "postgresql+psycopg://nobody@127.0.0.1:1/none"

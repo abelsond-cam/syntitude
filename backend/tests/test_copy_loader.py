@@ -12,11 +12,11 @@ import math
 import pytest
 from sqlalchemy import func, select
 
-from syntitude_backend.ingest.staging_table_loader import copy_rows, replace_rows_for
-from syntitude_backend.models.enumerations import PrevalenceBand, SampleIdentifierKind
-from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.locus import Locus
+from bacatlas_backend.ingest.staging_table_loader import copy_rows, replace_rows_for
+from bacatlas_backend.models.enumerations import PrevalenceBand, SampleIdentifierKind
+from bacatlas_backend.models.gene import Gene, GeneFunctionalAnnotation
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.locus import Locus
 
 GENE_COLUMNS = (
     "genome_id", "flat_index", "pathogen_species_id", "contig_index",
@@ -152,7 +152,7 @@ def test_replace_is_idempotent_at_its_own_scope(session, _seed_ids, clean_genes)
 
 def test_the_loader_issues_one_copy_statement_per_call(session, engine, _seed_ids, clean_genes):
     """⭐ The cost assertion: 5,000 rows must not be 5,000 statements."""
-    from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
+    from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
 
     rows = [_gene_row(_seed_ids["genome"], _seed_ids["species"], i) for i in range(5_000)]
     with SqlCostOracle(engine) as report:

@@ -31,12 +31,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from syntitude_backend.gff.gene_sequence_reader import (
+from bacatlas_backend.gff.gene_sequence_reader import (
     gc_percent,
     reverse_complement,
     translate_coding_sequence,
 )
-from syntitude_backend.gff.gff_cds_parser import CodingFeature, ParsedGenomeAnnotation
+from bacatlas_backend.gff.gff_cds_parser import CodingFeature, ParsedGenomeAnnotation
 
 
 class GeneAlignmentError(ValueError):

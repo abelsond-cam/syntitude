@@ -22,8 +22,8 @@ emitted `0` for an absent float would turn "we did not look" into "we looked and
 
 from __future__ import annotations
 
-from syntitude_backend.models.enumerations import gene_ontology_namespace_name
-from syntitude_backend.services.locus_detail_service import (
+from bacatlas_backend.models.enumerations import gene_ontology_namespace_name
+from bacatlas_backend.services.locus_detail_service import (
     SIGNED_OFFSETS,
     LocusDetail,
     membership_is_complete,

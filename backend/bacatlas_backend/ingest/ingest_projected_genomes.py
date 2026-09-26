@@ -37,12 +37,12 @@ import pandas as pd
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from syntitude_backend.ingest.staging_table_loader import replace_rows_for
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.projected_genome import ProjectedGenePlacement, ProjectedGenome
+from bacatlas_backend.ingest.staging_table_loader import replace_rows_for
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.projected_genome import ProjectedGenePlacement, ProjectedGenome
 
 PLACEMENT_COLUMNS = (
     "pangenome_id",

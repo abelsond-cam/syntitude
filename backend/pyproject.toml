@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "syntitude-backend"
+name = "bacatlas-backend"
 version = "0.0.1"
-description = "The Syntitude pangenome browser API — Postgres, Flask, SQLAlchemy"
+description = "The BacAtlas pangenome browser API — Postgres, Flask, SQLAlchemy"
 requires-python = ">=3.11"
 
 # ⛔ Serving deps ONLY. The med school server runs the API and must not need `nuna`,
@@ -40,7 +40,7 @@ ingest = ["pandas>=2.0", "pyarrow>=15", "numpy>=1.26", "scikit-learn>=1.4"]
 test = ["pytest>=8", "pytest-postgresql>=6"]
 # The production WSGI server — the one thing `backend/Dockerfile` adds to the serving deps. An extra
 # rather than a dependency because nothing else needs a pre-fork server: the Mac runs
-# `python -m syntitude_backend.serve`, and the suite builds its apps in-process. ≥26 because the
+# `python -m bacatlas_backend.serve`, and the suite builds its apps in-process. ≥26 because the
 # Dockerfile passes `--no-control-socket`, which older releases reject — and refuse to start on.
 serve = ["gunicorn>=26"]
 
@@ -70,8 +70,8 @@ convention = "numpy"
 # ⛔ ALL rules, not just formatting ones: `--fix` reordered this file's imports once, and a
 #   migration whose bytes differ from the one that actually ran is a migration nobody can diff
 #   against the database it produced.
-"syntitude_backend/migrations/versions/*" = ["ALL"]
-"syntitude_backend/migrations/env.py" = ["D"]
+"bacatlas_backend/migrations/versions/*" = ["ALL"]
+"bacatlas_backend/migrations/env.py" = ["D"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

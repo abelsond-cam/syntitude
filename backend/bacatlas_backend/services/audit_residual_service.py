@@ -21,9 +21,9 @@ from dataclasses import dataclass
 from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.enumerations import EmbeddingRepresentation
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_similarity import LocusSimilarity
+from bacatlas_backend.models.enumerations import EmbeddingRepresentation
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_similarity import LocusSimilarity
 
 #: ⛔ **Vendored from `nuna.tl.locus_browser.export_payload.POLICY`** — the serving side must not
 #: import `nuna`, a private repo the med-school server does not have. The tiers the audit counts

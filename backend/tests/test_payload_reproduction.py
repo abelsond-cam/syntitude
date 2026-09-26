@@ -12,7 +12,7 @@ import random
 
 import pytest
 
-from syntitude_backend.instruments.payload_reproduction import (
+from bacatlas_backend.instruments.payload_reproduction import (
     GAP_INTERN_WALK,
     INTERN_WALK,
     UNMAPPABLE,

@@ -28,14 +28,14 @@ import pathlib
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.models.gene import Gene, GeneLocusMembership
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.models.gene import Gene, GeneLocusMembership
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 SPECIES_KEYS = ("ecoli", "kp")
 FIXTURES = pathlib.Path(__file__).resolve().parents[2] / "frontend" / "tests" / "fixtures"
@@ -187,7 +187,7 @@ def main() -> None:
     """Write both species' fixtures and print what each case exercises."""
     application = create_application(Configuration.from_environment())
     client = application.test_client()
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
         for species_key in SPECIES_KEYS:
             recorded = record_species(client, session, species_key)

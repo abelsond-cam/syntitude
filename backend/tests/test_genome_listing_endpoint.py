@@ -19,21 +19,21 @@ import pytest
 from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.ingest.ingest_genome_locus_counts import (
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.ingest.ingest_genome_locus_counts import (
     GENOME_LOCUS_COUNT_SELECT,
     write_genome_locus_counts,
 )
-from syntitude_backend.models.enumerations import SampleIdentifierKind
-from syntitude_backend.models.gene import Gene, GeneLocusMembership
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.models.enumerations import SampleIdentifierKind
+from bacatlas_backend.models.gene import Gene, GeneLocusMembership
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 from tests.conftest import make_locus
 
 
@@ -237,9 +237,9 @@ def test_the_stored_counts_are_the_ingest_definition_recomputed(application):
 
 @pytest.mark.parametrize("pangenome_id", [1, 2])
 def test_the_publish_gate_NAMES_the_genome_count_check_and_it_passes(application, pangenome_id):
-    from syntitude_backend.ingest.publish_pangenome import verify_pangenome_is_servable
+    from bacatlas_backend.ingest.publish_pangenome import verify_pangenome_is_servable
 
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
         passed, failed = verify_pangenome_is_servable(session, session.get(Pangenome, pangenome_id))
     assert failed == []
@@ -350,7 +350,7 @@ def test_the_ingest_counts_DISTINCT_loci_so_rho_above_one_is_counted_once(sessio
 
 
 def test_the_publish_gate_REFUSES_a_collection_genome_with_no_count_row(session, small_catalogue):
-    from syntitude_backend.ingest.publish_pangenome import verify_pangenome_is_servable
+    from bacatlas_backend.ingest.publish_pangenome import verify_pangenome_is_servable
 
     pangenome, genome = small_catalogue
     write_genome_locus_counts(session, pangenome.pangenome_id)

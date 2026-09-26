@@ -7,7 +7,7 @@ catalogue. What it does emit is the rule, the evidence and its denominator.
 
 from __future__ import annotations
 
-from syntitude_backend.services.projected_genome_service import ProjectedGenomeRow
+from bacatlas_backend.services.projected_genome_service import ProjectedGenomeRow
 
 
 def serialise_projected_genome(row: ProjectedGenomeRow) -> dict:

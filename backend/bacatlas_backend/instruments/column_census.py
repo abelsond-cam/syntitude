@@ -25,7 +25,7 @@ from sqlalchemy import Enum as SqlEnum
 from sqlalchemy import func, inspect, select, text
 from sqlalchemy.orm import Session
 
-from syntitude_backend.database import Base
+from bacatlas_backend.database import Base
 
 #: A `String(n)` whose longest observed value is at least this share of `n` is flagged: the next
 #: cohort could exceed it, and the failure mode is a truncation that produces a plausible value.

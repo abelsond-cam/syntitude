@@ -17,8 +17,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.enumerations import RosterLineage
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.enumerations import RosterLineage
 
 
 class GenomeCollection(Base):

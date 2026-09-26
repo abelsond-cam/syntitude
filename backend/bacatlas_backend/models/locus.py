@@ -17,9 +17,9 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.column_types import measurement, nan_guards
-from syntitude_backend.models.enumerations import GeneOntologyAgreementVerdict, PrevalenceBand
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.column_types import measurement, nan_guards
+from bacatlas_backend.models.enumerations import GeneOntologyAgreementVerdict, PrevalenceBand
 
 
 class Locus(Base):

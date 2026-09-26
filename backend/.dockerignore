@@ -1,4 +1,4 @@
-# The API image needs `pyproject.toml`, `uv.lock`, `alembic.ini` and `syntitude_backend/` — nothing
+# The API image needs `pyproject.toml`, `uv.lock`, `alembic.ini` and `bacatlas_backend/` — nothing
 # else. ⚠ A local `.venv` copied in would be a macOS venv inside a Linux image: it imports nothing,
 # and it would shadow the one the Dockerfile builds.
 .venv

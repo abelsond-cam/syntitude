@@ -17,14 +17,14 @@ import json
 import pytest
 from sqlalchemy import text
 
-from syntitude_backend.ingest.ingest_projected_genomes import ProjectionRefused, load_projection
-from syntitude_backend.models.gene import Gene
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.projected_genome import ProjectedGenePlacement, ProjectedGenome
-from syntitude_backend.services.locus_detail_service import load_locus_detail
-from syntitude_backend.services.projected_genome_service import (
+from bacatlas_backend.ingest.ingest_projected_genomes import ProjectionRefused, load_projection
+from bacatlas_backend.models.gene import Gene
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.projected_genome import ProjectedGenePlacement, ProjectedGenome
+from bacatlas_backend.services.locus_detail_service import load_locus_detail
+from bacatlas_backend.services.projected_genome_service import (
     list_projected_genomes,
     resolve_projected_genome,
 )
@@ -281,7 +281,7 @@ def test_the_agreement_is_served_with_the_denominator_that_bounds_it(session, se
     Serving `agreeing_neighbours` alone reports a bounded numerator as a score, and at singleton loci
     that number is 1 however good the placement is.
     """
-    from syntitude_backend.serialisers.locus_serialiser import serialise_projected_placement
+    from bacatlas_backend.serialisers.locus_serialiser import serialise_projected_placement
 
     write_placements(
         tmp_path,
@@ -358,7 +358,7 @@ def test_re_ingesting_the_catalogue_takes_the_projection_with_it_and_SAYS_so(
     """⛔ `projected_gene_placement.locus_id` cascades from `locus`, so a silent re-ingest would leave
     a `projected_genome` row whose counts describe an empty table — a summary reading "3 genes placed
     on 2 loci" over nothing. Both go, and the loader says which."""
-    from syntitude_backend.ingest.ingest_locus_catalogue import _delete_pangenome_layer
+    from bacatlas_backend.ingest.ingest_locus_catalogue import _delete_pangenome_layer
 
     write_placements(tmp_path, [{"flat_index": 0, "locus_label": "2811"}])
     load_projection(session, pangenome_id=seeded["pangenome"].pangenome_id, projection_root=tmp_path)

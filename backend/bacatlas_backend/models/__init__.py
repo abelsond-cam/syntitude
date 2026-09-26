@@ -5,47 +5,47 @@ silently omits its table — and the failure surfaces much later, as a missing r
 endpoint. Adding a model means adding it to this file.
 """
 
-from syntitude_backend.models.gene import (  # noqa: F401
+from bacatlas_backend.models.gene import (  # noqa: F401
     Gene,
     GeneFunctionalAnnotation,
     GeneLocusMembership,
     GenomeNoncodingFeature,
 )
-from syntitude_backend.models.genome import Genome, GenomeAssembly, GenomeContig  # noqa: F401
-from syntitude_backend.models.genome_collection import (  # noqa: F401
+from bacatlas_backend.models.genome import Genome, GenomeAssembly, GenomeContig  # noqa: F401
+from bacatlas_backend.models.genome_collection import (  # noqa: F401
     GenomeCollection,
     GenomeCollectionBuildReport,
     GenomeCollectionMembership,
 )
-from syntitude_backend.models.intergenic_gap import IntergenicGap, IntergenicGapFeature  # noqa: F401
-from syntitude_backend.models.locus import Locus  # noqa: F401
-from syntitude_backend.models.locus_annotation import (  # noqa: F401
+from bacatlas_backend.models.intergenic_gap import IntergenicGap, IntergenicGapFeature  # noqa: F401
+from bacatlas_backend.models.locus import Locus  # noqa: F401
+from bacatlas_backend.models.locus_annotation import (  # noqa: F401
     LocusAnnotationEntry,
     LocusUnirefFamilyCrosstab,
 )
-from syntitude_backend.models.locus_arrangement import LocusArrangement  # noqa: F401
-from syntitude_backend.models.locus_similarity import (  # noqa: F401
-    LocusSimilarity,
+from bacatlas_backend.models.locus_arrangement import LocusArrangement  # noqa: F401
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant  # noqa: F401
+from bacatlas_backend.models.locus_similarity import (  # noqa: F401
     LocusNearestLocus,
+    LocusSimilarity,
     PangenomeSimilarityBaseline,
 )
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant  # noqa: F401
-from syntitude_backend.models.nuna_model import NunaModel, NunaModelStep  # noqa: F401
-from syntitude_backend.models.pangenome import (  # noqa: F401
+from bacatlas_backend.models.nuna_model import NunaModel, NunaModelStep  # noqa: F401
+from bacatlas_backend.models.pangenome import (  # noqa: F401
     Pangenome,
     PangenomeEvaluation,
     PangenomeInputEdge,
     PangenomeStep,
 )
-from syntitude_backend.models.pangenome_genome_locus_count import (  # noqa: F401
+from bacatlas_backend.models.pangenome_genome_locus_count import (  # noqa: F401
     PangenomeGenomeLocusCount,
 )
-from syntitude_backend.models.pathogen_species import PathogenSpecies  # noqa: F401
-from syntitude_backend.models.projected_genome import (  # noqa: F401
+from bacatlas_backend.models.pathogen_species import PathogenSpecies  # noqa: F401
+from bacatlas_backend.models.projected_genome import (  # noqa: F401
     ProjectedGenePlacement,
     ProjectedGenome,
 )
-from syntitude_backend.models.reference_vocabulary import PfamFamily  # noqa: F401
+from bacatlas_backend.models.reference_vocabulary import PfamFamily  # noqa: F401
 
 __all__ = [
     "Gene",

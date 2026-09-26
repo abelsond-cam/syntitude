@@ -20,11 +20,11 @@ import pytest
 from sqlalchemy import create_engine, select, tuple_
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.models.intergenic_gap import IntergenicGap
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.models.intergenic_gap import IntergenicGap
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 #: Loci per species. Seeded, so a failure names loci that fail again.
 SAMPLE = 150
@@ -60,7 +60,7 @@ def _drawn_label_pairs(response: dict) -> set[tuple]:
 
 @pytest.mark.parametrize("species_key", ["ecoli", "kp"])
 def test_every_region_the_track_draws_is_in_the_response(application, species_key):
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     client = application.test_client()
     with Session(engine) as session:
         pangenome_id = session.execute(

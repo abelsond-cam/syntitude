@@ -29,7 +29,7 @@ from typing import Any
 from sqlalchemy import Table, delete
 from sqlalchemy.orm import Session
 
-from syntitude_backend.instruments.sql_cost_oracle import record_driver_statement
+from bacatlas_backend.instruments.sql_cost_oracle import record_driver_statement
 
 #: How many rows to hand the driver between flushes. Large enough that the per-batch overhead is
 #: noise, small enough that a failing row is found in seconds rather than after a whole genome.

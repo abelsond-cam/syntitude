@@ -29,10 +29,10 @@ from dataclasses import dataclass, field
 from sqlalchemy import func, over, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
 
 #: What a request gets without asking. The page listed all 100; the design target is 80,000.
 DEFAULT_GENOME_LIMIT = 100

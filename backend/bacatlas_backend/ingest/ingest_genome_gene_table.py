@@ -22,18 +22,18 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from syntitude_backend.gff.gff_cds_parser import parse_genome_annotation
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.ingest.genome_gene_alignment import (
+from bacatlas_backend.gff.gff_cds_parser import parse_genome_annotation
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.genome_gene_alignment import (
     GenomeAlignment,
     check_against_meta,
     flatten_to_extractor_order,
 )
-from syntitude_backend.ingest.ingest_pathogen_species import species_key_for_parquet_value
-from syntitude_backend.ingest.staging_table_loader import replace_rows_for
-from syntitude_backend.models.enumerations import SampleIdentifierKind
-from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
-from syntitude_backend.models.genome import Genome, GenomeAssembly, GenomeContig
+from bacatlas_backend.ingest.ingest_pathogen_species import species_key_for_parquet_value
+from bacatlas_backend.ingest.staging_table_loader import replace_rows_for
+from bacatlas_backend.models.enumerations import SampleIdentifierKind
+from bacatlas_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
+from bacatlas_backend.models.genome import Genome, GenomeAssembly, GenomeContig
 
 #: Columns written per gene, in COPY order.
 GENE_COLUMNS = (

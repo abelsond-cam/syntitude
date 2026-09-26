@@ -23,15 +23,16 @@ from dataclasses import dataclass, field
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from syntitude_backend.ingest.artifact_locator import REPRESENTATIONS, CatalogueArtifacts
-from syntitude_backend.ingest.catalogue_frames import (
+from bacatlas_backend.ingest.artifact_locator import REPRESENTATIONS, CatalogueArtifacts
+from bacatlas_backend.ingest.catalogue_frames import (
     OFFSETS,
+    SIMILARITY_COLUMNS,
     CatalogueFrames,
     build_catalogue_frames,
     load_pfam_name_table,
 )
-from syntitude_backend.ingest.derive_locus_display import best_product, display_name, search_text
-from syntitude_backend.ingest.derive_locus_ranking import (
+from bacatlas_backend.ingest.derive_locus_display import best_product, display_name, search_text
+from bacatlas_backend.ingest.derive_locus_ranking import (
     build_interest_inputs,
     interest_score,
     landing_index,
@@ -39,29 +40,28 @@ from syntitude_backend.ingest.derive_locus_ranking import (
     ranking,
     similarity_index,
 )
-from syntitude_backend.ingest.ingest_genome_locus_counts import write_genome_locus_counts
-from syntitude_backend.ingest.catalogue_frames import SIMILARITY_COLUMNS
-from syntitude_backend.ingest.staging_table_loader import copy_rows
-from syntitude_backend.models.enumerations import (
+from bacatlas_backend.ingest.ingest_genome_locus_counts import write_genome_locus_counts
+from bacatlas_backend.ingest.staging_table_loader import copy_rows
+from bacatlas_backend.models.enumerations import (
     AnnotationKind,
     EmbeddingRepresentation,
     GeneOntologyAgreementVerdict,
     PrevalenceBand,
 )
-from syntitude_backend.models.gene import GeneLocusMembership
-from syntitude_backend.models.intergenic_gap import IntergenicGap, IntergenicGapFeature
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_similarity import (
+from bacatlas_backend.models.gene import GeneLocusMembership
+from bacatlas_backend.models.intergenic_gap import IntergenicGap, IntergenicGapFeature
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from bacatlas_backend.models.locus_similarity import (
     LocusNearestLocus,
     LocusSimilarity,
     PangenomeSimilarityBaseline,
 )
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
-from syntitude_backend.models.projected_genome import ProjectedGenome
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
+from bacatlas_backend.models.projected_genome import ProjectedGenome
 
 #: `catalogue_map._COS` — the factor the 15 upper-triangle cosines are stored at.
 COSINE_SCALE_FACTOR = 10_000
@@ -752,7 +752,7 @@ def _load_gene_memberships(
 
 
 def _genome_ids_by_sample(session, samples: list[str]) -> dict:
-    from syntitude_backend.models.genome import Genome
+    from bacatlas_backend.models.genome import Genome
 
     return {
         sample_id: genome_id

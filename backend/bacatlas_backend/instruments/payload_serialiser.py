@@ -36,9 +36,8 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.instruments.payload_string_pool import StringPool
-from syntitude_backend.models.locus import Locus
-
+from bacatlas_backend.instruments.payload_string_pool import StringPool
+from bacatlas_backend.models.locus import Locus
 
 #: The payload schema this database was INGESTED from, and therefore the one a rebuild reproduces.
 #:
@@ -219,7 +218,7 @@ def annotation_rows(session: Session, pangenome_id: int) -> dict[str, list]:
     comment says why: *"`top_go` ranks within (locus, namespace), so it sorts on namespace too or
     the run lengths break."*
     """
-    from syntitude_backend.models.locus_annotation import LocusAnnotationEntry
+    from bacatlas_backend.models.locus_annotation import LocusAnnotationEntry
 
     rows = session.execute(
         select(LocusAnnotationEntry, Locus.catalogue_ordinal)
@@ -239,7 +238,7 @@ def annotation_rows(session: Session, pangenome_id: int) -> dict[str, list]:
 
 def uniref_crosstab_rows(session: Session, pangenome_id: int) -> list:
     """The UniRef50 cross-tab in ``(catalogue_ordinal, rank)`` order — the payload's ``lists.u50``."""
-    from syntitude_backend.models.locus_annotation import LocusUnirefFamilyCrosstab
+    from bacatlas_backend.models.locus_annotation import LocusUnirefFamilyCrosstab
 
     return session.execute(
         select(LocusUnirefFamilyCrosstab, Locus.catalogue_ordinal)
@@ -325,8 +324,8 @@ def genome_ordinal_map(session: Session, pangenome_id: int) -> dict[int, int]:
     reading one as the other silently names the wrong genome throughout: at 100 genomes both are
     small integers, both are in range, and every page renders.
     """
-    from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-    from syntitude_backend.models.pangenome import Pangenome
+    from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+    from bacatlas_backend.models.pangenome import Pangenome
 
     collection_id = session.execute(
         select(Pangenome.genome_collection_id).where(Pangenome.pangenome_id == pangenome_id)
@@ -360,7 +359,7 @@ def arrangement_block(session: Session, pangenome_id: int, loci: list[Locus]) ->
     order. Asserted before returning, because a mismatch makes the page read every arrangement's
     membership from the wrong offset — and every genome name it then shows is a real genome.
     """
-    from syntitude_backend.models.locus_arrangement import LocusArrangement
+    from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
     rows = session.execute(
         select(LocusArrangement, Locus.catalogue_ordinal)
@@ -417,7 +416,7 @@ def context_block(session: Session, pangenome_id: int, loci: list[Locus]) -> dic
 
     ⚠ ``nid`` holds payload **ordinals**, not database ids — the page holds indices everywhere.
     """
-    from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
+    from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
 
     _, offsets, _, _, _ = _payload_constants()
     slot_of = {offset: index for index, offset in enumerate(offsets)}
@@ -482,7 +481,7 @@ def gaps_block(session: Session, pangenome_id: int, loci: list[Locus]) -> dict:
     ⚠ ``q1 == q3`` means the MIDDLE HALF agrees; only ``mn == mx`` certifies "every genome agrees".
     Both pairs are carried because an earlier page reported the first as the second.
     """
-    from syntitude_backend.models.intergenic_gap import IntergenicGap, IntergenicGapFeature
+    from bacatlas_backend.models.intergenic_gap import IntergenicGap, IntergenicGapFeature
 
     ordinal_of_locus_id = {locus.locus_id: locus.catalogue_ordinal for locus in loci}
     gaps = list(
@@ -629,7 +628,7 @@ def similarity_block(session: Session, pangenome_id: int, loci: list[Locus], *, 
     """
     from nuna.tl.locus_browser.export_payload import _b64_i16, _b64_i32
 
-    from syntitude_backend.models.locus_similarity import (
+    from bacatlas_backend.models.locus_similarity import (
         NEAREST_LOCUS_COUNT,
         LocusNearestLocus,
         LocusSimilarity,
@@ -747,10 +746,10 @@ def meta_block(
         TOP_NEIGHBOURS,
     )
 
-    from syntitude_backend.models.genome import Genome
-    from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-    from syntitude_backend.models.pangenome import Pangenome, PangenomeEvaluation
-    from syntitude_backend.models.pathogen_species import PathogenSpecies
+    from bacatlas_backend.models.genome import Genome
+    from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+    from bacatlas_backend.models.pangenome import Pangenome, PangenomeEvaluation
+    from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
     _, offsets, band_order, _, policy = _payload_constants()
     pangenome = session.get(Pangenome, pangenome_id)
@@ -870,8 +869,8 @@ def build_payload_from_database(session: Session, species_key: str) -> dict:
     otherwise produce thousands of changed indices in a diff nobody can read. Here it raises, naming
     the pool and the column.
     """
-    from syntitude_backend.instruments.payload_reproduction import verify_intern_walk
-    from syntitude_backend.models.pathogen_species import PathogenSpecies
+    from bacatlas_backend.instruments.payload_reproduction import verify_intern_walk
+    from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
     schema_version, _, _, _, _ = _payload_constants()
     pangenome_id = session.execute(

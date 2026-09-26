@@ -604,8 +604,8 @@ def absent_labels(session, *, genome_id: int, pangenome_id: int, limit: int = AB
 
 def api_genes_at(session, *, pangenome_id: int, label: str, sample_id: str, gff_root: Path, flank_length: int):
     """⭐ Exactly the endpoint's path, minus HTTP: the service, then the serialiser."""
-    from syntitude_backend.serialisers.locus_serialiser import serialise_gene_sequence
-    from syntitude_backend.services.gene_sequence_service import load_gene_sequences
+    from bacatlas_backend.serialisers.locus_serialiser import serialise_gene_sequence
+    from bacatlas_backend.services.gene_sequence_service import load_gene_sequences
 
     return [
         serialise_gene_sequence(row)

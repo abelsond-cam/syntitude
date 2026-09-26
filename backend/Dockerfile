@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 #
-# The Syntitude API — gunicorn over `create_application()`, with the SERVING dependencies only.
+# The BacAtlas API — gunicorn over `create_application()`, with the SERVING dependencies only.
 #
 # ⛔ No `ingest` extra, and never `nuna`. `nuna` is a private repo the server has no access to and
 # does not need: only `ingest/` imports it, ingest runs on a machine that already has the science
@@ -18,7 +18,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH=/opt/venv/bin:$PATH \
     PYTHONUNBUFFERED=1
 
-WORKDIR /srv/syntitude/backend
+WORKDIR /srv/bacatlas/backend
 
 # Dependencies first, from the lock alone, so a source edit does not reinstall them.
 # ⛔ `--locked`, not `--frozen`: a `pyproject.toml` edited without re-running `uv lock` FAILS the
@@ -35,7 +35,7 @@ RUN --mount=from=ghcr.io/astral-sh/uv:0.11.8,source=/uv,target=/bin/uv \
 # `alembic.ini` + the package (which carries `migrations/`), so that
 # `docker compose run --rm api alembic upgrade head` works against a fresh database.
 COPY alembic.ini ./
-COPY syntitude_backend ./syntitude_backend
+COPY bacatlas_backend ./bacatlas_backend
 RUN --mount=from=ghcr.io/astral-sh/uv:0.11.8,source=/uv,target=/bin/uv \
     --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --extra serve
@@ -43,8 +43,8 @@ RUN --mount=from=ghcr.io/astral-sh/uv:0.11.8,source=/uv,target=/bin/uv \
 # Not root: the process only ever reads — the database over a socket, the GFF tree through a
 # read-only bind mount. ⚠ On a Linux host that tree must therefore be readable by uid 10001 (or
 # world-readable); a permission error surfaces as the sequence endpoint's named 503, not at start-up.
-RUN useradd --system --uid 10001 --no-create-home syntitude
-USER syntitude
+RUN useradd --system --uid 10001 --no-create-home bacatlas
+USER bacatlas
 
 EXPOSE 8000
 
@@ -57,4 +57,4 @@ CMD ["gunicorn", \
      "--bind", "0.0.0.0:8000", \
      "--access-logfile", "-", \
      "--no-control-socket", \
-     "syntitude_backend.application_factory:create_application()"]
+     "bacatlas_backend.application_factory:create_application()"]

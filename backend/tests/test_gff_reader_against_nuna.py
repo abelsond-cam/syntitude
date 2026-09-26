@@ -30,13 +30,13 @@ pytestmark = pytest.mark.skipif(
     not GFF_ROOT.is_dir(), reason=f"probe GFFs not pulled to {GFF_ROOT}"
 )
 
-from syntitude_backend.gff.gene_sequence_reader import (  # noqa: E402
+from bacatlas_backend.gff.gene_sequence_reader import (  # noqa: E402
     CODON_TABLE,
     INITIATOR_CODONS,
     read_gene_sequence,
     reverse_complement,
 )
-from syntitude_backend.gff.gff_cds_parser import (  # noqa: E402
+from bacatlas_backend.gff.gff_cds_parser import (  # noqa: E402
     _attributes,
     parse_genome_annotation,
 )
@@ -166,7 +166,7 @@ def test_a_pseudo_CDS_is_dropped_and_a_partial_attribute_is_honoured():
     import gzip
     import tempfile
 
-    from syntitude_backend.gff.gff_cds_parser import FIVE_PRIME_PARTIAL_VALUES, PSEUDO_VALUES
+    from bacatlas_backend.gff.gff_cds_parser import FIVE_PRIME_PARTIAL_VALUES, PSEUDO_VALUES
 
     gff = (
         "##gff-version 3\n"
@@ -238,7 +238,7 @@ def test_a_percent_encoded_product_does_not_reach_a_caller_encoded():
         handle.write(gzip.compress(("##gff-version 3\n" + line + "##FASTA\n>c1\nACGT\n").encode()))
         path = Path(handle.name)
 
-    from syntitude_backend.gff.gff_cds_parser import _attributes as _decode  # noqa: PLC2701
+    from bacatlas_backend.gff.gff_cds_parser import _attributes as _decode  # noqa: PLC2701
 
     with gzip.open(path, "rt") as handle:
         attributes = next(

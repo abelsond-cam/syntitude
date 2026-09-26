@@ -1,5 +1,5 @@
-"""Entry point so the loader is `python -m syntitude_backend.ingest`."""
+"""Entry point so the loader is `python -m bacatlas_backend.ingest`."""
 
-from syntitude_backend.ingest.ingest_command_line import main
+from bacatlas_backend.ingest.ingest_command_line import main
 
 raise SystemExit(main())

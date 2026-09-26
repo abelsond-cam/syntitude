@@ -25,7 +25,7 @@ def _require(name: str) -> str:
     if not value:
         raise RuntimeError(
             f"{name} is not set. The API refuses to start without it rather than failing on the "
-            f"first request that needs it — see syntitude_backend/configuration.py."
+            f"first request that needs it — see bacatlas_backend/configuration.py."
         )
     return value
 

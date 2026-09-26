@@ -12,12 +12,12 @@ from pathlib import Path
 
 import pytest
 
-from syntitude_backend.ingest.artifact_locator import (
+from bacatlas_backend.ingest.artifact_locator import (
     REPRESENTATIONS,
     CatalogueArtifacts,
     MissingArtifacts,
 )
-from syntitude_backend.ingest.published_catalogues import PUBLISHED_CATALOGUES, catalogue
+from bacatlas_backend.ingest.published_catalogues import PUBLISHED_CATALOGUES, catalogue
 
 #: The local mirror of the cluster artifacts. Overridable, because the med school box and any
 #: second developer will not have it at a path chosen on one laptop.

@@ -40,8 +40,8 @@ from __future__ import annotations
 from sqlalchemy import BigInteger, ForeignKey, Index, Integer, SmallInteger, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.column_types import measurement, nan_guards
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.column_types import measurement, nan_guards
 
 
 class IntergenicGap(Base):

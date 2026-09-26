@@ -18,14 +18,14 @@ import pytest
 from sqlalchemy import TEXT, func, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.gff.gene_sequence_reader import reverse_complement
-from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
-from syntitude_backend.models.gene import Gene, GeneLocusMembership
-from syntitude_backend.models.genome import Genome, GenomeContig
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.services.gene_sequence_service import (
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.gff.gene_sequence_reader import reverse_complement
+from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
+from bacatlas_backend.models.gene import Gene, GeneLocusMembership
+from bacatlas_backend.models.genome import Genome, GenomeContig
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.services.gene_sequence_service import (
     SequenceUnavailable,
     _contig_sequences,
     clear_parsed_genome_cache,
@@ -53,7 +53,7 @@ def client(application):
 
 @pytest.fixture(scope="module")
 def engine(application):
-    return application.extensions["syntitude_database"].engine
+    return application.extensions["bacatlas_database"].engine
 
 
 @pytest.fixture(scope="module")
@@ -362,7 +362,7 @@ def test_each_flank_NAMES_the_contig_coordinates_it_came_from(client, engine):
 
 def test_an_empty_flank_has_a_NULL_span_rather_than_a_zero_length_one(engine, gff_root):
     """⚠ `[1, 0]` is not a span; it is arithmetic leaking. A flank that does not exist says so."""
-    from syntitude_backend.gff.gene_sequence_reader import read_gene_sequence
+    from bacatlas_backend.gff.gene_sequence_reader import read_gene_sequence
 
     view = read_gene_sequence("ATGAAATAG", start_position=1, end_position=9, strand="+", flank_length=100)
     assert view.upstream_flank_span is None

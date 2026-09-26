@@ -26,11 +26,11 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.gff.gene_sequence_reader import GeneSequenceView, read_gene_sequence
-from syntitude_backend.gff.gff_cds_parser import parse_genome_annotation
-from syntitude_backend.models.gene import Gene, GeneLocusMembership
-from syntitude_backend.models.genome import Genome, GenomeContig
-from syntitude_backend.models.locus import Locus
+from bacatlas_backend.gff.gene_sequence_reader import GeneSequenceView, read_gene_sequence
+from bacatlas_backend.gff.gff_cds_parser import parse_genome_annotation
+from bacatlas_backend.models.gene import Gene, GeneLocusMembership
+from bacatlas_backend.models.genome import Genome, GenomeContig
+from bacatlas_backend.models.locus import Locus
 
 #: How many genomes' contig sequences to keep parsed. ⚠ A bacterial genome is ~5 MB as a Python
 #: string, so this is a memory bound in the tens of MB per worker process — deliberately small,

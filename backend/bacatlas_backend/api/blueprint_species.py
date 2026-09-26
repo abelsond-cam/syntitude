@@ -19,34 +19,34 @@ from __future__ import annotations
 from flask import Blueprint, current_app, jsonify, request
 from sqlalchemy import select
 
-from syntitude_backend.models.enumerations import EmbeddingRepresentation
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.serialisers.locus_serialiser import (
+from bacatlas_backend.models.enumerations import EmbeddingRepresentation
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.serialisers.locus_serialiser import (
     serialise_annotation_entry,
     serialise_arrangement,
     serialise_gene_sequence,
     serialise_locus_detail,
 )
-from syntitude_backend.serialisers.projected_genome_serialiser import serialise_projected_genome
-from syntitude_backend.services.audit_residual_service import load_audit_residuals
-from syntitude_backend.services.gene_sequence_service import (
+from bacatlas_backend.serialisers.projected_genome_serialiser import serialise_projected_genome
+from bacatlas_backend.services.audit_residual_service import load_audit_residuals
+from bacatlas_backend.services.gene_sequence_service import (
     SequenceUnavailable,
     load_gene_sequences,
 )
-from syntitude_backend.services.genome_listing_service import clamp_genome_limit, list_genomes
-from syntitude_backend.services.locus_detail_service import (
+from bacatlas_backend.services.genome_listing_service import clamp_genome_limit, list_genomes
+from bacatlas_backend.services.locus_detail_service import (
     LocusNotFound,
     load_arrangement_page,
     load_function_block,
     load_locus_detail,
 )
-from syntitude_backend.services.locus_search_service import DEFAULT_RESULT_LIMIT, search_loci
-from syntitude_backend.services.projected_genome_service import (
+from bacatlas_backend.services.locus_search_service import DEFAULT_RESULT_LIMIT, search_loci
+from bacatlas_backend.services.projected_genome_service import (
     list_projected_genomes,
     resolve_projected_genome,
 )
-from syntitude_backend.services.species_catalogue_service import (
+from bacatlas_backend.services.species_catalogue_service import (
     SpeciesNotPublished,
     list_catalogues,
     list_published_species,
@@ -75,7 +75,7 @@ def _immutable(payload, pangenome_id: int | None):
 
 
 def _session():
-    return current_app.extensions["syntitude_database"].session()
+    return current_app.extensions["bacatlas_database"].session()
 
 
 def _not_found(message: str):
@@ -321,7 +321,7 @@ def _resolve_catalogue_genome(session, pangenome, sample_id: str) -> int | None:
     Sequence tab as `genes: []`, *"has no gene here"* — a claim about a genome this pangenome says
     nothing about at all. (First unscoped, then species-scoped in `acb8ea4`, which still left these.)
     """
-    from syntitude_backend.models.genome_collection import GenomeCollectionMembership
+    from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
 
     return session.execute(
         select(Genome.genome_id)

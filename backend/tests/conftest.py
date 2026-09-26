@@ -13,23 +13,23 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
-import syntitude_backend.models  # noqa: F401  (registers every table on the metadata)
-from syntitude_backend.database import Base
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.ingest.published_catalogues import catalogue as published_catalogue
-from syntitude_backend.models.enumerations import (
+import bacatlas_backend.models  # noqa: F401  (registers every table on the metadata)
+from bacatlas_backend.database import Base
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.published_catalogues import catalogue as published_catalogue
+from bacatlas_backend.models.enumerations import (
     ExclusivityForm,
     ExclusivityFormSource,
     PrevalenceBand,
     RosterLineage,
     SampleIdentifierKind,
 )
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollection
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.nuna_model import NunaModel
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollection
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.nuna_model import NunaModel
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 PROBE_URL = os.environ.get(
     "SYNTITUDE_PROBE_DATABASE_URL",

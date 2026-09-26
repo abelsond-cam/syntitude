@@ -9,10 +9,10 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.enumerations import ExclusivityForm, ExclusivityFormSource
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
-from syntitude_backend.models.pangenome import Pangenome
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.enumerations import ExclusivityForm, ExclusivityFormSource
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from bacatlas_backend.models.pangenome import Pangenome
 
 from .conftest import make_locus
 
@@ -175,8 +175,8 @@ def test_rho_ceiling_can_hold_step_twos_literal_1e9(session, seeded):
     multi-step model would have failed. The value is stored, not merely accepted, because a silent
     truncation to `99999999.9999` would still describe a ρ rail — just not this one.
     """
-    from syntitude_backend.models.enumerations import RhoRule
-    from syntitude_backend.models.nuna_model import NunaModelStep
+    from bacatlas_backend.models.enumerations import RhoRule
+    from bacatlas_backend.models.nuna_model import NunaModelStep
 
     step = NunaModelStep(
         nuna_model_id=seeded["model"].nuna_model_id,

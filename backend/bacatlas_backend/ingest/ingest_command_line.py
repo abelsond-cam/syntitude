@@ -1,4 +1,4 @@
-"""`python -m syntitude_backend.ingest` — the offline loader.
+"""`python -m bacatlas_backend.ingest` — the offline loader.
 
 ⛔ **Writes are OURS ALONE, and never on a request path.** This is the only thing in the package
 that inserts, and it runs on a machine that has the cluster artifacts. The serving install has
@@ -22,29 +22,29 @@ from pathlib import Path
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-import syntitude_backend.models  # noqa: F401  (registers every table on the metadata)
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.ingest.genome_gene_alignment import GeneAlignmentError
-from syntitude_backend.ingest.ingest_genome_collection_roster import (
+import bacatlas_backend.models  # noqa: F401  (registers every table on the metadata)
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.genome_gene_alignment import GeneAlignmentError
+from bacatlas_backend.ingest.ingest_genome_collection_roster import (
     genome_id_by_ordinal,
     ingest_genome_collection,
 )
-from syntitude_backend.ingest.ingest_genome_gene_table import GenomeIngestError, ingest_one_genome
-from syntitude_backend.ingest.ingest_locus_catalogue import ingest_locus_catalogue
-from syntitude_backend.ingest.ingest_nuna_model_registry import (
+from bacatlas_backend.ingest.ingest_genome_gene_table import GenomeIngestError, ingest_one_genome
+from bacatlas_backend.ingest.ingest_locus_catalogue import ingest_locus_catalogue
+from bacatlas_backend.ingest.ingest_nuna_model_registry import (
     ingest_model_registry,
     model_key_for_audit_label,
 )
-from syntitude_backend.ingest.ingest_pangenome_run import catalogue_key_for, ingest_pangenome_run
-from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
-from syntitude_backend.ingest.ingest_projected_genomes import ProjectionRefused, load_projection
-from syntitude_backend.ingest.ingest_reference_vocabularies import load_pfam_reference
-from syntitude_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
-from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
-from syntitude_backend.models.genome import Genome, GenomeContig
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.nuna_model import NunaModel
-from syntitude_backend.models.pangenome import Pangenome
+from bacatlas_backend.ingest.ingest_pangenome_run import catalogue_key_for, ingest_pangenome_run
+from bacatlas_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
+from bacatlas_backend.ingest.ingest_projected_genomes import ProjectionRefused, load_projection
+from bacatlas_backend.ingest.ingest_reference_vocabularies import load_pfam_reference
+from bacatlas_backend.ingest.publish_pangenome import PublishRefused, publish_pangenome
+from bacatlas_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
+from bacatlas_backend.models.genome import Genome, GenomeContig
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.nuna_model import NunaModel
+from bacatlas_backend.models.pangenome import Pangenome
 
 
 @dataclass
@@ -197,7 +197,7 @@ def load_pangenome_layer(
     species_id = species_ids[species_key]
 
     model_key = model_key_for_audit_label(artifacts.model_label, artifacts.set_key, MODELS)
-    from syntitude_backend.ingest.ingest_pangenome_run import nuna_git_sha
+    from bacatlas_backend.ingest.ingest_pangenome_run import nuna_git_sha
 
     ingest_model_registry(session, models=MODELS, registry_git_sha=nuna_git_sha())
     session.flush()
@@ -249,7 +249,7 @@ def reconcile_pangenome(session: Session, artifacts: CatalogueArtifacts) -> list
     The published counts are a fact of record (`published_catalogues.py`), so this compares the load
     against them rather than against itself.
     """
-    from syntitude_backend.ingest.published_catalogues import PUBLISHED_CATALOGUES
+    from bacatlas_backend.ingest.published_catalogues import PUBLISHED_CATALOGUES
 
     entry = next((e for e in PUBLISHED_CATALOGUES if e.run_id == artifacts.run_id), None)
     if entry is None:
@@ -281,7 +281,7 @@ def reconcile_pangenome(session: Session, artifacts: CatalogueArtifacts) -> list
 
 def build_parser() -> argparse.ArgumentParser:
     """The CLI surface. `--limit` and `--only` are smoke-run conveniences, not modes to load in."""
-    parser = argparse.ArgumentParser(prog="python -m syntitude_backend.ingest", description=__doc__)
+    parser = argparse.ArgumentParser(prog="python -m bacatlas_backend.ingest", description=__doc__)
     parser.add_argument("--data-root", type=Path, default=Path("~/developer/nuna/data"),
                         help="the local mirror of the cluster artifacts")
     parser.add_argument("--set-key", default="ecoli", help="the dataset token in filenames")
@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
             session.commit()
             differences += reconcile_pangenome(session, artifacts)
             if args.offer:
-                from syntitude_backend.ingest.publish_pangenome import offer_catalogue
+                from bacatlas_backend.ingest.publish_pangenome import offer_catalogue
 
                 # ⚠ Read the key back off the row that was just written rather than recomputing it.
                 # Recomputing would be a second implementation of the same rule, and the two could

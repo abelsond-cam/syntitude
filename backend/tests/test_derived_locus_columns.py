@@ -16,7 +16,7 @@ loci each fall-through level actually names.
 
 import pytest
 
-from syntitude_backend.ingest.derive_locus_display import (
+from bacatlas_backend.ingest.derive_locus_display import (
     SOURCE_BAKTA_SYMBOL,
     SOURCE_LABEL,
     SOURCE_PFAM_ARCHITECTURE,
@@ -26,13 +26,13 @@ from syntitude_backend.ingest.derive_locus_display import (
     search_text,
     sole_architecture,
 )
-from syntitude_backend.ingest.derive_locus_ranking import (
+from bacatlas_backend.ingest.derive_locus_ranking import (
     BARRED_SENTINEL,
     build_interest_inputs,
     interest_score,
     landing_index,
-    pfam_concordance,
     midrank_percentiles,
+    pfam_concordance,
     ranking,
 )
 from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR

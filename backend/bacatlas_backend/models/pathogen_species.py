@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import ForeignKey, Integer, SmallInteger, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
+from bacatlas_backend.database import Base
 
 
 class PathogenSpecies(Base):

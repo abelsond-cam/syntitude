@@ -26,10 +26,10 @@ from __future__ import annotations
 
 import pytest
 
-from syntitude_backend.ingest.ingest_pangenome_run import catalogue_key_for
-from syntitude_backend.models.enumerations import ExclusivityForm, ExclusivityFormSource
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.services.species_catalogue_service import (
+from bacatlas_backend.ingest.ingest_pangenome_run import catalogue_key_for
+from bacatlas_backend.models.enumerations import ExclusivityForm, ExclusivityFormSource
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.services.species_catalogue_service import (
     CatalogueNotFound,
     list_catalogues,
     resolve_catalogue,
@@ -140,7 +140,7 @@ def test_the_picker_lists_by_is_published_not_by_the_default_pointer(session, se
 
 def _roster_of(monkeypatch, tmp_path, samples):
     """Point the roster ingest at a controlled genome list, without needing real artifacts."""
-    from syntitude_backend.ingest import ingest_genome_collection_roster as roster_module
+    from bacatlas_backend.ingest import ingest_genome_collection_roster as roster_module
 
     universe = tmp_path / "gene_universe.parquet"
     universe.write_text("not read — the vocabulary is stubbed, only the sha256 touches this file")
@@ -168,8 +168,8 @@ def test_a_REORDERED_roster_is_refused_when_another_catalogue_depends_on_the_ord
     The pre-existing check refuses HOLES. This refuses REORDERING, which only became reachable when
     a species was allowed to hold more than one catalogue.
     """
-    from syntitude_backend.models.genome import Genome
-    from syntitude_backend.models.enumerations import SampleIdentifierKind
+    from bacatlas_backend.models.enumerations import SampleIdentifierKind
+    from bacatlas_backend.models.genome import Genome
 
     second = Genome(
         pathogen_species_id=seeded["species"].pathogen_species_id,
@@ -232,7 +232,7 @@ def test_publishing_one_catalogue_does_NOT_hide_the_other(session, seeded):
 
     ⚠ Publishing ADDS. Hiding a catalogue is a separate, explicit act.
     """
-    from syntitude_backend.ingest.publish_pangenome import publish_pangenome
+    from bacatlas_backend.ingest.publish_pangenome import publish_pangenome
 
     seeded["pangenome"].is_published = True
     seeded["species"].default_pangenome_id = seeded["pangenome"].pangenome_id
@@ -298,7 +298,7 @@ def test_offering_a_catalogue_does_not_make_it_the_default(session, seeded):
     stay the default and the rollback while nuna5 is selectable beside it — which is the shape the
     user asked for. Publishing was the only verb available, and publishing moves the pointer.
     """
-    from syntitude_backend.ingest.publish_pangenome import offer_catalogue
+    from bacatlas_backend.ingest.publish_pangenome import offer_catalogue
 
     seeded["species"].default_pangenome_id = seeded["pangenome"].pangenome_id
     second = _second_catalogue(session, seeded)
@@ -318,7 +318,7 @@ def test_offering_a_catalogue_does_not_make_it_the_default(session, seeded):
 
 def test_a_catalogue_can_be_taken_back_out_of_the_picker(session, seeded):
     """And hiding is the same one boolean, not a delete — the catalogue stays addressable by key."""
-    from syntitude_backend.ingest.publish_pangenome import offer_catalogue
+    from bacatlas_backend.ingest.publish_pangenome import offer_catalogue
 
     second = _second_catalogue(session, seeded)
     session.flush()

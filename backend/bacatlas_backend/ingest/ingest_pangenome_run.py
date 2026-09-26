@@ -35,18 +35,18 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.ingest.ingest_nuna_model_registry import rho_rule_is_effectively_off
-from syntitude_backend.ingest.mirrored_manifest_chain import manifests_resolved_against
-from syntitude_backend.models.enumerations import (
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.ingest_nuna_model_registry import rho_rule_is_effectively_off
+from bacatlas_backend.ingest.mirrored_manifest_chain import manifests_resolved_against
+from bacatlas_backend.models.enumerations import (
     EmbeddingRepresentation,
     EvaluationKind,
     ExclusivityForm,
     ExclusivityFormSource,
     RhoRule,
 )
-from syntitude_backend.models.nuna_model import NunaModelStep
-from syntitude_backend.models.pangenome import (
+from bacatlas_backend.models.nuna_model import NunaModelStep
+from bacatlas_backend.models.pangenome import (
     Pangenome,
     PangenomeEvaluation,
     PangenomeInputEdge,

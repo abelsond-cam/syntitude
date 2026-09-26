@@ -7,7 +7,7 @@ of record — which is exactly the disagreement worth failing a build over.
 
 import pytest
 
-from syntitude_backend.ingest.ingest_nuna_model_registry import (
+from bacatlas_backend.ingest.ingest_nuna_model_registry import (
     STEP2_RHO_CEILING,
     expand_model_steps,
     ingest_model_registry,
@@ -15,8 +15,8 @@ from syntitude_backend.ingest.ingest_nuna_model_registry import (
     model_key_for_label,
     rho_rule_is_effectively_off,
 )
-from syntitude_backend.models.enumerations import EmbeddingRepresentation, ExclusivityForm, RhoRule
-from syntitude_backend.models.nuna_model import NunaModel, NunaModelStep
+from bacatlas_backend.models.enumerations import EmbeddingRepresentation, ExclusivityForm, RhoRule
+from bacatlas_backend.models.nuna_model import NunaModel, NunaModelStep
 
 nuna_pipeline = pytest.importorskip(
     "nuna.tl.cluster.nuna_pipeline",

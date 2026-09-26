@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from syntitude_backend.ingest.mirrored_manifest_chain import (
+from bacatlas_backend.ingest.mirrored_manifest_chain import (
     manifests_resolved_against,
     mirror_path,
 )
@@ -103,7 +103,7 @@ def test_a_comparison_tree_path_is_mirrored_too(tmp_path):
     manifest, and the ingest would have recorded a one-step model with its global merge labelled
     `step_ordinal 2`. `ingest_pangenome_run` raises only on an EMPTY chain; length one appends a note.
     """
-    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+    from bacatlas_backend.ingest.mirrored_manifest_chain import mirror_path
 
     remote = (
         "/home/dca36/rds/rds-floto-bacterial-4k08a2yyQLw/david/nuna/processed/probe_ecoli_kleb_200"
@@ -114,7 +114,7 @@ def test_a_comparison_tree_path_is_mirrored_too(tmp_path):
 
 def test_the_original_analysis_pivot_still_wins_where_it_applies(tmp_path):
     """⚠ Adding a pivot must not move anything that already resolved."""
-    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+    from bacatlas_backend.ingest.mirrored_manifest_chain import mirror_path
 
     remote = "/home/dca36/rds/x/nuna/processed/probe/analysis/step3b_rho_merge/assignments/run.tsv"
     assert mirror_path(remote, tmp_path) == tmp_path / "analysis/step3b_rho_merge/assignments/run.tsv"
@@ -128,13 +128,13 @@ def test_a_path_carrying_BOTH_pivots_is_cut_at_the_EARLIER_one(tmp_path):
     shallow, `read_manifest` would miss it, and the chain would come out short again. Same silence,
     a different cause.
     """
-    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+    from bacatlas_backend.ingest.mirrored_manifest_chain import mirror_path
 
     remote = "/home/x/processed/probe/comparison/nuna/nuna5/analysis/runs/run.tsv"
     assert mirror_path(remote, tmp_path) == tmp_path / "comparison/nuna/nuna5/analysis/runs/run.tsv"
 
 
 def test_a_path_with_no_pivot_at_all_is_still_None(tmp_path):
-    from syntitude_backend.ingest.mirrored_manifest_chain import mirror_path
+    from bacatlas_backend.ingest.mirrored_manifest_chain import mirror_path
 
     assert mirror_path("/home/x/processed/probe/elsewhere/run.tsv", tmp_path) is None

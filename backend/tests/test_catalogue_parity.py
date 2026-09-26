@@ -28,12 +28,12 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.ingest.published_catalogues import catalogue as published_catalogue
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
-from syntitude_backend.models.pangenome import Pangenome
+from bacatlas_backend.ingest.published_catalogues import catalogue as published_catalogue
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from bacatlas_backend.models.pangenome import Pangenome
 from tests.conftest import NUNA_DATA_ROOT, PUBLISHED_SITE_CATALOGUE_DIR
 from tests.known_parity_exceptions import exceptions_for, symbol_fold_for
 from tests.payload_oracle import OFFSETS, load_catalogue
@@ -602,10 +602,10 @@ def test_T5b_every_similarity_matches_the_artifact_it_was_INGESTED_from(parity):
     pandas = pytest.importorskip("pandas", reason="the ingest extra")
     catalogue, session, loci, _, entry = parity
 
-    from syntitude_backend.ingest.artifact_locator import REPRESENTATIONS, CatalogueArtifacts
-    from syntitude_backend.ingest.catalogue_frames import SIMILARITY_COLUMNS
-    from syntitude_backend.models.enumerations import EmbeddingRepresentation
-    from syntitude_backend.models.locus_similarity import LocusSimilarity
+    from bacatlas_backend.ingest.artifact_locator import REPRESENTATIONS, CatalogueArtifacts
+    from bacatlas_backend.ingest.catalogue_frames import SIMILARITY_COLUMNS
+    from bacatlas_backend.models.enumerations import EmbeddingRepresentation
+    from bacatlas_backend.models.locus_similarity import LocusSimilarity
 
     artifacts = CatalogueArtifacts(
         data_root=NUNA_DATA_ROOT, set_key=entry.set_key,

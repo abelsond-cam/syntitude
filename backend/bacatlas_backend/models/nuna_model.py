@@ -14,8 +14,8 @@ from __future__ import annotations
 from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, SmallInteger, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.enumerations import (
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.enumerations import (
     EmbeddingRepresentation,
     ExclusivityForm,
     ExclusivityFormSource,

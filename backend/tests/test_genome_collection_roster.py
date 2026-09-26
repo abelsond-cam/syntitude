@@ -8,17 +8,17 @@ Neither raises anywhere downstream, so each is asserted at the point it is creat
 import pytest
 from sqlalchemy import select
 
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.ingest.ingest_genome_collection_roster import (
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.ingest_genome_collection_roster import (
     RosterError,
     genome_id_by_ordinal,
     ingest_genome_collection,
     read_genome_vocabulary,
 )
-from syntitude_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
-from syntitude_backend.models.enumerations import SampleIdentifierKind
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollection, GenomeCollectionMembership
+from bacatlas_backend.ingest.ingest_pathogen_species import ingest_pathogen_species
+from bacatlas_backend.models.enumerations import SampleIdentifierKind
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollection, GenomeCollectionMembership
 
 pandas = pytest.importorskip("pandas", reason="the ingest extra")
 

@@ -5,7 +5,7 @@ Two things this file decides, and both are deliberate:
 ⛔ **The database URL comes from the environment, never from `alembic.ini`.** That file is
 committed; a URL carries credentials.
 
-⛔ **`target_metadata` is imported via `syntitude_backend.models`**, which imports every model
+⛔ **`target_metadata` is imported via `bacatlas_backend.models`**, which imports every model
 module. A model not reachable from there is invisible to autogenerate, and the migration it writes
 silently omits that table — surfacing much later as a missing relation on one endpoint.
 """
@@ -18,8 +18,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-import syntitude_backend.models  # noqa: F401  (registers every table on the metadata)
-from syntitude_backend.database import Base
+import bacatlas_backend.models  # noqa: F401  (registers every table on the metadata)
+from bacatlas_backend.database import Base
 
 config = context.config
 if config.config_file_name is not None:
@@ -29,7 +29,7 @@ database_url = os.environ.get("SYNTITUDE_DATABASE_URL")
 if not database_url:
     raise RuntimeError(
         "SYNTITUDE_DATABASE_URL is not set. Alembic refuses to guess a database it is about to "
-        "alter — see syntitude_backend/migrations/env.py."
+        "alter — see bacatlas_backend/migrations/env.py."
     )
 config.set_main_option("sqlalchemy.url", database_url)
 

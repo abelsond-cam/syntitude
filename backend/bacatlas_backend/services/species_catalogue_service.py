@@ -25,16 +25,16 @@ from dataclasses import dataclass, field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.enumerations import (
+from bacatlas_backend.models.enumerations import (
     EmbeddingRepresentation,
     EvaluationKind,
     PrevalenceBand,
 )
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_similarity import PangenomeSimilarityBaseline
-from syntitude_backend.models.nuna_model import NunaModel
-from syntitude_backend.models.pangenome import Pangenome, PangenomeEvaluation, PangenomeStep
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_similarity import PangenomeSimilarityBaseline
+from bacatlas_backend.models.nuna_model import NunaModel
+from bacatlas_backend.models.pangenome import Pangenome, PangenomeEvaluation, PangenomeStep
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 #: The audit headline keys the footer prints, in `export_payload.AUDIT_HEADLINE_KEYS` order.
 #: ⛔ A whitelist, and copied verbatim — *"the page quoting a lookalike it derived itself is the

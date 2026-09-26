@@ -10,8 +10,8 @@ from __future__ import annotations
 from sqlalchemy import BigInteger, Boolean, ForeignKey, Index, Integer, SmallInteger, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.enumerations import SampleIdentifierKind
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.enumerations import SampleIdentifierKind
 
 
 class Genome(Base):

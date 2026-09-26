@@ -28,15 +28,15 @@ from dataclasses import dataclass, field
 from sqlalchemy import and_, or_, select, tuple_
 from sqlalchemy.orm import Session, aliased
 
-from syntitude_backend.models.enumerations import AnnotationKind, EmbeddingRepresentation
-from syntitude_backend.models.intergenic_gap import IntergenicGap
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_similarity import LocusNearestLocus, LocusSimilarity
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
-from syntitude_backend.models.reference_vocabulary import PfamFamily
-from syntitude_backend.services.projected_genome_service import load_placements_at_locus
+from bacatlas_backend.models.enumerations import AnnotationKind, EmbeddingRepresentation
+from bacatlas_backend.models.intergenic_gap import IntergenicGap
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_annotation import LocusAnnotationEntry, LocusUnirefFamilyCrosstab
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from bacatlas_backend.models.locus_similarity import LocusNearestLocus, LocusSimilarity
+from bacatlas_backend.models.reference_vocabulary import PfamFamily
+from bacatlas_backend.services.projected_genome_service import load_placements_at_locus
 
 #: The signed offsets, in display order. ⛔ `0` is absent — it is the focal locus.
 SIGNED_OFFSETS = (-5, -4, -3, -2, -1, 1, 2, 3, 4, 5)

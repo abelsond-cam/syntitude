@@ -22,14 +22,14 @@ import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.instruments.column_census import (
+from bacatlas_backend.instruments.column_census import (
     WIDTH_HEADROOM_WARNING,
     ask_the_questions,
     run_column_census,
 )
-from syntitude_backend.models.intergenic_gap import IntergenicGap
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.pangenome import PangenomeEvaluation
+from bacatlas_backend.models.intergenic_gap import IntergenicGap
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.pangenome import PangenomeEvaluation
 
 
 @pytest.fixture(scope="module")
@@ -112,7 +112,7 @@ def test_seqid_coverage_is_NULL_because_the_AUDIT_skipped_it_and_that_is_recorde
     """⚠ The same value carrying a different fact. Before the ingest read the column, NULL meant
     *we never looked*; now it means *the audit ran with `--skip-seqid-to-medoid`* — and the
     pangenome's `omitted_sections` says so, which is what makes the two distinguishable."""
-    from syntitude_backend.models.pangenome import Pangenome
+    from bacatlas_backend.models.pangenome import Pangenome
 
     measured = loaded_session.execute(
         select(func.count(Locus.seqid_coverage)).select_from(Locus)
@@ -154,7 +154,7 @@ def test_the_git_sha_recorded_NAMES_A_NUNA_COMMIT_and_not_an_ingest_tree_one(loa
 
     import nuna
 
-    from syntitude_backend.models.pangenome import Pangenome
+    from bacatlas_backend.models.pangenome import Pangenome
 
     stored = {value for value in loaded_session.execute(select(Pangenome.git_sha)).scalars() if value}
     if not stored:
@@ -228,7 +228,7 @@ def test_interest_score_negatives_are_a_sentinel_AND_a_real_term_and_the_two_dif
 # ── the instrument itself ──────────────────────────────────────────────────────────────────────
 def test_a_fixed_width_value_that_fills_its_column_is_NOT_flagged_as_near_overflow():
     """⚠ A sha256 is 64 characters by construction. Flagging it drowns the real width findings."""
-    from syntitude_backend.instruments.column_census import ColumnObservation
+    from bacatlas_backend.instruments.column_census import ColumnObservation
 
     fixed = ColumnObservation(
         table="t", column="sha", declared_type="VARCHAR(64)", nullable=True, row_count=10,
@@ -245,7 +245,7 @@ def test_a_fixed_width_value_that_fills_its_column_is_NOT_flagged_as_near_overfl
 
 def test_a_column_in_an_EMPTY_table_reports_that_it_was_not_examined():
     """⛔ *Not looked at* and *no problem found* must never be the same output."""
-    from syntitude_backend.instruments.column_census import ColumnObservation
+    from bacatlas_backend.instruments.column_census import ColumnObservation
 
     empty = ColumnObservation(table="t", column="c", declared_type="TEXT", nullable=True)
     assert empty.is_empty

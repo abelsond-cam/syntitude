@@ -7,8 +7,8 @@ another model. Each has a test that would fail if it were got wrong in the plaus
 
 import pytest
 
-from syntitude_backend.ingest.ingest_nuna_model_registry import expand_model_steps
-from syntitude_backend.ingest.ingest_pangenome_run import (
+from bacatlas_backend.ingest.ingest_nuna_model_registry import expand_model_steps
+from bacatlas_backend.ingest.ingest_pangenome_run import (
     KNOWN_INPUT_KEYS,
     PangenomeIngestError,
     _step_name_from_manifest,
@@ -19,13 +19,13 @@ from syntitude_backend.ingest.ingest_pangenome_run import (
     guard_input_keys_have_not_drifted,
     resolve_exclusivity_form,
 )
-from syntitude_backend.models.enumerations import (
+from bacatlas_backend.models.enumerations import (
     EvaluationKind,
     ExclusivityForm,
     ExclusivityFormSource,
     RhoRule,
 )
-from syntitude_backend.models.nuna_model import NunaModelStep
+from bacatlas_backend.models.nuna_model import NunaModelStep
 
 nuna_pipeline = pytest.importorskip(
     "nuna.tl.cluster.nuna_pipeline", reason="nuna is the ingest extra, not a serving dependency"

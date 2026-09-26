@@ -14,12 +14,12 @@ import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.pathogen_species import PathogenSpecies
-from syntitude_backend.services import audit_residual_service
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.services import audit_residual_service
 
 SPECIES_KEYS = ("ecoli", "kp")
 
@@ -47,7 +47,7 @@ def client(application):
 
 
 def _pangenome_id(application, species_key):
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
         return session.execute(
             select(PathogenSpecies.default_pangenome_id).where(PathogenSpecies.species_key == species_key)
@@ -75,7 +75,7 @@ def test_the_GENE_census_partitions_every_modelled_gene_into_exactly_one_band(cl
 def test_the_species_response_still_costs_what_it_did(application):
     """The gene sums ride in the band statement; the census must not become two reads."""
     client = application.test_client()
-    with SqlCostOracle(application.extensions["syntitude_database"].engine) as report:
+    with SqlCostOracle(application.extensions["bacatlas_database"].engine) as report:
         assert client.get("/api/v1/species/ecoli").status_code == 200
     grouped = [
         record.summary() for record in report.statements
@@ -91,7 +91,7 @@ def test_every_example_chip_is_NAMED_and_in_the_order_the_ranking_chose(client, 
     rows = payload["example_locus_rows"]
     assert [row["label"] for row in rows] == payload["example_loci"]
     assert rows, "a catalogue with no example loci would leave the documentation tab's chip row empty"
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
         stored = dict(
             session.execute(
@@ -111,7 +111,7 @@ def test_every_example_chip_is_NAMED_and_in_the_order_the_ranking_chose(client, 
 def test_every_search_hit_carries_the_product_the_page_prints_under_its_name(client, application):
     hits = client.get("/api/v1/species/ecoli/search", query_string={"q": "ligase", "limit": 40}).get_json()["hits"]
     assert len(hits) > 5
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
         stored = dict(
             session.execute(
@@ -160,7 +160,7 @@ def test_an_unpublished_species_has_no_residuals_and_SAYS_so(client):
 
 def test_the_residual_lists_are_ONE_statement(application):
     client = application.test_client()
-    with SqlCostOracle(application.extensions["syntitude_database"].engine) as report:
+    with SqlCostOracle(application.extensions["bacatlas_database"].engine) as report:
         assert client.get("/api/v1/species/kp/audit/residual-loci").status_code == 200
     # Both lists come from one read of `locus`; resolving the species is separate and does not touch it.
     locus_reads = [record.summary() for record in report.statements if "FROM locus" in record.sql]
@@ -184,11 +184,11 @@ def test_a_genome_OUTSIDE_this_catalogue_is_a_named_404_for_the_anchor_AND_the_s
     assert "ecoli" in reply.get_json()["detail"]
     # ⛔⛔ And a genome of the right SPECIES that this pangenome never modelled: the database holds
     # 122 ecoli genomes against a 100-genome collection.
-    engine = client.application.extensions["syntitude_database"].engine
+    engine = client.application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
-        from syntitude_backend.models.genome import Genome
-        from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-        from syntitude_backend.models.pangenome import Pangenome
+        from bacatlas_backend.models.genome import Genome
+        from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+        from bacatlas_backend.models.pangenome import Pangenome
 
         collection_id = session.execute(
             select(Pangenome.genome_collection_id).where(
@@ -229,7 +229,7 @@ def test_wherever_a_position_left_members_out_it_lists_the_SAME_top_N(client, ap
     """
     from sqlalchemy import text
 
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session:
         pangenome_id = _pangenome_id(application, species_key)
         rows = session.execute(

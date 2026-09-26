@@ -6,7 +6,7 @@ would mean rewriting 412 M coordinate rows every time a model changes. This is t
 keeps a genome's DNA and its locus index as two artifacts, one level up.
 
 ⚠ Everything the Sequence tab shows is a column here EXCEPT the base letters themselves, which are
-parsed on demand from the original gzipped Bakta GFF — see `syntitude_backend.gff`.
+parsed on demand from the original gzipped Bakta GFF — see `bacatlas_backend.gff`.
 """
 
 from __future__ import annotations
@@ -27,8 +27,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.column_types import nan_guards
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.column_types import nan_guards
 
 
 class Gene(Base):

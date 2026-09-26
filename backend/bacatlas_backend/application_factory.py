@@ -12,10 +12,10 @@ import logging
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException, InternalServerError
 
-from syntitude_backend.api.blueprint_health import health_blueprint
-from syntitude_backend.api.blueprint_species import species_blueprint
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.database import Database
+from bacatlas_backend.api.blueprint_health import health_blueprint
+from bacatlas_backend.api.blueprint_species import species_blueprint
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.database import Database
 
 #: Every blueprint the application serves, in registration order. One line per resource.
 BLUEPRINTS = (health_blueprint, species_blueprint)
@@ -30,7 +30,7 @@ def create_application(configuration: Configuration | None = None) -> Flask:
     configuration = configuration or Configuration.from_environment()
     application = Flask(__name__)
     application.config["SYNTITUDE"] = configuration
-    application.extensions["syntitude_database"] = Database(configuration)
+    application.extensions["bacatlas_database"] = Database(configuration)
 
     for blueprint in BLUEPRINTS:
         application.register_blueprint(blueprint, url_prefix=API_PREFIX)

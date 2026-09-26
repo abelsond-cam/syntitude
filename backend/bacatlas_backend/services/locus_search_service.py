@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from sqlalchemy import Integer, case, func, literal, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.locus import Locus
+from bacatlas_backend.models.locus import Locus
 
 #: Below this length a trigram index cannot help, so the query becomes a prefix match.
 TRIGRAM_MINIMUM_LENGTH = 3

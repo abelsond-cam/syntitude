@@ -15,7 +15,7 @@ from __future__ import annotations
 from sqlalchemy import Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
+from bacatlas_backend.database import Base
 
 
 class PfamFamily(Base):

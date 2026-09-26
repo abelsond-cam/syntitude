@@ -19,9 +19,9 @@ import os
 import pytest
 from sqlalchemy import create_engine
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
 
 #: Resolving `species_key` → its published pangenome: one statement, on every route.
 SPECIES_RESOLUTION = 1
@@ -56,7 +56,7 @@ def application():
 
 def _measure(application, path, **query):
     client = application.test_client()
-    with SqlCostOracle(application.extensions["syntitude_database"].engine) as report:
+    with SqlCostOracle(application.extensions["bacatlas_database"].engine) as report:
         response = client.get(path, query_string=query)
     assert response.status_code == 200, (path, response.status_code, response.get_data(as_text=True)[:300])
     return report

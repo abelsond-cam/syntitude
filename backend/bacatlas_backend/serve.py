@@ -1,6 +1,6 @@
-"""``python -m syntitude_backend.serve`` — the development server.
+"""``python -m bacatlas_backend.serve`` — the development server.
 
-Production is gunicorn against ``syntitude_backend.application_factory:create_application()``;
+Production is gunicorn against ``bacatlas_backend.application_factory:create_application()``;
 this exists so that a fresh clone can be run with one command and no WSGI knowledge.
 """
 
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import argparse
 
-from syntitude_backend.application_factory import create_application
+from bacatlas_backend.application_factory import create_application
 
 
 def main() -> None:

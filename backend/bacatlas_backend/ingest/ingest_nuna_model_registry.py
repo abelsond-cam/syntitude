@@ -33,13 +33,13 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.enumerations import (
+from bacatlas_backend.models.enumerations import (
     EmbeddingRepresentation,
     ExclusivityForm,
     ExclusivityFormSource,
     RhoRule,
 )
-from syntitude_backend.models.nuna_model import NunaModel, NunaModelStep
+from bacatlas_backend.models.nuna_model import NunaModel, NunaModelStep
 
 #: A ρ ceiling at or above this is not a constraint — it is how a deliberate over-merge step says
 #: *no rail at all*. The threshold is `run_manifest.rho_phrase`'s own, quoted rather than re-chosen.

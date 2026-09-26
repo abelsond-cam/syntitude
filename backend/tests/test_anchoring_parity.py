@@ -43,17 +43,17 @@ import pytest
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.ingest.ingest_genome_locus_counts import GENOME_LOCUS_COUNT_SELECT
-from syntitude_backend.ingest.published_catalogues import catalogue as published_catalogue
-from syntitude_backend.models.gene import GeneLocusMembership
-from syntitude_backend.models.genome import Genome
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.services.locus_detail_service import (
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.ingest.ingest_genome_locus_counts import GENOME_LOCUS_COUNT_SELECT
+from bacatlas_backend.ingest.published_catalogues import catalogue as published_catalogue
+from bacatlas_backend.models.gene import GeneLocusMembership
+from bacatlas_backend.models.genome import Genome
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.services.locus_detail_service import (
     ARRANGEMENT_PAGE_SIZE,
     anchor_arrangement_ranks,
     load_listed_arrangements,

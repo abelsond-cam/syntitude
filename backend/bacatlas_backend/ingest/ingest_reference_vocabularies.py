@@ -18,7 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.reference_vocabulary import PfamFamily
+from bacatlas_backend.models.reference_vocabulary import PfamFamily
 
 #: ⛔ The vendored table's field name → our column. Read POSITIONALLY would be a silent
 #: transposition waiting to happen — `clan` and `clan_id` are adjacent, one is an accession and the

@@ -20,13 +20,13 @@ import pytest
 from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import Session
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
-from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
-from syntitude_backend.models.pathogen_species import PathogenSpecies
-from syntitude_backend.services.locus_search_service import escape_like_pattern
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
+from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.services.locus_search_service import escape_like_pattern
 
 
 @pytest.fixture(scope="module")
@@ -260,7 +260,7 @@ def test_the_stored_arrangement_member_total_agrees_with_the_rows_it_summarises(
     the rows for EVERY locus in both catalogues, not a sample."""
     engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
     with Session(engine) as session:
-        from syntitude_backend.models.locus_arrangement import LocusArrangement
+        from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
         summed = (
             select(
@@ -446,8 +446,8 @@ def test_an_anchored_genome_gets_its_arrangement_even_past_the_display_cap(clien
             .order_by(Locus.total_arrangement_count.desc())
             .limit(1)
         ).scalar_one()
-        from syntitude_backend.models.genome import Genome
-        from syntitude_backend.models.locus_arrangement import LocusArrangement
+        from bacatlas_backend.models.genome import Genome
+        from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
         locus_id = session.execute(
             select(Locus.locus_id).where(Locus.pangenome_id == 1, Locus.node_label == label)
@@ -494,8 +494,8 @@ def test_the_anchor_block_is_MARKED_even_when_the_arrangement_was_within_the_cap
     """
     engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
     with Session(engine) as session:
-        from syntitude_backend.models.genome import Genome
-        from syntitude_backend.models.locus_arrangement import LocusArrangement
+        from bacatlas_backend.models.genome import Genome
+        from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
         # A rank-0 arrangement: always within the cap, so the OR contributes nothing.
         top = session.execute(
@@ -527,8 +527,8 @@ def test_an_anchored_genome_with_no_gene_here_is_NOT_the_same_as_no_anchor(clien
     """
     engine = create_engine(application.config["SYNTITUDE"].database_url, future=True)
     with Session(engine) as session:
-        from syntitude_backend.models.genome import Genome
-        from syntitude_backend.models.locus_arrangement import LocusArrangement
+        from bacatlas_backend.models.genome import Genome
+        from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
         # A locus that is NOT in every genome, and a genome that is not one of its members.
         locus = session.execute(
@@ -665,9 +665,9 @@ def test_the_statement_count_of_a_locus_view_does_NOT_grow_with_the_neighbour_co
     neighbours and the one with the most, and require the same statement count. That holds at any
     catalogue size and cannot be re-baselined into blessing a regression.
     """
-    from syntitude_backend.services.locus_detail_service import load_locus_detail
+    from bacatlas_backend.services.locus_detail_service import load_locus_detail
 
-    database = application.extensions["syntitude_database"]
+    database = application.extensions["bacatlas_database"]
     engine = database.engine
     with Session(engine) as session:
         fewest, most, fewest_count, most_count = _locus_labels_by_neighbour_count(session, 1)
@@ -718,22 +718,22 @@ def test_a_locus_view_issues_ONE_statement_PER_TABLE_and_no_more(application):
     no accession. That makes nine a ceiling rather than an equality, which is what `assert_at_most`
     already expresses.
     """
-    from syntitude_backend.services.locus_detail_service import load_locus_detail
+    from bacatlas_backend.services.locus_detail_service import load_locus_detail
 
     tables_a_locus_view_reads = 9
     neighbour_resolution_statements = 1
     budget = tables_a_locus_view_reads + neighbour_resolution_statements
 
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session, SqlCostOracle(engine) as report:
         load_locus_detail(session, pangenome_id=1, node_label="2811")
     report.assert_at_most(budget, what="one locus view")
 
 
 def test_search_is_ONE_statement_however_many_hits_it_returns(application):
-    from syntitude_backend.services.locus_search_service import search_loci
+    from bacatlas_backend.services.locus_search_service import search_loci
 
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with Session(engine) as session, SqlCostOracle(engine) as report:
         result = search_loci(session, pangenome_id=1, query="ligase", limit=25)
     assert result.hits
@@ -758,7 +758,7 @@ def test_a_GO_entry_names_its_namespace_the_way_the_COVERAGE_block_does(client):
     lists under coverage lines that promise otherwise, and no test could see it because nothing read
     the field until the tab was built.
     """
-    from syntitude_backend.models.enumerations import GENE_ONTOLOGY_NAMESPACE_NAMES
+    from bacatlas_backend.models.enumerations import GENE_ONTOLOGY_NAMESPACE_NAMES
 
     seen = 0
     for label in ("2811", "17315", "17373"):
@@ -781,14 +781,14 @@ def test_the_namespace_ORDER_is_the_one_the_data_itself_identifies(application):
     """
     from sqlalchemy.orm import Session as OrmSession
 
-    from syntitude_backend.models.enumerations import (
+    from bacatlas_backend.models.enumerations import (
         GENE_ONTOLOGY_NAMESPACE_NAMES,
         AnnotationKind,
         gene_ontology_namespace_name,
     )
-    from syntitude_backend.models.locus_annotation import LocusAnnotationEntry
+    from bacatlas_backend.models.locus_annotation import LocusAnnotationEntry
 
-    engine = application.extensions["syntitude_database"].engine
+    engine = application.extensions["bacatlas_database"].engine
     with OrmSession(engine) as session:
         for index, name in enumerate(GENE_ONTOLOGY_NAMESPACE_NAMES):
             found = session.execute(
@@ -806,7 +806,7 @@ def test_the_namespace_ORDER_is_the_one_the_data_itself_identifies(application):
 
 def test_an_unmapped_namespace_index_RAISES_rather_than_inventing_a_name(application):
     """⛔ A fourth namespace is a data error, and must not serialise as a plausible third."""
-    from syntitude_backend.models.enumerations import gene_ontology_namespace_name
+    from bacatlas_backend.models.enumerations import gene_ontology_namespace_name
 
     assert gene_ontology_namespace_name(None) is None
     with pytest.raises(ValueError, match="index 3"):

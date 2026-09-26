@@ -1,4 +1,4 @@
-"""Decode a published Syntitude catalogue — the frozen oracle every parity suite compares against.
+"""Decode a published BacAtlas catalogue — the frozen oracle every parity suite compares against.
 
 ⛔ **This is a READER, never an ingest input.** The two live pages are the correctness oracle for the
 rebuild precisely because the database is built from the *source artifacts* independently. A decoder

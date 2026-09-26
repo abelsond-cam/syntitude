@@ -20,9 +20,9 @@ import pytest
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.instruments.payload_reproduction import compare_payloads
-from syntitude_backend.instruments.payload_serialiser import build_payload_from_database
-from syntitude_backend.models.locus import Locus
+from bacatlas_backend.instruments.payload_reproduction import compare_payloads
+from bacatlas_backend.instruments.payload_serialiser import build_payload_from_database
+from bacatlas_backend.models.locus import Locus
 from tests.known_parity_exceptions import (
     AUDIT_RERUN_HEADLINE_KEYS,
     AUDIT_RERUN_PAYLOAD_BLOCKS,
@@ -94,7 +94,7 @@ def test_the_rebuild_examines_EVERY_block_and_states_what_it_compared(species, r
 def test_the_rebuilt_payload_interns_in_the_SAME_ORDER_as_build_payload(species, rebuilt):
     """⭐ The serialiser self-checks this before returning, so reaching here at all is the proof —
     asserted anyway, because the check being present is the thing that must not be deleted."""
-    from syntitude_backend.instruments.payload_reproduction import verify_intern_walk
+    from bacatlas_backend.instruments.payload_reproduction import verify_intern_walk
 
     assert verify_intern_walk(rebuilt[species]) == []
 
@@ -206,7 +206,7 @@ def test_the_symbol_POOL_loses_only_the_tagged_names(species, rebuilt):
     A fold that dropped a name it should have kept would shrink this pool silently — and every
     index-based comparison in this file would report thousands of differences without saying why.
     """
-    from syntitude_backend.ingest.allele_variant_symbols import (
+    from bacatlas_backend.ingest.allele_variant_symbols import (
         ALLELE_VARIANT_SYMBOL,
         fold_allele_variant,
     )
@@ -292,7 +292,7 @@ def test_the_arrangement_cap_is_recovered_from_the_DATA_not_from_nunas_default()
     """
     from types import SimpleNamespace
 
-    from syntitude_backend.instruments.payload_serialiser import _arrangement_cap
+    from bacatlas_backend.instruments.payload_serialiser import _arrangement_cap
 
     TOP_ARRANGEMENTS = pytest.importorskip(
         "nuna.tl.locus_browser.export_payload", reason="the default under test is nuna's; nuna is not installed"
@@ -317,7 +317,7 @@ def test_the_published_catalogues_really_are_uncapped_on_every_locus(loaded_sess
     """The claim `_arrangement_cap` returns 0 on, checked directly against all 33,201 loci."""
     from sqlalchemy import func
 
-    from syntitude_backend.models.locus_arrangement import LocusArrangement
+    from bacatlas_backend.models.locus_arrangement import LocusArrangement
 
     listed = (
         select(LocusArrangement.locus_id, func.count().label("n"))

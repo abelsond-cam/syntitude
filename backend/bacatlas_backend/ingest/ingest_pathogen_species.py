@@ -17,7 +17,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 #: The parquets' `species` value → the browser's `species_key`. ⛔ Exhaustive by design.
 SPECIES_KEY_BY_PARQUET_VALUE = {

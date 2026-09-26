@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import unquote
 
-from syntitude_backend.gff.gff_text_reader import open_gff_text
+from bacatlas_backend.gff.gff_text_reader import open_gff_text
 
 FASTA_DIRECTIVE = "##FASTA"
 

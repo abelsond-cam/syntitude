@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from syntitude_backend.gff.gff_cds_parser import parse_genome_annotation
-from syntitude_backend.ingest.genome_gene_alignment import (
+from bacatlas_backend.gff.gff_cds_parser import parse_genome_annotation
+from bacatlas_backend.ingest.genome_gene_alignment import (
     GeneAlignmentError,
     check_against_meta,
     flatten_to_extractor_order,

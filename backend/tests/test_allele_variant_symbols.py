@@ -10,7 +10,7 @@ from __future__ import annotations
 import pandas
 import pytest
 
-from syntitude_backend.ingest.allele_variant_symbols import fold_allele_variant, fold_symbol_column
+from bacatlas_backend.ingest.allele_variant_symbols import fold_allele_variant, fold_symbol_column
 
 
 # ── what it folds ──────────────────────────────────────────────────────────────────────────────

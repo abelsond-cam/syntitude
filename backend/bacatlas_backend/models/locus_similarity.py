@@ -40,9 +40,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from syntitude_backend.database import Base
-from syntitude_backend.models.column_types import measurement, nan_guards
-from syntitude_backend.models.enumerations import EmbeddingRepresentation
+from bacatlas_backend.database import Base
+from bacatlas_backend.models.column_types import measurement, nan_guards
+from bacatlas_backend.models.enumerations import EmbeddingRepresentation
 
 #: How many other loci the card lists per representation. The artifact is RAGGED — a locus whose
 #: shortlist held fewer keeps fewer rows — so this is a maximum, never a row count to assert.

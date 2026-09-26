@@ -1,1 +1,1 @@
-"""The Syntitude pangenome browser API."""
+"""The BacAtlas pangenome browser API."""

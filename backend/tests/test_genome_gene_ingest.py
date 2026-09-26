@@ -14,17 +14,17 @@ from pathlib import Path
 import pytest
 from sqlalchemy import delete, func, select
 
-from syntitude_backend.ingest.artifact_locator import CatalogueArtifacts
-from syntitude_backend.ingest.ingest_genome_gene_table import GenomeIngestError, ingest_one_genome
-from syntitude_backend.ingest.ingest_pathogen_species import (
+from bacatlas_backend.ingest.artifact_locator import CatalogueArtifacts
+from bacatlas_backend.ingest.ingest_genome_gene_table import GenomeIngestError, ingest_one_genome
+from bacatlas_backend.ingest.ingest_pathogen_species import (
     SPECIES_KEY_BY_PARQUET_VALUE,
     ingest_pathogen_species,
     species_key_for_parquet_value,
 )
-from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
-from syntitude_backend.models.enumerations import SampleIdentifierKind
-from syntitude_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
-from syntitude_backend.models.genome import Genome, GenomeAssembly, GenomeContig
+from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
+from bacatlas_backend.models.enumerations import SampleIdentifierKind
+from bacatlas_backend.models.gene import Gene, GeneFunctionalAnnotation, GenomeNoncodingFeature
+from bacatlas_backend.models.genome import Genome, GenomeAssembly, GenomeContig
 
 pandas = pytest.importorskip("pandas")
 

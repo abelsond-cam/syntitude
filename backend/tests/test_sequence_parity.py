@@ -50,10 +50,10 @@ import pytest
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pathogen_species import PathogenSpecies
-from syntitude_backend.services.gene_sequence_service import FLANK_LENGTH
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.services.gene_sequence_service import FLANK_LENGTH
 from tests.conftest import PUBLISHED_SITE_CATALOGUE_DIR
 from tests.known_parity_exceptions import CONTIG_ROW_SHOWS_NAME_NOT_SEQID
 from tests.sequence_parity_comparison import (
@@ -469,8 +469,8 @@ def test_T6_every_difference_the_comparison_can_find_is_owned_by_exactly_one_tes
 # ── the endpoint itself, over HTTP ────────────────────────────────────────────────────────────
 @pytest.fixture(scope="module")
 def http_client():
-    from syntitude_backend.application_factory import create_application
-    from syntitude_backend.configuration import Configuration
+    from bacatlas_backend.application_factory import create_application
+    from bacatlas_backend.configuration import Configuration
 
     if not os.environ.get("SYNTITUDE_DATABASE_URL") or not os.environ.get("SYNTITUDE_ROOT_GFF"):
         pytest.skip("SYNTITUDE_DATABASE_URL and SYNTITUDE_ROOT_GFF are both needed for the endpoint")

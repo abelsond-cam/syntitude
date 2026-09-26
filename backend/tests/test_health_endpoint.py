@@ -2,8 +2,8 @@ import os
 
 import pytest
 
-from syntitude_backend.application_factory import create_application
-from syntitude_backend.configuration import Configuration
+from bacatlas_backend.application_factory import create_application
+from bacatlas_backend.configuration import Configuration
 
 DEV_URL = os.environ.get(
     "SYNTITUDE_TEST_DATABASE_URL",

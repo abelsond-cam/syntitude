@@ -1,4 +1,4 @@
-# `backend/` — the Syntitude API
+# `backend/` — the BacAtlas API
 
 Postgres + Flask + SQLAlchemy. **Read-only for users**: no login, no accounts, no user writes.
 Everything that writes is an offline ingest step.
@@ -19,7 +19,7 @@ uv venv --python 3.13 .venv                    # from the repo root
 uv pip install --python .venv/bin/python -e backend
 
 export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitude_dev"
-.venv/bin/python -m syntitude_backend.serve --debug
+.venv/bin/python -m bacatlas_backend.serve --debug
 curl -s localhost:5001/api/v1/health | python3 -m json.tool
 ```
 
@@ -92,17 +92,17 @@ export SYNTITUDE_DATABASE_URL="postgresql+psycopg://$USER@localhost:5432/syntitu
 
 # ONE genome layer for both species: contigs, genes, functional labels. Model-INDEPENDENT — a new
 # pangenome must never rewrite it. ~180 s for all 280 genomes.
-.venv/bin/python -m syntitude_backend.ingest --stage genomes \
+.venv/bin/python -m bacatlas_backend.ingest --stage genomes \
   --model-label ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
   --run-id ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
 
 # then ONE pangenome layer per species: the model registry, the roster, the run and the catalogue.
 # ~60 s each, re-runnable — the blast radius is exactly one pangenome.
-.venv/bin/python -m syntitude_backend.ingest --stage pangenome --set-key ecoli --species-key ecoli \
+.venv/bin/python -m bacatlas_backend.ingest --stage pangenome --set-key ecoli --species-key ecoli \
   --model-label ecoli_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
   --run-id ecoli_bacformer_clever_exploded_preclusterstrict98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
 
-.venv/bin/python -m syntitude_backend.ingest --stage pangenome --set-key kp --species-key kp \
+.venv/bin/python -m bacatlas_backend.ingest --stage pangenome --set-key kp --species-key kp \
   --model-label kp_nuna4_g2_0.98_3b0.5rhoPAIRMAX_step4g0.1rhoCEIL \
   --run-id kp_bacformer_clever_exploded_preclusterkp98pm3b-3b0.5-excl_k100_g100_res0.1_seed0
 ```
@@ -115,7 +115,7 @@ collection genome has its per-genome locus count row** …) and refuses to move 
 fails.
 
 ```bash
-.venv/bin/python -m syntitude_backend.ingest --stage pangenome --publish  ...  # as above
+.venv/bin/python -m bacatlas_backend.ingest --stage pangenome --publish  ...  # as above
 ```
 
 ## The API
@@ -171,7 +171,7 @@ reason** rather than passing.
 ⛔ **Do not reconstruct a `run_id`.** The two published ones differ by `strict98` against `kp98`,
 not by their species token, and a run id that differed only in a *default-emitted* token would
 resolve to a different run and load a catalogue that is wrong about which model produced it. The
-triples are checked in at `syntitude_backend/ingest/published_catalogues.py`, with a test that both
+triples are checked in at `bacatlas_backend/ingest/published_catalogues.py`, with a test that both
 resolve against the store.
 
 ⭐ **The Sequence tab reads the original GFF, and `.nseq` is retired rather than ported.** That
@@ -219,8 +219,8 @@ prove one 20-line function still matches would be the wrong trade. Run it where 
 
 ```bash
 cd ~/developer/nuna
-PYTHONPATH=~/developer/syntitude/backend .venv/bin/python -m pytest \
-  ~/developer/syntitude/backend/tests/test_gff_reader_against_nuna.py -q
+PYTHONPATH=~/developer/bacatlas/backend .venv/bin/python -m pytest \
+  ~/developer/bacatlas/backend/tests/test_gff_reader_against_nuna.py -q
 ```
 
 It skips — saying which is missing — if `nuna` is not importable or the probe GFFs have not been
@@ -230,7 +230,7 @@ run, the vendored copies are unverified.
 ## Linting — `ruff check` is enforced, `ruff format` is NOT
 
 ```bash
-uvx ruff check backend/syntitude_backend backend/tests    # must pass; run before every commit
+uvx ruff check backend/bacatlas_backend backend/tests    # must pass; run before every commit
 ```
 
 ⚠ **Do not run `ruff format` over the tree.** Both are configured in `backend/pyproject.toml`, but only

@@ -25,18 +25,18 @@ from dataclasses import dataclass, field
 from sqlalchemy import exists, func, select, update
 from sqlalchemy.orm import Session
 
-from syntitude_backend.models.enumerations import EmbeddingRepresentation
-from syntitude_backend.models.genome_collection import GenomeCollectionMembership
-from syntitude_backend.models.locus import Locus
-from syntitude_backend.models.locus_arrangement import LocusArrangement
-from syntitude_backend.models.locus_similarity import (
+from bacatlas_backend.models.enumerations import EmbeddingRepresentation
+from bacatlas_backend.models.genome_collection import GenomeCollectionMembership
+from bacatlas_backend.models.locus import Locus
+from bacatlas_backend.models.locus_arrangement import LocusArrangement
+from bacatlas_backend.models.locus_offset_occupant import LocusOffsetOccupant
+from bacatlas_backend.models.locus_similarity import (
     LocusSimilarity,
     PangenomeSimilarityBaseline,
 )
-from syntitude_backend.models.locus_offset_occupant import LocusOffsetOccupant
-from syntitude_backend.models.pangenome import Pangenome
-from syntitude_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
-from syntitude_backend.models.pathogen_species import PathogenSpecies
+from bacatlas_backend.models.pangenome import Pangenome
+from bacatlas_backend.models.pangenome_genome_locus_count import PangenomeGenomeLocusCount
+from bacatlas_backend.models.pathogen_species import PathogenSpecies
 
 
 class PublishRefused(RuntimeError):

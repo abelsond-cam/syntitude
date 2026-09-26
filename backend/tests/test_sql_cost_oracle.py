@@ -10,8 +10,8 @@ from __future__ import annotations
 import pytest
 from sqlalchemy import select, text
 
-from syntitude_backend.instruments.sql_cost_oracle import SqlCostOracle
-from syntitude_backend.models.genome import Genome
+from bacatlas_backend.instruments.sql_cost_oracle import SqlCostOracle
+from bacatlas_backend.models.genome import Genome
 
 
 def test_it_counts_statements_and_excludes_transaction_control(engine):
@@ -80,7 +80,7 @@ def test_a_raw_driver_statement_is_invisible_unless_it_reports_itself(engine):
     limitation is a *documented, tested* property rather than something a future bulk path
     rediscovers as "the load appears to cost nothing".
     """
-    from syntitude_backend.instruments.sql_cost_oracle import (
+    from bacatlas_backend.instruments.sql_cost_oracle import (
         driver_statements_are_visible,
         record_driver_statement,
     )
