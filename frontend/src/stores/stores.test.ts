@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import { failure, success } from "@/api/result";
+import { asCatalogueKey } from "@/api/types";
 import type { Arrangement, LocusDetailResponse, NeighbourSlot } from "@/api/types";
 import { SIGNED_OFFSETS, asDisplaySlot } from "@/lib/slotSpaces";
 import { FORWARD, REVERSED } from "@/lib/walkDirection";
@@ -80,16 +81,16 @@ describe("the cache key", () => {
     // so keying on the label alone would serve a reader who just set one the response from before
     // they set it — with their genome's arrangement missing, which is the exact failure the anchor
     // exists to prevent.
-    expect(locusCacheKey("ecoli", "42", null)).not.toBe(locusCacheKey("ecoli", "42", "SAMEA1"));
+    expect(locusCacheKey(asCatalogueKey("ecoli"), "42", null)).not.toBe(locusCacheKey(asCatalogueKey("ecoli"), "42", "SAMEA1"));
   });
 
   it("treats an empty string and null as the same absence", () => {
     // A control that clears itself to "" would otherwise silently double the cache.
-    expect(locusCacheKey("ecoli", "42", "")).toBe(locusCacheKey("ecoli", "42", null));
+    expect(locusCacheKey(asCatalogueKey("ecoli"), "42", "")).toBe(locusCacheKey(asCatalogueKey("ecoli"), "42", null));
   });
 
   it("separates species", () => {
-    expect(locusCacheKey("ecoli", "42", null)).not.toBe(locusCacheKey("kp", "42", null));
+    expect(locusCacheKey(asCatalogueKey("ecoli"), "42", null)).not.toBe(locusCacheKey(asCatalogueKey("kp"), "42", null));
   });
 });
 
@@ -126,8 +127,8 @@ describe("the cache", () => {
   it("⚠ a prefetch that fails leaves NO trace — the reader did not ask for it", async () => {
     const cache = useLocusDetailCacheStore();
     fetchLocus.mockResolvedValue(failure("network", "down"));
-    await cache.prefetch("ecoli", "42", null);
-    expect(cache.has(locusCacheKey("ecoli", "42", null))).toBe(false);
+    await cache.prefetch(asCatalogueKey("ecoli"), "42", null);
+    expect(cache.has(locusCacheKey(asCatalogueKey("ecoli"), "42", null))).toBe(false);
     // And the click that follows makes the request again and reports properly.
     expect(fetchLocus).toHaveBeenCalledTimes(1);
   });
@@ -141,8 +142,8 @@ describe("the cache", () => {
       });
       return success(locusDetail());
     });
-    const first = cache.prefetch("ecoli", "42", null);
-    const second = cache.prefetch("ecoli", "42", null);
+    const first = cache.prefetch(asCatalogueKey("ecoli"), "42", null);
+    const second = cache.prefetch(asCatalogueKey("ecoli"), "42", null);
     release(null);
     await Promise.all([first, second]);
     expect(fetchLocus).toHaveBeenCalledTimes(1);
@@ -152,7 +153,7 @@ describe("the cache", () => {
 describe("⛔ the three loading states are never conflated", () => {
   it("with nothing on screen it is `pending`, so the track can draw its own shape", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     let release: (value: unknown) => void = () => {};
     fetchLocus.mockImplementation(async () => {
       await new Promise((resolve) => {
@@ -169,7 +170,7 @@ describe("⛔ the three loading states are never conflated", () => {
 
   it("with a locus already drawn it is `refreshing`, and the PREVIOUS one stays on screen", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const first = locusDetail({ locus: { label: "1" } as LocusDetailResponse["locus"] });
     fetchLocus.mockResolvedValueOnce(success(first));
     await navigation.navigateTo("1");
@@ -193,7 +194,7 @@ describe("⛔ the three loading states are never conflated", () => {
   it("⚠ and does not DIM for 150 ms, so a fast response never flashes", async () => {
     vi.useFakeTimers();
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
     await navigation.navigateTo("1");
 
@@ -214,7 +215,7 @@ describe("⛔ the three loading states are never conflated", () => {
 
   it("⭐ a CACHED locus goes straight to ready — no pending, no refreshing, no flash", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
     await navigation.navigateTo("1");
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
@@ -232,7 +233,7 @@ describe("⛔ the three loading states are never conflated", () => {
 
   it("⛔ a failure keeps the last good track on screen BESIDE the error, not instead of it", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
     await navigation.navigateTo("1");
     fetchLocus.mockResolvedValueOnce(failure("server", "boom", 500));
@@ -244,7 +245,7 @@ describe("⛔ the three loading states are never conflated", () => {
 
   it("and a failure with nothing before it says so rather than showing an empty track", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(failure("not_found", "no locus '9'", 404));
     await navigation.navigateTo("9");
     expect(navigation.view).toMatchObject({ status: "failed", previous: null });
@@ -255,7 +256,7 @@ describe("⛔ the three loading states are never conflated", () => {
 describe("navigation", () => {
   it("⭐ a superseded response changes NOTHING", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     let releaseFirst: (value: unknown) => void = () => {};
     fetchLocus.mockImplementationOnce(async () => {
       await new Promise((resolve) => {
@@ -276,7 +277,7 @@ describe("navigation", () => {
 
   it("⛔ setWalkDirection is ABSOLUTE and fetches nothing", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
     await navigation.navigateTo("1");
     fetchLocus.mockClear();
@@ -299,7 +300,7 @@ describe("navigation", () => {
 
   it("the hash reflects the route, direction included", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValue(success(locusDetail()));
     await navigation.navigateTo("42", REVERSED);
     expect(navigation.hash).toBe("#42r");
@@ -307,7 +308,7 @@ describe("navigation", () => {
 
   it("⛔ the trail RETREATS on Back rather than growing", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValue(success(locusDetail()));
     await navigation.navigateTo("1");
     await navigation.navigateTo("2");
@@ -320,7 +321,7 @@ describe("navigation", () => {
 
   it("an unknown hash is refused rather than guessed at", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     expect(await navigation.applyHash("#nope", () => false)).toBe(false);
     expect(navigation.route).toBeNull();
   });
@@ -329,14 +330,14 @@ describe("navigation", () => {
     const navigation = useLocusNavigationStore();
     const anchor = useAnchorGenomeStore();
     const cache = useLocusDetailCacheStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     anchor.setAvailability(true);
     anchor.setAnchor("SAMEA1");
     fetchLocus.mockResolvedValue(success(locusDetail()));
     await navigation.navigateTo("1");
     expect(cache.size).toBe(1);
 
-    navigation.setSpecies("kp");
+    navigation.setCatalogue(asCatalogueKey("kp"));
     // The two BioSample sets are disjoint and the trail names loci that no longer exist.
     expect(anchor.sampleId).toBeNull();
     expect(navigation.trail).toEqual([]);
@@ -385,7 +386,7 @@ describe("the track display", () => {
 
   it("⭐ defaults to the arrangement the ANCHORED genome carries, even past the cap", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const track = useTrackDisplayStore();
     const listed = [
       arrangement({ rank: 0 }),
@@ -403,7 +404,7 @@ describe("the track display", () => {
 
   it("⛔ takes the LOWEST rank when rho > 1 puts the genome in two arrangements", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const track = useTrackDisplayStore();
     const listed = [arrangement({ rank: 0 }), arrangement({ rank: 2 }), arrangement({ rank: 5 })];
     await walkTo("1", locusDetail({
@@ -416,7 +417,7 @@ describe("the track display", () => {
 
   it("closes the popover on a new locus but NOT on a direction flip", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const track = useTrackDisplayStore();
     await walkTo("1", locusDetail());
     track.togglePopoverAt(asDisplaySlot(3));
@@ -434,7 +435,7 @@ describe("the track display", () => {
 
   it("⭐ walks in the direction of the arrow AS SHOWN, not as recorded", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const track = useTrackDisplayStore();
     // A flipped arrangement under a forward walk: the row is drawn mirrored, so a slot recorded
     // `same_strand: true` shows as against the focal gene and the next frame reverses.
@@ -457,7 +458,7 @@ describe("the track display", () => {
 
   it("refuses to walk from a column with no occupant", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const track = useTrackDisplayStore();
     await walkTo("1", locusDetail({
       arrangements: {
@@ -477,7 +478,7 @@ describe("the track display", () => {
 
   it("selectArrangement ignores an index the response does not carry", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const track = useTrackDisplayStore();
     await walkTo("1", locusDetail());
     track.selectArrangement(9);
@@ -502,7 +503,7 @@ describe("⭐ the similarity card's view is the READER's state, not the locus's"
     // forty times in a forty-step walk. Pinned as a contrast with the track so that adding a reset
     // watcher here has to fail a test first.
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const similarity = useSimilarityViewStore();
     const track = useTrackDisplayStore();
 
@@ -529,7 +530,7 @@ describe("⭐ the similarity card's view is the READER's state, not the locus's"
 describe("⭐ anchoring the locus already on screen", () => {
   it("re-asks for the SAME route with the anchor, and leaves the trail alone", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(success(locusDetail()));
     await navigation.navigateTo("1", REVERSED);
     fetchLocus.mockResolvedValueOnce(
@@ -549,7 +550,7 @@ describe("⭐ anchoring the locus already on screen", () => {
     // rank 0 while the anchor block said the reader's genome sat in rank 1.
     const navigation = useLocusNavigationStore();
     const track = useTrackDisplayStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     const two = [arrangement({ rank: 0 }), arrangement({ rank: 1 })];
     fetchLocus.mockResolvedValueOnce(
       success(locusDetail({ arrangements: { ...locusDetail().arrangements, listed: two, total: 2 } })),
@@ -577,7 +578,7 @@ describe("⭐ anchoring the locus already on screen", () => {
 describe("⛔ a hash is resolved against the SERVER, whole string first", () => {
   it("reads a trailing `r` as the direction only when the whole string is NOT a locus", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(failure("not_found", "no locus '12r'", 404));
     fetchLocus.mockResolvedValueOnce(success(locusDetail({ locus: { label: "12" } as never })));
     expect(await navigation.openHash("#12r")).toBe(true);
@@ -587,7 +588,7 @@ describe("⛔ a hash is resolved against the SERVER, whole string first", () => 
 
   it("⭐ keeps a locus whose label genuinely ends in `r` — and fetches it only once", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(success(locusDetail({ locus: { label: "fur" } as never })));
     expect(await navigation.openHash("#fur")).toBe(true);
     expect(navigation.route).toEqual({ label: "fur", direction: FORWARD });
@@ -597,7 +598,7 @@ describe("⛔ a hash is resolved against the SERVER, whole string first", () => 
 
   it("⚠ does NOT read the `r` as a direction when the probe merely failed to arrive", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(failure("network", "offline"));
     fetchLocus.mockResolvedValueOnce(failure("network", "offline"));
     await navigation.openHash("#12r");
@@ -608,7 +609,7 @@ describe("⛔ a hash is resolved against the SERVER, whole string first", () => 
 
   it("returns false for an empty or malformed hash, so the caller can land somewhere", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     expect(await navigation.openHash("")).toBe(false);
     expect(await navigation.openHash("#%")).toBe(false);
     expect(fetchLocus).not.toHaveBeenCalled();
@@ -618,14 +619,14 @@ describe("⛔ a hash is resolved against the SERVER, whole string first", () => 
 describe("the breadcrumb's names", () => {
   it("remembers the name of every locus it DREW, and forgets them with the species", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(
       success(locusDetail({ locus: { label: "7", display_name: "wzi" } as never })),
     );
     await navigation.navigateTo("7");
     await nextTick();
     expect(navigation.displayNames.get("7")).toBe("wzi");
-    navigation.setSpecies("kp");
+    navigation.setCatalogue(asCatalogueKey("kp"));
     expect(navigation.displayNames.size).toBe(0);
   });
 });

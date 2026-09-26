@@ -12,6 +12,8 @@ import type { Result } from "./result";
 import type {
   ArrangementPageResponse,
   AuditResidualsResponse,
+  CatalogueKey,
+  CataloguesResponse,
   FunctionResponse,
   GenomeListResponse,
   GeneSequenceResponse,
@@ -35,12 +37,22 @@ export function fetchSpeciesList(signal?: AbortSignal): Promise<Result<SpeciesLi
   return requestJson<SpeciesListResponse>("species", signal ? { signal } : {});
 }
 
+/**
+ * Every catalogue the server OFFERS — the model picker's source.
+ *
+ * ⚠ One row per catalogue, so a species with two models appears twice. A catalogue that is loaded
+ * but staged is absent here and still loads by key, so never gate a fetch on this list.
+ */
+export function fetchCatalogues(signal?: AbortSignal): Promise<Result<CataloguesResponse>> {
+  return requestJson<CataloguesResponse>("catalogues", signal ? { signal } : {});
+}
+
 export function fetchSpeciesCatalogue(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   signal?: AbortSignal,
 ): Promise<Result<SpeciesCatalogueResponse>> {
   return requestJson<SpeciesCatalogueResponse>(
-    `species/${encodeURIComponent(speciesKey)}`,
+    `catalogues/${encodeURIComponent(catalogueKey)}`,
     signal ? { signal } : {},
   );
 }
@@ -56,7 +68,7 @@ export function fetchSpeciesCatalogue(
  * #37 and has no button to go back to it.
  */
 export function fetchLocus(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   locusLabel: string,
   options: { anchorSampleId?: string; projectedSampleId?: string; signal?: AbortSignal } = {},
 ): Promise<Result<LocusDetailResponse>> {
@@ -69,7 +81,7 @@ export function fetchLocus(
       ? { projected: options.projectedSampleId }
       : undefined;
   return requestJson<LocusDetailResponse>(
-    `species/${encodeURIComponent(speciesKey)}/loci/${labelSegment(locusLabel)}`,
+    `catalogues/${encodeURIComponent(catalogueKey)}/loci/${labelSegment(locusLabel)}`,
     {
       ...(options.signal ? { signal: options.signal } : {}),
       ...(query ? { query } : {}),
@@ -94,36 +106,36 @@ export function anchorQuery(
 
 /** Genomes placed on this catalogue after the model was built — never members of it. */
 export function fetchProjectedGenomes(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   signal?: AbortSignal,
 ): Promise<Result<ProjectedGenomesResponse>> {
   return requestJson<ProjectedGenomesResponse>(
-    `species/${encodeURIComponent(speciesKey)}/projected-genomes`,
+    `catalogues/${encodeURIComponent(catalogueKey)}/projected-genomes`,
     { ...(signal ? { signal } : {}) },
   );
 }
 
 /** Arrangements past the display cut — the full scroller, paged. */
 export function fetchArrangementPage(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   locusLabel: string,
   offset: number,
   signal?: AbortSignal,
 ): Promise<Result<ArrangementPageResponse>> {
   return requestJson<ArrangementPageResponse>(
-    `species/${encodeURIComponent(speciesKey)}/loci/${labelSegment(locusLabel)}/arrangements`,
+    `catalogues/${encodeURIComponent(catalogueKey)}/loci/${labelSegment(locusLabel)}/arrangements`,
     { query: { offset }, ...(signal ? { signal } : {}) },
   );
 }
 
 /** The EggNOG tab — fetched on tab open, not on every walk. */
 export function fetchLocusFunction(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   locusLabel: string,
   signal?: AbortSignal,
 ): Promise<Result<FunctionResponse>> {
   return requestJson<FunctionResponse>(
-    `species/${encodeURIComponent(speciesKey)}/loci/${labelSegment(locusLabel)}/function`,
+    `catalogues/${encodeURIComponent(catalogueKey)}/loci/${labelSegment(locusLabel)}/function`,
     signal ? { signal } : {},
   );
 }
@@ -135,13 +147,13 @@ export function fetchLocusFunction(
  * file, and nobody wants a genome's bases on every one of forty steps.
  */
 export function fetchGeneSequence(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   sampleId: string,
   locusLabel: string,
   signal?: AbortSignal,
 ): Promise<Result<GeneSequenceResponse>> {
   return requestJson<GeneSequenceResponse>(
-    `species/${encodeURIComponent(speciesKey)}/genomes/${encodeURIComponent(sampleId)}/loci/` +
+    `catalogues/${encodeURIComponent(catalogueKey)}/genomes/${encodeURIComponent(sampleId)}/loci/` +
       `${labelSegment(locusLabel)}/sequence`,
     signal ? { signal } : {},
   );
@@ -152,11 +164,11 @@ export function fetchGeneSequence(
  * `ligase` still finds *O-antigen ligase RfaL* mid-string. Replaces the resident 3.0 MB haystack.
  */
 export function searchLoci(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   query: string,
   options: { limit?: number; signal?: AbortSignal } = {},
 ): Promise<Result<SearchResponse>> {
-  return requestJson<SearchResponse>(`species/${encodeURIComponent(speciesKey)}/search`, {
+  return requestJson<SearchResponse>(`catalogues/${encodeURIComponent(catalogueKey)}/search`, {
     query: { q: query, limit: options.limit },
     ...(options.signal ? { signal: options.signal } : {}),
   });
@@ -168,11 +180,11 @@ export function searchLoci(
  * Case-insensitive substring on the sample id, the same semantics as `app.js::anchorSearch`.
  */
 export function fetchGenomes(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   query: string,
   options: { limit?: number; signal?: AbortSignal } = {},
 ): Promise<Result<GenomeListResponse>> {
-  return requestJson<GenomeListResponse>(`species/${encodeURIComponent(speciesKey)}/genomes`, {
+  return requestJson<GenomeListResponse>(`catalogues/${encodeURIComponent(catalogueKey)}/genomes`, {
     query: { q: query, limit: options.limit },
     ...(options.signal ? { signal: options.signal } : {}),
   });
@@ -180,11 +192,11 @@ export function fetchGenomes(
 
 /** The footer's two residual lists — fetched when the reader opens one, never with the page. */
 export function fetchAuditResiduals(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   signal?: AbortSignal,
 ): Promise<Result<AuditResidualsResponse>> {
   return requestJson<AuditResidualsResponse>(
-    `species/${encodeURIComponent(speciesKey)}/audit/residual-loci`,
+    `catalogues/${encodeURIComponent(catalogueKey)}/audit/residual-loci`,
     signal ? { signal } : {},
   );
 }

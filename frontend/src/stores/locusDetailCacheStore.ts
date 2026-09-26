@@ -21,6 +21,7 @@ import { ref, shallowRef } from "vue";
 import { anchorQuery, fetchLocus } from "@/api/client";
 import type { LocusDetailResponse } from "@/api/types";
 
+import type { CatalogueKey } from "@/api/types";
 import type { AnchorKind } from "./anchorGenomeStore";
 
 /** How many locus responses to hold. A walk of 40 steps fits comfortably. */
@@ -32,7 +33,7 @@ export const CACHE_LIMIT = 120;
  * control that clears itself to `""` silently doubles the cache.
  */
 export function locusCacheKey(
-  speciesKey: string,
+  catalogueKey: CatalogueKey,
   locusLabel: string,
   anchorSampleId: string | null,
   anchorKind: AnchorKind = "catalogue",
@@ -40,7 +41,7 @@ export function locusCacheKey(
   // ⛔ The KIND is part of the key. One BioSample can be a modelled genome of one catalogue and a
   // projected genome of another, and the two responses describe different relations — without the
   // kind, anchoring the same accession the other way would be served the previous answer.
-  return `${speciesKey} ${locusLabel} ${anchorSampleId || ""} ${anchorSampleId ? anchorKind : ""}`;
+  return `${catalogueKey} ${locusLabel} ${anchorSampleId || ""} ${anchorSampleId ? anchorKind : ""}`;
 }
 
 export const useLocusDetailCacheStore = defineStore("locusDetailCache", () => {
@@ -88,16 +89,16 @@ export const useLocusDetailCacheStore = defineStore("locusDetailCache", () => {
    * ⚠ Runs on no lane. A lane would cancel the navigation the reader is actually waiting on.
    */
   async function prefetch(
-    speciesKey: string,
+    catalogueKey: CatalogueKey,
     locusLabel: string,
     anchorSampleId: string | null,
     anchorKind: AnchorKind = "catalogue",
   ): Promise<void> {
-    const key = locusCacheKey(speciesKey, locusLabel, anchorSampleId, anchorKind);
+    const key = locusCacheKey(catalogueKey, locusLabel, anchorSampleId, anchorKind);
     if (entries.has(key) || inFlight.value.has(key)) return;
     inFlight.value.add(key);
     try {
-      const result = await fetchLocus(speciesKey, locusLabel, anchorQuery(anchorSampleId, anchorKind));
+      const result = await fetchLocus(catalogueKey, locusLabel, anchorQuery(anchorSampleId, anchorKind));
       if (result.ok) put(key, result.value);
     } finally {
       inFlight.value.delete(key);

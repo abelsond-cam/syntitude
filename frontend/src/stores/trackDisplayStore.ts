@@ -11,7 +11,7 @@
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 
-import type { Arrangement, LocusDetailResponse } from "@/api/types";
+import type { Arrangement, CatalogueKey, LocusDetailResponse } from "@/api/types";
 import {
   type DisplayMirror,
   type DisplaySlot,
@@ -302,8 +302,8 @@ export const useTrackDisplayStore = defineStore("trackDisplay", () => {
    * Warm the cache for a locus the reader is hovering. Runs on no lane and reports nothing — a
    * prefetch the reader did not ask for must leave no trace when it fails.
    */
-  function prefetchNeighbour(speciesKey: string, locusLabel: string): void {
-    void cache.prefetch(speciesKey, locusLabel, anchorSampleId.value, anchorKind.value);
+  function prefetchNeighbour(catalogueKey: CatalogueKey, locusLabel: string): void {
+    void cache.prefetch(catalogueKey, locusLabel, anchorSampleId.value, anchorKind.value);
   }
 
   function toggleFocalPopover(): void {

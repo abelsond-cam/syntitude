@@ -20,7 +20,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { anchorQuery, fetchLocus } from "@/api/client";
 import { LANES } from "@/api/request";
 import type { Failure } from "@/api/result";
-import type { LocusDetailResponse } from "@/api/types";
+import type { CatalogueKey, LocusDetailResponse } from "@/api/types";
 import {
   type LocusRoute,
   advanceTrail,
@@ -56,7 +56,14 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   const anchor = useAnchorGenomeStore();
   const { sampleId: anchorSampleId, kind: anchorKind } = storeToRefs(anchor);
 
-  const speciesKey = ref<string | null>(null);
+  /**
+   * ⛔ The CATALOGUE being navigated, `ecoli-nuna5` — not the species.
+   *
+   * Locus labels are MODEL-PRIVATE: `2811` is a different gene in nuna5 than in nuna4. Everything
+   * keyed below — the detail cache, `knownMissing`, the in-flight generation guard — is therefore
+   * keyed on the catalogue, or one model's answers would be served under another's.
+   */
+  const catalogueKey = ref<CatalogueKey | null>(null);
   const route = ref<LocusRoute | null>(null);
   const trail = ref<readonly string[]>([]);
   const view = ref<LocusView>({ status: "idle" });
@@ -125,7 +132,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   // would leave the previous answer on screen.
   watch([anchorSampleId, anchorKind], ([nextId, nextKind], [previousId, previousKind]) => {
     if ((nextId === previousId && nextKind === previousKind) || route.value === null) return;
-    if (speciesKey.value === null) return;
+    if (catalogueKey.value === null) return;
     void navigateTo(route.value.label, route.value.direction);
   });
 
@@ -136,11 +143,14 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     }
   }
 
-  function setSpecies(nextSpeciesKey: string): void {
-    if (speciesKey.value === nextSpeciesKey) return;
+  function setCatalogue(nextKey: CatalogueKey): void {
+    // ⚠ Keyed on the catalogue. Keyed on the species, switching model within one species
+    // returned here and left the trail, the cache and `knownMissing` holding the other model's
+    // answers under labels that mean something else.
+    if (catalogueKey.value === nextKey) return;
     // Switching species is a full navigation to a different catalogue: every cache key changes,
     // the trail refers to loci that no longer exist, and the anchor's BioSample set is disjoint.
-    speciesKey.value = nextSpeciesKey;
+    catalogueKey.value = nextKey;
     route.value = null;
     trail.value = [];
     displayNames.clear();
@@ -165,8 +175,8 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
 
   /** Go to a locus. `direction` is absolute — compute it with `walkDirectionAfterStep`. */
   async function navigateTo(locusLabel: string, direction: WalkDirection = FORWARD): Promise<void> {
-    const species = speciesKey.value;
-    if (species === null) throw new Error("navigateTo before setSpecies");
+    const addressed = catalogueKey.value;
+    if (addressed === null) throw new Error("navigateTo before setCatalogue");
 
     generation += 1;
     unresolvedHash = null;
@@ -175,7 +185,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     // does, and pushing unconditionally made the breadcrumb GROW when the reader went backwards.
     trail.value = advanceTrail(trail.value, locusLabel);
 
-    const key = locusCacheKey(species, locusLabel, anchorSampleId.value, anchorKind.value);
+    const key = locusCacheKey(addressed, locusLabel, anchorSampleId.value, anchorKind.value);
     const cached = cache.get(key);
     if (cached !== undefined) {
       // ⭐ Zero fetch, and zero flash: no pending, no refreshing, no dim timer.
@@ -200,7 +210,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     }
 
     const outcome = await LANES.navigation.run((signal) =>
-      fetchLocus(species, locusLabel, {
+      fetchLocus(addressed, locusLabel, {
         signal,
         ...anchorQuery(anchorSampleId.value, anchorKind.value),
       }),
@@ -257,8 +267,8 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
    * Returns `false` for an empty or malformed hash, so the caller can fall back to the landing locus.
    */
   async function openHash(rawHash: string): Promise<boolean> {
-    const species = speciesKey.value;
-    if (species === null) throw new Error("openHash before setSpecies");
+    const addressed = catalogueKey.value;
+    if (addressed === null) throw new Error("openHash before setCatalogue");
     let text: string;
     try {
       text = decodeURIComponent(rawHash.replace(/^#/, ""));
@@ -274,16 +284,18 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     const stem = text.endsWith("r") ? text.slice(0, -1) : "";
     let probeFailed = false;
     if (stem) {
-      const key = locusCacheKey(species, text, anchorSampleId.value, anchorKind.value);
-      const missingKey = `${species} ${text}`;
+      const key = locusCacheKey(addressed, text, anchorSampleId.value, anchorKind.value);
+      // ⚠ A SECOND key over the same identifier, and it must carry the catalogue for the same reason
+      // the cache key does: a 404 for nuna4's `200r` must not suppress the probe for nuna5's.
+      const missingKey = `${addressed} ${text}`;
       if (knownMissing.has(missingKey)) {
         return openReversed(stem);
       }
       if (!cache.has(key)) {
         const started = generation;
-        const whole = await fetchLocus(species, text, anchorQuery(anchorSampleId.value, anchorKind.value));
+        const whole = await fetchLocus(addressed, text, anchorQuery(anchorSampleId.value, anchorKind.value));
         // ⛔ Superseded: the reader navigated while the probe was out. Change NOTHING.
-        if (generation !== started || speciesKey.value !== species) return true;
+        if (generation !== started || catalogueKey.value !== addressed) return true;
         if (whole.ok) cache.put(key, whole.value);
         else if (whole.kind === "not_found") {
           knownMissing.add(missingKey);
@@ -318,7 +330,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
   }
 
   return {
-    speciesKey,
+    catalogueKey,
     route,
     trail,
     displayNames,
@@ -326,7 +338,7 @@ export const useLocusNavigationStore = defineStore("locusNavigation", () => {
     drawable,
     walkDirection,
     hash,
-    setSpecies,
+    setCatalogue,
     setWalkDirection,
     navigateTo,
     applyHash,

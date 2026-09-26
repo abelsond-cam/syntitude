@@ -45,7 +45,7 @@ export function mergeArrangementsByRank(
 
 export const useArrangementBrowserStore = defineStore("arrangementBrowser", () => {
   const navigation = useLocusNavigationStore();
-  const { drawable, speciesKey } = storeToRefs(navigation);
+  const { drawable, catalogueKey } = storeToRefs(navigation);
 
   /** The contiguous prefix fetched so far, in rank order. Empty until the reader asks. */
   const fetched = ref<readonly Arrangement[]>([]);
@@ -115,7 +115,7 @@ export const useArrangementBrowserStore = defineStore("arrangementBrowser", () =
    * The failure branch renders as a failure, never as "this locus has no more arrangements".
    */
   async function loadMore(): Promise<void> {
-    const species = speciesKey.value;
+    const species = catalogueKey.value;
     const label = drawable.value?.locus.label ?? null;
     if (species === null || label === null || !hasMore.value || status.value === "pending") return;
 

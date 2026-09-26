@@ -20,11 +20,11 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import { searchLoci } from "@/api/client";
 import type { Failure } from "@/api/result";
-import type { SearchResponse } from "@/api/types";
+import type { CatalogueKey, SearchResponse } from "@/api/types";
 import { prevalenceBandLabel } from "@/lib/prevalence";
 
 const props = defineProps<{
-  speciesKey: string | null;
+  catalogueKey: CatalogueKey | null;
   /** The collection size, for the "N/100 genomes" figure on each row. */
   collectionGenomeCount: number | null;
 }>();
@@ -54,7 +54,7 @@ function close(): void {
 }
 
 async function run(text: string): Promise<void> {
-  const species = props.speciesKey;
+  const species = props.catalogueKey;
   const trimmed = text.trim();
   const token = ++issued;
   if (species === null || trimmed === "") {

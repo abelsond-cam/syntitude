@@ -10,6 +10,7 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { asCatalogueKey } from "@/api/types";
 import type {
   Arrangement,
   IntergenicGap,
@@ -311,7 +312,7 @@ describe("the whole track", () => {
 
   function mountTrack() {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     navigation.route = { label: "focal", direction: "forward" };
     navigation.view = { status: "ready", value: detail() };
     return mount(GeneTrack, {

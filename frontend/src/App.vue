@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { asCatalogueKey } from "@/api/types";
+import type { CatalogueKey } from "@/api/types";
 /**
  * The page: header and search, the species strip, the track, four views of one locus, the footer.
  *
@@ -38,11 +40,23 @@ const species = useSpeciesCatalogueStore();
 const own = useOwnGenomesStore();
 const navigation = useLocusNavigationStore();
 const tabs = useViewTabStore();
-const { speciesList, catalogue, current, publishedSpecies, speciesKey } = storeToRefs(species);
+const { speciesList, catalogue, current, publishedSpecies, catalogueKey, cataloguesForCurrentSpecies } =
+  storeToRefs(species);
 const { drawable, hash } = storeToRefs(navigation);
 const { view } = storeToRefs(tabs);
 
 const SPECIES_PARAMETER = "species";
+/**
+ * ⭐ The parameter that PINS a clustering. `?catalogue=ecoli-nuna5` names one exactly;
+ * `?species=ecoli` follows whatever that species currently serves.
+ *
+ * ⚠ Both are read, and `catalogue` wins — but a followed `?species=` is REWRITTEN to the key it
+ * resolved to, so a link copied from the address bar always names the clustering the sender was
+ * looking at. Without that, `?species=ecoli#2811` silently opens a DIFFERENT GENE the day the
+ * default moves, because locus labels are model-private — and it renders perfectly (David,
+ * 2026-09-26).
+ */
+const CATALOGUE_PARAMETER = "catalogue";
 
 function decoded(text: string): string {
   try {
@@ -87,10 +101,16 @@ watch(hash, (next) => {
  * exactly as the published picker did. The trail, the cache and the anchor all belong to one
  * catalogue, and a reload is the one reset that cannot forget any of them.
  */
-function selectSpecies(nextSpeciesKey: string): void {
-  if (nextSpeciesKey === speciesKey.value) return;
+function selectCatalogue(nextKey: CatalogueKey): void {
+  if (nextKey === catalogueKey.value) return;
   const url = new URL(window.location.href);
-  url.searchParams.set(SPECIES_PARAMETER, nextSpeciesKey);
+  url.searchParams.set(CATALOGUE_PARAMETER, nextKey);
+  // ⚠ The bare species parameter is DROPPED, so no address can hold two answers that disagree.
+  url.searchParams.delete(SPECIES_PARAMETER);
+  // ⛔ The hash goes too, and for a model switch that is not housekeeping. Locus labels are
+  // MODEL-PRIVATE: `#2811` is a different gene in nuna5 than in nuna4, so carrying it across would
+  // land the reader on a real locus that is not the one they were reading, with nothing saying so.
+  // The new catalogue's own landing locus opens instead.
   url.hash = "";
   window.location.assign(url.toString());
 }
@@ -109,7 +129,13 @@ watch(
   (entries) => {
     if (entries.length === 0) return;
     void own.loadPlacedGenomes(
-      entries.map((entry) => ({ key: entry.key, scientificName: entry.scientific_name })),
+      entries
+        .filter((entry) => entry.catalogue_key !== null)
+        .map((entry) => ({
+          key: entry.key,
+          catalogueKey: entry.catalogue_key as CatalogueKey,
+          scientificName: entry.scientific_name,
+        })),
     );
   },
   { immediate: true },
@@ -132,26 +158,40 @@ const unknownSpecies = ref<string | null>(null);
 
 onMounted(async () => {
   window.addEventListener("hashchange", onHashChange);
-  await species.loadSpeciesList();
-  const requested = new URL(window.location.href).searchParams.get(SPECIES_PARAMETER);
-  let chosen: string | undefined;
-  if (requested === null) {
-    chosen = publishedSpecies.value[0]?.key;
+  await Promise.all([species.loadSpeciesList(), species.loadCatalogues()]);
+  const address = new URL(window.location.href).searchParams;
+  const pinned = address.get(CATALOGUE_PARAMETER);
+  let chosen: CatalogueKey | undefined;
+
+  if (pinned !== null) {
+    // ⛔ NOT validated against `GET /catalogues`. A catalogue can be loaded but not offered — that
+    // is how a model is staged for review before anyone is shown it — so gating on the menu would
+    // make a deliberate link unopenable. Send it and let the server answer; a typo lands as a named
+    // catalogue failure below, which is honest, rather than as "no such species".
+    chosen = asCatalogueKey(pinned);
   } else {
-    // Case is forgiven (`KP` is plainly `kp`), and the address is corrected to what is shown.
-    chosen = publishedSpecies.value.find((entry) => entry.key === requested.toLowerCase())?.key;
-    if (chosen === undefined) {
-      if (speciesList.value.status === "ready") unknownSpecies.value = requested;
+    const requested = address.get(SPECIES_PARAMETER);
+    const entry =
+      requested === null
+        ? publishedSpecies.value[0]
+        : // Case is forgiven — `KP` is plainly `kp`.
+          publishedSpecies.value.find((candidate) => candidate.key === requested.toLowerCase());
+    if (entry === undefined) {
+      if (requested !== null && speciesList.value.status === "ready") unknownSpecies.value = requested;
       return;
     }
-    if (chosen !== requested) {
-      const url = new URL(window.location.href);
-      url.searchParams.set(SPECIES_PARAMETER, chosen);
-      window.history.replaceState(window.history.state, "", url);
-    }
+    if (entry.catalogue_key === null) return;
+    chosen = entry.catalogue_key;
+    // ⭐ PIN THE ADDRESS to what the species actually resolved to (David, 2026-09-26). A link
+    // copied from here then names a clustering rather than a default that can move underneath it.
+    const url = new URL(window.location.href);
+    url.searchParams.set(CATALOGUE_PARAMETER, chosen);
+    url.searchParams.delete(SPECIES_PARAMETER);
+    window.history.replaceState(window.history.state, "", url);
   }
+
   if (chosen === undefined) return;
-  await species.selectSpecies(chosen);
+  await species.selectCatalogue(chosen);
   if (current.value !== null) await openFromAddress();
 });
 
@@ -162,17 +202,22 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
   <HoverTip />
   <!-- ⚠ Mounted ONCE, here, not in the gutter: a <dialog> opened with `showModal()` belongs to the
        page, and the box that opens it is redrawn on every walk. -->
-  <OwnGenomesDialog :species-key="speciesKey" :species="publishedSpecies" />
+  <!-- ⛔ The SPECIES key, not the catalogue: this dialog files answers by organism. Handed
+       `ecoli-nuna5` it would miss every lookup and report genomes modelled on this very page
+       as "modelled elsewhere". -->
+  <OwnGenomesDialog :species-key="current?.species.key ?? null" :species="publishedSpecies" />
   <SiteHeader
-    :species-key="speciesKey"
+    :catalogue-key="catalogueKey"
     :collection-genome-count="current?.pangenome.genome_count ?? null"
     @go="go"
   />
   <SpeciesStrip
     :species="publishedSpecies"
-    :species-key="speciesKey"
+    :species-key="current?.species.key ?? null"
+    :catalogue-key="catalogueKey"
+    :catalogues="cataloguesForCurrentSpecies"
     :catalogue="current"
-    @select-species="selectSpecies"
+    @select-catalogue="selectCatalogue"
   />
 
   <!-- ⛔ Each failure SAYS which thing failed; none of them renders as an empty catalogue. -->
@@ -193,7 +238,8 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
 
   <template v-if="current !== null">
     <TrackPanel
-      :species-key="speciesKey"
+      :catalogue-key="catalogueKey"
+      :species-key="current.species.key"
       :collection-genome-count="current.pangenome.genome_count"
       :landing-locus="current.landing_locus"
     />
@@ -212,7 +258,11 @@ onBeforeUnmount(() => window.removeEventListener("hashchange", onHashChange));
       </section>
       <section id="view-sequence" class="view-panel" role="tabpanel" aria-label="Sequence" :hidden="view !== 'sequence'">
         <div class="wrap">
-          <SequenceView v-if="drawable !== null" :detail="drawable" :species-key="current.species.key" />
+          <SequenceView
+            v-if="drawable !== null"
+            :detail="drawable"
+            :catalogue-key="current.pangenome.catalogue_key"
+          />
         </div>
       </section>
       <section id="view-eggnog" class="view-panel" role="tabpanel" aria-label="EggNOG" :hidden="view !== 'function'">

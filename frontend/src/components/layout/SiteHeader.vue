@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CatalogueKey } from "@/api/types";
 /**
  * The instrument bar: the mark, and the locus search.
  *
@@ -11,7 +12,7 @@ import logoMarkup from "@/assets/logo.svg?raw";
 import LocusSearchBox from "@/components/search/LocusSearchBox.vue";
 
 defineProps<{
-  speciesKey: string | null;
+  catalogueKey: CatalogueKey | null;
   collectionGenomeCount: number | null;
 }>();
 
@@ -31,7 +32,7 @@ const emit = defineEmits<{ go: [locusLabel: string] }>();
         <div class="mark">BacAtlas<span>.org</span> <span class="mark-rule">—</span> <span class="mark-sub">Navigate your Microbe</span></div>
       </div>
       <LocusSearchBox
-        :species-key="speciesKey"
+        :catalogue-key="catalogueKey"
         :collection-genome-count="collectionGenomeCount"
         @go="emit('go', $event)"
       />

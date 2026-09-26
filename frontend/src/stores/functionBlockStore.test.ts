@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import { failure, success } from "@/api/result";
+import { asCatalogueKey } from "@/api/types";
 import type { FunctionResponse, LocusDetailResponse } from "@/api/types";
 
 import { useFunctionBlockStore } from "./functionBlockStore";
@@ -66,7 +67,7 @@ function functionBlock(cogCount: number): FunctionResponse {
 
 async function drawLocus(label: string) {
   const navigation = useLocusNavigationStore();
-  navigation.setSpecies("ecoli");
+  navigation.setCatalogue(asCatalogueKey("ecoli"));
   fetchLocus.mockResolvedValueOnce(success(locusDetail(label)));
   await navigation.navigateTo(label);
   await nextTick();

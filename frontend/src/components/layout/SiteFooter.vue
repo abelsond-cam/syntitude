@@ -87,8 +87,11 @@ const omitted = computed(() => {
           or by ESM are homologous and are not counted here.
         </p>
       </details>
+      <!-- ⛔ The CATALOGUE's key below, not the species'. This block's whole claim is "a model's own
+           residuals, on its own page" — handed the species key it would fetch the DEFAULT model's
+           residuals and print them under another model's name. -->
       <AuditResidualLists
-        :species-key="catalogue.species.key"
+        :catalogue-key="catalogue.pangenome.catalogue_key"
         :audit="catalogue.audit_headline"
         @go="emit('go', $event)"
       />

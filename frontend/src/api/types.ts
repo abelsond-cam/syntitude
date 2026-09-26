@@ -533,9 +533,69 @@ export interface SimilarityBaseline {
   readonly neighbour_knn_k: number | null;
 }
 
+/**
+ * ⛔ **A catalogue key, distinguishable by the compiler from a species key.**
+ *
+ * Both are strings, both name something in the URL, and they were interchangeable right up to the
+ * moment a species held two catalogues. Passing `ecoli` where `ecoli-nuna5` belongs does not throw:
+ * it silently serves the species' DEFAULT clustering under a page that says it is showing another
+ * one, and it renders perfectly. The type system could not see it, because nothing about the shape
+ * of the string changed — which is why this is a brand rather than a comment.
+ *
+ * ⚠ Mint it only with {@link asCatalogueKey}, and only from something that really is one: a
+ * `catalogue_key` the server sent, an entry in `GET /catalogues`, or a URL parameter about to be
+ * handed straight back to the server for resolution. Never from `species.key`.
+ */
+export type CatalogueKey = string & { readonly __catalogue: unique symbol };
+
+/** Mint a {@link CatalogueKey}. The single place the brand is applied, so it is greppable. */
+export function asCatalogueKey(key: string): CatalogueKey {
+  return key as CatalogueKey;
+}
+
+/**
+ * One row of `GET /api/v1/catalogues` — everything the model picker needs.
+ *
+ * ⚠ A species appears ONCE PER CATALOGUE it holds, so E. coli on nuna4 and nuna5 is two rows.
+ * `is_default` marks the one a bare `?species=` resolves to; `key` is what an address should carry
+ * to pin this clustering.
+ *
+ * ⛔ Only catalogues the server OFFERS are listed. One that is loaded but staged is absent from
+ * here and still reachable by key, so never gate a load on membership of this list.
+ */
+export interface CatalogueEntry {
+  readonly key: CatalogueKey;
+  readonly species: { readonly key: string; readonly scientific_name: string };
+  /** ⚠ Nullable: a pangenome need not be tied to a registry model. */
+  readonly model: {
+    readonly key: string;
+    readonly label: string | null;
+    readonly step_count: number | null;
+    readonly exclusivity_form: string;
+  } | null;
+  readonly is_default: boolean;
+  readonly genome_count: number;
+  readonly gene_count: number;
+  readonly locus_count: number;
+  readonly run_id: string;
+}
+
+export interface CataloguesResponse {
+  readonly catalogues: readonly CatalogueEntry[];
+}
+
 export interface SpeciesCatalogueResponse {
   readonly species: { readonly key: string; readonly scientific_name: string };
   readonly pangenome: {
+    /**
+     * ⭐ How this catalogue is addressed — `ecoli-nuna4`, `ecoli-nuna5`.
+     *
+     * A page that followed a bare `?species=` needs this to name what it was actually given, so the
+     * address can be pinned to the clustering being read. ⛔ It cannot be rebuilt from
+     * `species.key` + `model.key`: that pair is not unique, and a catalogue may carry a deliberate
+     * key such as `ecoli-sensitive`.
+     */
+    readonly catalogue_key: CatalogueKey;
     readonly run_id: string;
     readonly genome_count: number;
     readonly gene_count: number;
@@ -589,7 +649,14 @@ export interface SpeciesListResponse {
     readonly genome_count: number | null;
     readonly gene_count: number | null;
     readonly locus_count: number | null;
-    readonly model_label: string | null;
+    /**
+     * The species' DEFAULT catalogue — what a bare `?species=` resolves to, and the key to
+     * address once it has been followed. `null` when the species serves nothing.
+     *
+     * ⚠ Replaced a `model_label` that the server hardcoded to `null`. The full menu of
+     * catalogues is `GET /catalogues`, not this.
+     */
+    readonly catalogue_key: CatalogueKey | null;
   }[];
 }
 

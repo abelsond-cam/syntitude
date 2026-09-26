@@ -17,7 +17,7 @@
 import { storeToRefs } from "pinia";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
-import type { NeighbourDisplayRow } from "@/api/types";
+import type { CatalogueKey, NeighbourDisplayRow } from "@/api/types";
 import AnchorGenomeBox from "@/components/anchor/AnchorGenomeBox.vue";
 import OwnGenomesBox from "@/components/anchor/OwnGenomesBox.vue";
 import LocusTrail from "@/components/navigation/LocusTrail.vue";
@@ -35,6 +35,14 @@ import { useLocusNavigationStore } from "@/stores/locusNavigationStore";
 import { useTrackDisplayStore } from "@/stores/trackDisplayStore";
 
 const props = defineProps<{
+  /**
+   * ⛔ TWO keys, because this panel feeds one child that ADDRESSES and one that IDENTIFIES.
+   *
+   * `catalogueKey` reaches `AnchorGenomeBox`, which fetches from the server. `speciesKey` reaches
+   * `OwnGenomesBox`, whose store files answers under the organism — hand that one a catalogue key
+   * and every genome modelled on this very page is reported as "modelled elsewhere".
+   */
+  catalogueKey: CatalogueKey | null;
   speciesKey: string | null;
   collectionGenomeCount: number;
   /** Where to send a reader whose address named no locus — offered, never taken for them. */
@@ -288,7 +296,7 @@ function jump(locus: string): void {
                ⚠ `.legend` is the class "CHOOSE A MICROBE TO NAVIGATE:" already uses, so the two
                headers are the same kind of thing on the page rather than merely similar. -->
           <span class="legend arr-gutter-head">Anchor to:</span>
-          <AnchorGenomeBox :species-key="speciesKey" placement="track" />
+          <AnchorGenomeBox :catalogue-key="catalogueKey" placement="track" />
           <OwnGenomesBox :species-key="speciesKey" />
         </div>
         <ArrangementSwitcher

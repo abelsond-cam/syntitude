@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import { failure, success } from "@/api/result";
+import { asCatalogueKey } from "@/api/types";
 import type { GeneSequenceResponse, LocusDetailResponse } from "@/api/types";
 
 import { useAnchorGenomeStore } from "./anchorGenomeStore";
@@ -51,7 +52,7 @@ function sequenceResponse(sampleId: string, label: string, count = 1): GeneSeque
 
 async function drawLocus(label: string) {
   const navigation = useLocusNavigationStore();
-  navigation.setSpecies("ecoli");
+  navigation.setCatalogue(asCatalogueKey("ecoli"));
   fetchLocus.mockResolvedValueOnce(success(locusDetail(label)));
   await navigation.navigateTo(label);
   await nextTick();

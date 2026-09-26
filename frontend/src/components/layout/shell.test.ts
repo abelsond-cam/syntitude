@@ -12,6 +12,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { failure, success } from "@/api/result";
+import { asCatalogueKey } from "@/api/types";
 import type { SpeciesCatalogueResponse } from "@/api/types";
 import AnchorGenomeBox from "@/components/anchor/AnchorGenomeBox.vue";
 import PangenomeCensus from "@/components/census/PangenomeCensus.vue";
@@ -124,7 +125,7 @@ describe("the breadcrumb", () => {
 describe("⛔ the search says which of three things happened", () => {
   async function typed(query: string) {
     vi.useFakeTimers();
-    const box = mount(LocusSearchBox, { props: { speciesKey: "ecoli", collectionGenomeCount: 100 } });
+    const box = mount(LocusSearchBox, { props: { catalogueKey: asCatalogueKey("ecoli"), collectionGenomeCount: 100 } });
     await box.find("input").setValue(query);
     await vi.advanceTimersByTimeAsync(200);
     vi.useRealTimers();
@@ -169,7 +170,7 @@ describe("⛔ the search says which of three things happened", () => {
 
 describe("⛔ the anchor box", () => {
   it("is REMOVED, not disabled, when the catalogue cannot answer an anchor", () => {
-    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const box = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "track" } });
     expect(box.find("input").exists()).toBe(false);
   });
 
@@ -182,8 +183,8 @@ describe("⛔ the anchor box", () => {
         genomes: [{ sample_id: "SAMEA1", collection_genome_ordinal: 0, locus_count: 4_321, arrangement_locus_count: 4_300 }],
       }),
     );
-    const track = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
-    const sequence = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "sequence" } });
+    const track = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "track" } });
+    const sequence = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "sequence" } });
     await track.find("input").trigger("focus");
     await flushPromises();
     const rows = track.findAll(".anchor-hit");
@@ -200,7 +201,7 @@ describe("⛔ the anchor box", () => {
   it("⛔ a genome list that did not load SAYS so, rather than looking like no genomes", async () => {
     useAnchorGenomeStore().setAvailability(true);
     fetchGenomes.mockResolvedValue(failure("not_found", "the server answered 404", 404));
-    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const box = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "track" } });
     await box.find("input").trigger("focus");
     await flushPromises();
     expect(box.find(".pop-error").text()).toContain("did not load");
@@ -212,7 +213,7 @@ describe("⛔ the residual lists — two, never one, and fetched only when opene
   const AUDIT = { synteny_only_n_clusters: 8, no_homology_n_clusters: 2, pfam_conflict_n_clusters: 42 };
 
   it("states each list's LENGTH from the audit headline before fetching anything", () => {
-    const lists = mount(AuditResidualLists, { props: { speciesKey: "ecoli", audit: AUDIT } });
+    const lists = mount(AuditResidualLists, { props: { catalogueKey: asCatalogueKey("ecoli"), audit: AUDIT } });
     const summaries = lists.findAll("summary").map((node) => node.text());
     expect(summaries).toEqual(["Every locus grouped on context alone (10)", "Every Pfam conflict (42)"]);
     expect(fetchAuditResiduals).not.toHaveBeenCalled();
@@ -232,7 +233,7 @@ describe("⛔ the residual lists — two, never one, and fetched only when opene
         pfam_conflicts: [],
       }),
     );
-    const lists = mount(AuditResidualLists, { props: { speciesKey: "ecoli", audit: AUDIT } });
+    const lists = mount(AuditResidualLists, { props: { catalogueKey: asCatalogueKey("ecoli"), audit: AUDIT } });
     const first = lists.find("details");
     (first.element as HTMLDetailsElement).open = true;
     await first.trigger("toggle");
@@ -249,10 +250,10 @@ describe("⛔ the residual lists — two, never one, and fetched only when opene
 describe("⛔ a locus the address names but the catalogue does not have", () => {
   it("is named in the reader's terms, and the starting locus is OFFERED, not substituted", async () => {
     const navigation = useLocusNavigationStore();
-    navigation.setSpecies("ecoli");
+    navigation.setCatalogue(asCatalogueKey("ecoli"));
     fetchLocus.mockResolvedValueOnce(failure("not_found", "no locus '999999' in pangenome 1. ⚠ Node labels are TEXT", 404));
     await navigation.navigateTo("999999");
-    const panel = mount(TrackPanel, { props: { speciesKey: "ecoli", collectionGenomeCount: 100, landingLocus: "2811" } });
+    const panel = mount(TrackPanel, { props: { catalogueKey: asCatalogueKey("ecoli"), speciesKey: "ecoli", collectionGenomeCount: 100, landingLocus: "2811" } });
     const notice = panel.find(".track-error").text();
     expect(notice).toContain("There is no locus “999999” in this catalogue.");
     // The server's sentence is for whoever debugs a label, not for a reader following an old link.
@@ -265,8 +266,10 @@ describe("⛔ a locus the address names but the catalogue does not have", () => 
 
 /** The two published species, as the dialog receives them. */
 const SPECIES = [
-  { key: "ecoli", scientific_name: "Escherichia coli", published: true },
-  { key: "kp", scientific_name: "Klebsiella pneumoniae", published: true },
+  // ⚠ `catalogue_key` is the species' DEFAULT catalogue — what the dialog ADDRESSES. The answers
+  // are still filed under `key`, the organism, which is what lets it say "modelled here".
+  { key: "ecoli", scientific_name: "Escherichia coli", published: true, catalogue_key: "ecoli-nuna4" },
+  { key: "kp", scientific_name: "Klebsiella pneumoniae", published: true, catalogue_key: "kp-nuna4" },
 ] as unknown as Parameters<typeof mountDialog>[0]["species"];
 
 function genomeList(speciesKey: string, sampleIds: readonly string[]) {
@@ -304,7 +307,7 @@ describe("⭐ View your own genomes — the second box in the gutter", () => {
     // David, 2026-09-22. The published rule hid it, because "an anchor on an empty box would be a claim
     // about a genome nobody has chosen". Grey makes no claim; the box still colours only when anchored.
     useAnchorGenomeStore().setAvailability(true);
-    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const box = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "track" } });
     expect(box.find(".arr-anchor-mark").exists()).toBe(true);
     expect(box.find(".arr-anchor").classes()).not.toContain("on");
   });
@@ -329,9 +332,14 @@ describe("⭐ View your own genomes — the second box in the gutter", () => {
   });
 
   it("sorts a reader's file into: ours, the other species', not-an-accession, and a repeat", async () => {
-    fetchGenomes.mockImplementation((speciesKey: string) =>
+    // ⚠ Called with the CATALOGUE key now — the roster is fetched from a catalogue, and filed
+    // under the organism. Keying this mock on the bare species silently returned kp's list for
+    // both, which is how the "modelled elsewhere" row came out as "to be completed".
+    fetchGenomes.mockImplementation((catalogueKey: string) =>
       Promise.resolve(
-        speciesKey === "ecoli" ? genomeList("ecoli", ["SAMEA103923484"]) : genomeList("kp", ["SAMN03892119"]),
+        catalogueKey === "ecoli-nuna4"
+          ? genomeList("ecoli", ["SAMEA103923484"])
+          : genomeList("kp", ["SAMN03892119"]),
       ),
     );
     const { own, dialog } = await openAddStep();
@@ -374,7 +382,7 @@ describe("⭐ a genome PLACED on the model, anchored beside it", () => {
     const anchor = useAnchorGenomeStore();
     anchor.setAvailability(true);
     anchor.setProjectedAnchor("SAMN05374479");
-    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const box = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "track" } });
     const own = mount(OwnGenomesBox, { props: { speciesKey: "ecoli" } });
     await flushPromises();
 
@@ -413,7 +421,7 @@ describe("⭐ one header over both boxes: “Anchor to:”", () => {
   it("names the question once, and the boxes are its two answers (David, 2026-09-23)", () => {
     const anchor = useAnchorGenomeStore();
     anchor.setAvailability(true);
-    const box = mount(AnchorGenomeBox, { props: { speciesKey: "ecoli", placement: "track" } });
+    const box = mount(AnchorGenomeBox, { props: { catalogueKey: asCatalogueKey("ecoli"), placement: "track" } });
     const own = mount(OwnGenomesBox, { props: { speciesKey: "ecoli" } });
 
     // ⚠ The two labels are the two ANSWERS, so neither repeats the question. A box reading
@@ -444,7 +452,7 @@ describe("⛔ the site's own name, in every place a reader meets it", () => {
    * `aria-label` shows up only somewhere nobody looks.
    */
   it("names the site in the wordmark, with the masthead beside it on ONE line", () => {
-    const header = mount(SiteHeader, { props: { speciesKey: "ecoli", collectionGenomeCount: 100 } });
+    const header = mount(SiteHeader, { props: { catalogueKey: asCatalogueKey("ecoli"), collectionGenomeCount: 100 } });
     // The wordmark splits over three spans, so read the text rather than the markup.
     expect(header.find(".mark").text()).toBe("BacAtlas.org — Navigate your Microbe");
   });

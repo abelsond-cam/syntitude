@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 import { failure, success } from "@/api/result";
+import { asCatalogueKey } from "@/api/types";
 import type { Arrangement, LocusDetailResponse, NeighbourSlot } from "@/api/types";
 import { SIGNED_OFFSETS } from "@/lib/slotSpaces";
 
@@ -69,7 +70,7 @@ const CAPPED = [...Array.from({ length: 8 }, (_u, rank) => arrangement(rank)), a
 
 async function drawLocus(label: string, listed: readonly Arrangement[], total: number) {
   const navigation = useLocusNavigationStore();
-  navigation.setSpecies("ecoli");
+  navigation.setCatalogue(asCatalogueKey("ecoli"));
   fetchLocus.mockResolvedValueOnce(success(locusDetail(label, listed, total)));
   await navigation.navigateTo(label);
   await nextTick();

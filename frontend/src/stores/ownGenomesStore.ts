@@ -21,7 +21,7 @@ import { computed, ref } from "vue";
 
 import { fetchGenomes, fetchProjectedGenomes } from "@/api/client";
 import type { Failure } from "@/api/result";
-import type { ProjectedGenomeEntry } from "@/api/types";
+import type { CatalogueKey, ProjectedGenomeEntry } from "@/api/types";
 import { parseAccessionList, type AccessionLine, type AccessionList } from "@/lib/parseAccessionList";
 
 /** The three steps, in the order a reader meets them. */
@@ -52,7 +52,22 @@ export type LineOutcome =
   | { readonly kind: "unchecked" };
 
 export interface SpeciesRoster {
+  /**
+   * ⛔ The SPECIES key — the identity this store indexes by, and it must stay the species.
+   *
+   * `modelledBySpecies` / `placedBySpecies` are looked up by species so the dialog can say
+   * "modelled here" rather than "modelled elsewhere". Index them by a catalogue key and every
+   * lookup for `ecoli` misses, the search then finds the accession under some other entry, and a
+   * genome modelled on the page you are looking at is reported as belonging to another organism.
+   */
   readonly key: string;
+  /**
+   * ⛔ The catalogue to ADDRESS for this species — its default. A different fact from `key`.
+   *
+   * `fetchProjectedGenomes` is per-catalogue: projections belong to one pangenome, so this decides
+   * WHICH catalogue's placements are read, while `key` decides where they are filed.
+   */
+  readonly catalogueKey: CatalogueKey;
   readonly scientificName: string;
 }
 
@@ -115,7 +130,7 @@ export const useOwnGenomesStore = defineStore("ownGenomes", () => {
     const answers = await Promise.all(
       species.map(async (entry) => ({
         entry,
-        result: await fetchGenomes(entry.key, "", { limit: MODELLED_LIMIT }),
+        result: await fetchGenomes(entry.catalogueKey, "", { limit: MODELLED_LIMIT }),
       })),
     );
     const loaded: Record<string, readonly string[]> = {};
@@ -140,7 +155,7 @@ export const useOwnGenomesStore = defineStore("ownGenomes", () => {
    */
   async function loadPlacedGenomes(species: readonly SpeciesRoster[]): Promise<void> {
     const answers = await Promise.all(
-      species.map(async (entry) => ({ entry, result: await fetchProjectedGenomes(entry.key) })),
+      species.map(async (entry) => ({ entry, result: await fetchProjectedGenomes(entry.catalogueKey) })),
     );
     const placed: Record<string, readonly ProjectedGenomeEntry[]> = {};
     for (const { entry, result } of answers) {

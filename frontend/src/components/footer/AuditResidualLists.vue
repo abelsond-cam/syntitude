@@ -16,11 +16,11 @@ import { computed, ref } from "vue";
 
 import { fetchAuditResiduals } from "@/api/client";
 import type { Failure } from "@/api/result";
-import type { AuditResidualsResponse, ResidualLocusRow } from "@/api/types";
+import type { AuditResidualsResponse, CatalogueKey, ResidualLocusRow } from "@/api/types";
 import { prevalenceBandLabel } from "@/lib/prevalence";
 
 const props = defineProps<{
-  speciesKey: string;
+  catalogueKey: CatalogueKey;
   audit: Readonly<Record<string, number | string | null>>;
 }>();
 
@@ -48,7 +48,7 @@ const conflictCount = computed(() => lists.value?.pfam_conflicts.length ?? count
 async function load(event: Event): Promise<void> {
   if (!(event.target as HTMLDetailsElement).open || lists.value !== null || isLoading.value) return;
   isLoading.value = true;
-  const result = await fetchAuditResiduals(props.speciesKey);
+  const result = await fetchAuditResiduals(props.catalogueKey);
   isLoading.value = false;
   if (result.ok) {
     lists.value = result.value;

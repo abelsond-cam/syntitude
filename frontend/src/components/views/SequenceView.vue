@@ -6,12 +6,12 @@
  */
 import { storeToRefs } from "pinia";
 
-import type { LocusDetailResponse } from "@/api/types";
+import type { CatalogueKey, LocusDetailResponse } from "@/api/types";
 import AnchorGenomeBox from "@/components/anchor/AnchorGenomeBox.vue";
 import SequenceTab from "@/components/sequence/SequenceTab.vue";
 import { useGeneSequenceStore } from "@/stores/geneSequenceStore";
 
-defineProps<{ detail: LocusDetailResponse; speciesKey: string }>();
+defineProps<{ detail: LocusDetailResponse; catalogueKey: CatalogueKey }>();
 
 const sequence = useGeneSequenceStore();
 const { response, status, lastFailure, sampleId } = storeToRefs(sequence);
@@ -19,7 +19,7 @@ const { response, status, lastFailure, sampleId } = storeToRefs(sequence);
 
 <template>
   <div>
-    <AnchorGenomeBox :species-key="speciesKey" placement="sequence" />
+    <AnchorGenomeBox :catalogue-key="catalogueKey" placement="sequence" />
     <div id="seq-body" class="seq-body">
       <SequenceTab
         :display-name="detail.locus.display_name"

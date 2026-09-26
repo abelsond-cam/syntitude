@@ -43,7 +43,7 @@ const props = defineProps<{
 
 const navigation = useLocusNavigationStore();
 const track = useTrackDisplayStore();
-const { walkDirection, speciesKey } = storeToRefs(navigation);
+const { walkDirection, catalogueKey } = storeToRefs(navigation);
 const {
   slotsForDisplay,
   displayMirror,
@@ -156,8 +156,8 @@ watch([() => props.detail, selectedArrangementIndex, walkDirection], centreFocal
  * a prefetch that is never used costs one request and no correctness risk at all.
  */
 function prefetch(locus: string | null): void {
-  if (locus === null || speciesKey.value === null) return;
-  track.prefetchNeighbour(speciesKey.value, locus);
+  if (locus === null || catalogueKey.value === null) return;
+  track.prefetchNeighbour(catalogueKey.value, locus);
 }
 </script>
 

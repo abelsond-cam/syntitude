@@ -29,6 +29,7 @@
  * ones that are not rendered as blank, unwalkable blocks. On the three ecoli loci it was first
  * recorded on, 37 of 190 slots.
  */
+import { asCatalogueKey } from "@/api/types";
 import { mount } from "@vue/test-utils";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -246,7 +247,7 @@ describe.each(SPECIES_KEYS)("%s", (speciesKey) => {
       const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
       const navigation = useLocusNavigationStore();
-      navigation.setSpecies(speciesKey);
+      navigation.setCatalogue(asCatalogueKey(speciesKey));
       navigation.route = { label: detail.locus.label, direction: "forward" };
       navigation.view = { status: "ready", value: detail };
 

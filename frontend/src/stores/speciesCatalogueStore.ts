@@ -13,9 +13,14 @@
 import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";
 
-import { fetchSpeciesCatalogue, fetchSpeciesList } from "@/api/client";
+import { fetchCatalogues, fetchSpeciesCatalogue, fetchSpeciesList } from "@/api/client";
 import type { Failure } from "@/api/result";
-import type { SpeciesCatalogueResponse, SpeciesListResponse } from "@/api/types";
+import type {
+  CatalogueEntry,
+  CatalogueKey,
+  SpeciesCatalogueResponse,
+  SpeciesListResponse,
+} from "@/api/types";
 
 import { useAnchorGenomeStore } from "./anchorGenomeStore";
 import { useLocusNavigationStore } from "./locusNavigationStore";
@@ -33,13 +38,45 @@ export const useSpeciesCatalogueStore = defineStore("speciesCatalogue", () => {
   const anchor = useAnchorGenomeStore();
 
   const speciesList = shallowRef<CatalogueLoad<readonly SpeciesEntry[]>>({ status: "idle" });
+  const catalogues = shallowRef<CatalogueLoad<readonly CatalogueEntry[]>>({ status: "idle" });
   const catalogue = shallowRef<CatalogueLoad<SpeciesCatalogueResponse>>({ status: "idle" });
-  const speciesKey = ref<string | null>(null);
+  /**
+   * ⛔ The CATALOGUE being shown — `ecoli-nuna5`, not `ecoli`.
+   *
+   * It was the species key while a species had one catalogue. Everything that ADDRESSES the
+   * server keys on this; anything that asks "which organism is this" must use
+   * `current.species.key` instead, because the two stopped being the same string.
+   */
+  const catalogueKey = ref<CatalogueKey | null>(null);
 
   /** The loaded catalogue, or `null` — for components that render nothing until it exists. */
   const current = computed<SpeciesCatalogueResponse | null>(() =>
     catalogue.value.status === "ready" ? catalogue.value.value : null,
   );
+
+  /** Every catalogue on offer, or an empty list until they arrive. */
+  const offeredCatalogues = computed<readonly CatalogueEntry[]>(() =>
+    catalogues.value.status === "ready" ? catalogues.value.value : [],
+  );
+
+  /**
+   * The catalogues of one species — what the model picker offers beside it.
+   *
+   * ⚠ Empty until the list loads, and of length one for a species with a single model. The strip
+   * hides itself in that case rather than showing a control with nothing to choose.
+   */
+  const cataloguesForCurrentSpecies = computed<readonly CatalogueEntry[]>(() => {
+    const species = current.value?.species.key;
+    return species ? offeredCatalogues.value.filter((entry) => entry.species.key === species) : [];
+  });
+
+  async function loadCatalogues(): Promise<void> {
+    catalogues.value = { status: "pending" };
+    const result = await fetchCatalogues();
+    catalogues.value = result.ok
+      ? { status: "ready", value: result.value.catalogues }
+      : { status: "failed", failure: result };
+  }
 
   /** Only the species that serve something are offered as a destination. */
   const publishedSpecies = computed<readonly SpeciesEntry[]>(() =>
@@ -61,14 +98,16 @@ export const useSpeciesCatalogueStore = defineStore("speciesCatalogue", () => {
    * BEFORE the catalogue arrives, so nothing from the previous species can be drawn under the new
    * one's name while the request is in flight.
    */
-  async function selectSpecies(nextSpeciesKey: string): Promise<void> {
-    if (speciesKey.value === nextSpeciesKey && catalogue.value.status !== "failed") return;
-    speciesKey.value = nextSpeciesKey;
-    navigation.setSpecies(nextSpeciesKey);
+  async function selectCatalogue(nextKey: CatalogueKey): Promise<void> {
+    // ⛔ The guard keys on the CATALOGUE, not the species. Keyed on the species it made switching
+    // model within one species a silent no-op — the picker would move and the page would not.
+    if (catalogueKey.value === nextKey && catalogue.value.status !== "failed") return;
+    catalogueKey.value = nextKey;
+    navigation.setCatalogue(nextKey);
     catalogue.value = { status: "pending" };
-    const result = await fetchSpeciesCatalogue(nextSpeciesKey);
-    // ⚠ The reader may have picked another species while this was in flight.
-    if (speciesKey.value !== nextSpeciesKey) return;
+    const result = await fetchSpeciesCatalogue(nextKey);
+    // ⚠ The reader may have picked another catalogue while this was in flight.
+    if (catalogueKey.value !== nextKey) return;
     if (!result.ok) {
       catalogue.value = { status: "failed", failure: result };
       anchor.setAvailability(false);
@@ -82,11 +121,15 @@ export const useSpeciesCatalogueStore = defineStore("speciesCatalogue", () => {
 
   return {
     speciesList,
+    catalogues,
     catalogue,
-    speciesKey,
+    catalogueKey,
     current,
     publishedSpecies,
+    offeredCatalogues,
+    cataloguesForCurrentSpecies,
     loadSpeciesList,
-    selectSpecies,
+    loadCatalogues,
+    selectCatalogue,
   };
 });

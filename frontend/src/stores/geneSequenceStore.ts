@@ -25,7 +25,7 @@ export type SequenceLoadStatus = "idle" | "pending" | "ready" | "failed";
 
 export const useGeneSequenceStore = defineStore("geneSequence", () => {
   const navigation = useLocusNavigationStore();
-  const { drawable, speciesKey } = storeToRefs(navigation);
+  const { drawable, catalogueKey } = storeToRefs(navigation);
   const { sampleId: anchorSampleId } = storeToRefs(useAnchorGenomeStore());
 
   const response = ref<GeneSequenceResponse | null>(null);
@@ -82,7 +82,7 @@ export const useGeneSequenceStore = defineStore("geneSequence", () => {
    * one."*
    */
   async function load(): Promise<void> {
-    const species = speciesKey.value;
+    const species = catalogueKey.value;
     const label = drawable.value?.locus.label ?? null;
     const genome = sampleId.value;
     if (species === null || label === null || genome === null || status.value === "pending") return;

@@ -31,7 +31,7 @@ export type FunctionLoadStatus = "idle" | "pending" | "ready" | "failed";
 
 export const useFunctionBlockStore = defineStore("functionBlock", () => {
   const navigation = useLocusNavigationStore();
-  const { drawable, speciesKey } = storeToRefs(navigation);
+  const { drawable, catalogueKey } = storeToRefs(navigation);
 
   const block = ref<FunctionResponse | null>(null);
   const status = ref<FunctionLoadStatus>("idle");
@@ -82,7 +82,7 @@ export const useFunctionBlockStore = defineStore("functionBlock", () => {
    * COG list and an unanswered request must never look alike.
    */
   async function load(): Promise<void> {
-    const species = speciesKey.value;
+    const species = catalogueKey.value;
     const label = drawable.value?.locus.label ?? null;
     if (species === null || label === null || status.value === "pending") return;
 

@@ -101,9 +101,13 @@ def get_species():
                         "genome_count": pangenome.genome_count if pangenome else None,
                         "gene_count": pangenome.gene_count if pangenome else None,
                         "locus_count": pangenome.locus_count if pangenome else None,
-                        # ⚠ Was a hardcoded `None`, which read as "this species is on no model".
-                        # It is the DEFAULT catalogue's key; the full menu is `GET /catalogues`.
-                        "model_label": pangenome.catalogue_key if pangenome else None,
+                        # ⭐ The species' DEFAULT catalogue — what a bare species request resolves
+                        # to, and the key a page should address once it has followed one. The full
+                        # menu is `GET /catalogues`.
+                        # ⚠ This replaced a field called `model_label` that was a hardcoded `None`.
+                        # A name that describes something other than its content is worse than an
+                        # absent field, and nothing read it.
+                        "catalogue_key": pangenome.catalogue_key if pangenome else None,
                     }
                     for species, pangenome in rows
                 ]
@@ -179,6 +183,12 @@ def get_species_catalogue(species_key: str):
                     "scientific_name": catalogue.species.scientific_name,
                 },
                 "pangenome": {
+                    # ⭐ The key this catalogue is addressed by. Without it a page that followed a
+                    # bare species cannot name what it was given, so it cannot pin the address to
+                    # the clustering the reader is actually looking at — and it cannot be
+                    # reconstructed from (species, model) either, because that pair is not unique
+                    # and `catalogue_key_for` admits deliberate keys like `ecoli-sensitive`.
+                    "catalogue_key": pangenome.catalogue_key,
                     "run_id": pangenome.run_id,
                     "genome_count": pangenome.genome_count,
                     "gene_count": pangenome.gene_count,

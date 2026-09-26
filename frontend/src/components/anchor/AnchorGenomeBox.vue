@@ -26,11 +26,11 @@ import { computed, ref, watch } from "vue";
 
 import { fetchGenomes } from "@/api/client";
 import type { Failure } from "@/api/result";
-import type { GenomeListResponse } from "@/api/types";
+import type { CatalogueKey, GenomeListResponse } from "@/api/types";
 import { useAnchorGenomeStore } from "@/stores/anchorGenomeStore";
 
 const props = defineProps<{
-  speciesKey: string | null;
+  catalogueKey: CatalogueKey | null;
   /** Which mounting this is — it only decides the element ids, never the state. */
   placement: "track" | "sequence";
 }>();
@@ -72,7 +72,7 @@ watch(sampleId, (next) => {
 });
 
 async function search(query: string): Promise<void> {
-  const species = props.speciesKey;
+  const species = props.catalogueKey;
   if (species === null) return;
   const token = ++issued;
   const result = await fetchGenomes(species, query.trim(), { limit: LIST_LIMIT });

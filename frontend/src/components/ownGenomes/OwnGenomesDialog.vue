@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CatalogueKey } from "@/api/types";
 /**
  * "View your own genomes" — the accounts placeholder, the add-genomes step, and what was added.
  *
@@ -77,10 +78,16 @@ watch(
   ([open, step]) => {
     if (!open || step !== "add") return;
     if (own.isLoadingRosters || Object.keys(own.modelledBySpecies).length > 0) return;
-    const roster = props.species.map((entry) => ({
-      key: entry.key,
-      scientificName: entry.scientific_name,
-    }));
+    // ⚠ TWO keys per entry, deliberately: `key` files the answers under the species, and
+    // `catalogueKey` decides which catalogue's placements are read. A species with no default
+    // serves nothing and is skipped rather than addressed by its species key.
+    const roster = props.species
+      .filter((entry) => entry.catalogue_key !== null)
+      .map((entry) => ({
+        key: entry.key,
+        catalogueKey: entry.catalogue_key as CatalogueKey,
+        scientificName: entry.scientific_name,
+      }));
     // ⛔ Both lists, together. "Placed here", "modelled here" and "neither" are three different
     // answers, and with only one list loaded the dialog would give the wrong one of the three.
     void own.loadRosters(roster);
