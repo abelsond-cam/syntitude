@@ -21,3 +21,7 @@ frontend/dist/
 # Database dumps — ~100 MB each, and a snapshot of data that is rebuilt, not versioned
 *.dump
 deploy/dump/
+
+# Python build artefacts (the PyPI stub)
+packaging/*/dist/
+packaging/*/*.egg-info/

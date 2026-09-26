@@ -1,0 +1,36 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = [ "hatchling" ]
+
+[project]
+name = "bacatlas"
+version = "0.0.1"
+description = "BacAtlas — a locus-centred atlas of bacterial pangenomes"
+readme = "README.md"
+license = { file = "LICENSE" }
+maintainers = [
+  { name = "David Abelson", email = "dca36@cam.ac.uk" },
+]
+authors = [
+  { name = "David Abelson" },
+]
+requires-python = ">=3.11"
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [  ]
+# https://docs.pypi.org/project_metadata/#project-urls
+urls.Homepage = "https://github.com/abelsond-cam/bacatlas"
+urls.Source = "https://github.com/abelsond-cam/bacatlas"
+
+[tool.hatch]
+build.targets.wheel.packages = [ "src/bacatlas" ]
