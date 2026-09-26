@@ -8,7 +8,7 @@ import { defineConfig } from "vite";
 // origin. Both come from build-time config so that neither is a code change:
 //   VITE_API_BASE_URL   where the API lives   (default: same origin, `/api/v1`)
 //   VITE_PUBLIC_BASE    where the app is served from (default: `/`)
-// A literal `https://…` or `/syntitude/…` compiled into a component is exactly the thing that
+// A literal `https://…` or `/bacatlas/…` compiled into a component is exactly the thing that
 // makes the second deployment a rewrite instead of an environment variable.
 export default defineConfig(({ mode }) => ({
   base: process.env.VITE_PUBLIC_BASE ?? "/",

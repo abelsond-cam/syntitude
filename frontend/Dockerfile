@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
 #
-# The Syntitude web front — the Vue app built once, then served by nginx with the API proxied
+# The BacAtlas web front — the Vue app built once, then served by nginx with the API proxied
 # beside it. Built by `compose.yaml` at the repo root; the context is `frontend/`.
 #
 # Two build args, and they are the ONLY place a deployment's paths enter the bundle
 # (`vite.config.ts`, `src/api/request.ts`):
-#   VITE_PUBLIC_BASE    where the app is served from — `/` or e.g. `/syntitude/`, slash-bounded
+#   VITE_PUBLIC_BASE    where the app is served from — `/` or e.g. `/bacatlas/`, slash-bounded
 #   VITE_API_BASE_URL   where the API lives — empty means "under the app's own base"
 #                       (`${VITE_PUBLIC_BASE}api/v1`), which the nginx stage below proxies. Set it
 #                       only when the API moves to another origin, e.g. the later public deployment.
@@ -13,7 +13,7 @@
 # ── build ────────────────────────────────────────────────────────────────────────────────────────
 # Node 24 is the active LTS; `package-lock.json` is lockfileVersion 3, which any npm ≥ 7 accepts.
 FROM node:24-bookworm-slim AS build
-WORKDIR /srv/syntitude/frontend
+WORKDIR /srv/bacatlas/frontend
 
 # Dependencies first, so a source edit does not reinstall them.
 COPY package.json package-lock.json ./
@@ -48,13 +48,13 @@ ARG VITE_PUBLIC_BASE=/
 # nginx's own welcome page would otherwise answer at `/` whenever the app lives under a subpath.
 RUN rm -f /etc/nginx/conf.d/default.conf /usr/share/nginx/html/index.html /usr/share/nginx/html/50x.html
 
-COPY nginx/syntitude.conf.template /etc/nginx/syntitude.conf.template
-RUN sed "s#@PUBLIC_BASE@#${VITE_PUBLIC_BASE}#g" /etc/nginx/syntitude.conf.template \
-      > /etc/nginx/conf.d/syntitude.conf \
+COPY nginx/bacatlas.conf.template /etc/nginx/bacatlas.conf.template
+RUN sed "s#@PUBLIC_BASE@#${VITE_PUBLIC_BASE}#g" /etc/nginx/bacatlas.conf.template \
+      > /etc/nginx/conf.d/bacatlas.conf \
     && nginx -t
 
 # The bundle lands AT the base, so a URL path maps onto a file path with no rewriting at all.
-COPY --from=build /srv/syntitude/frontend/dist /usr/share/nginx/html${VITE_PUBLIC_BASE}
+COPY --from=build /srv/bacatlas/frontend/dist /usr/share/nginx/html${VITE_PUBLIC_BASE}
 
 # Read by the compose healthcheck, so it probes the path this image actually serves.
 ENV SYNTITUDE_PUBLIC_BASE=${VITE_PUBLIC_BASE}

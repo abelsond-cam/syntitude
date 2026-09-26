@@ -1,7 +1,7 @@
 # The web front: the built app, and the API proxied under the SAME base.
 #
 # Rendered once, at image build, by `frontend/Dockerfile`: `@PUBLIC_BASE@` becomes the
-# `VITE_PUBLIC_BASE` build arg (`/` or e.g. `/syntitude/`, always slash-bounded). The base is
+# `VITE_PUBLIC_BASE` build arg (`/` or e.g. `/bacatlas/`, always slash-bounded). The base is
 # compiled into the bundle's asset URLs, so it is fixed for an image — and rendering this file from
 # the same argument is what keeps the server's paths and the bundle's paths from disagreeing.
 
@@ -10,8 +10,8 @@
 # address and every API call 502s until nginx is restarted too. 127.0.0.11 is Docker's own DNS.
 resolver 127.0.0.11 valid=10s ipv6=off;
 
-upstream syntitude_api {
-    zone syntitude_api 64k;
+upstream bacatlas_api {
+    zone bacatlas_api 64k;
     server api:8000 resolve;
 }
 
@@ -39,7 +39,7 @@ server {
     # untouched, so the API's own `ETag` / `If-None-Match` / `Cache-Control` still work end to end —
     # nothing here caches, because every response already says how long it may be cached for.
     location @PUBLIC_BASE@api/ {
-        proxy_pass http://syntitude_api/api/;
+        proxy_pass http://bacatlas_api/api/;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_set_header Host $host;

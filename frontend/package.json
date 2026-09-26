@@ -1,9 +1,9 @@
 {
-  "name": "syntitude-frontend",
+  "name": "bacatlas-frontend",
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "The Syntitude pangenome locus browser — Vue 3 over the /api/v1 contract",
+  "description": "The BacAtlas pangenome locus browser — Vue 3 over the /api/v1 contract",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
